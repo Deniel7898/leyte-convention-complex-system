@@ -80,22 +80,6 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        Schema::create('service_records', function (Blueprint $table) {
-            $table->id();
-            $table->text('description')->nullable();
-            $table->string('quantity');
-            $table->date('schedule_date')->nullable();
-            $table->date('completed_date')->nullable();
-            $table->text('encharge_person')->nullable();
-            $table->string('picture')->nullable();
-            $table->text('remarks')->nullable();
-            $table->foreignId('inventory_non_consumable_id')->nullable()->constrained('inventory_non_consumable')->onDelete('set null');
-            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->timestamps();
-            $table->softDeletes();
-        });
-
         Schema::create('item_distributions', function (Blueprint $table) {
             $table->id();
             $table->enum('type', ['distribution', 'borrow'])->default('distribution');
@@ -107,6 +91,22 @@ return new class extends Migration
             $table->enum('status', ['pending', 'distributed', 'borrowed', 'returned', 'received'])->default('distributed');
             $table->text('remarks')->nullable();
             $table->foreignId('inventory_consumable_id')->nullable()->constrained('inventory_consumable')->onDelete('set null');
+            $table->foreignId('inventory_non_consumable_id')->nullable()->constrained('inventory_non_consumable')->onDelete('set null');
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamps();
+            $table->softDeletes();
+        });
+
+        Schema::create('service_records', function (Blueprint $table) {
+            $table->id();
+            $table->text('description')->nullable();
+            $table->string('quantity');
+            $table->date('schedule_date')->nullable();
+            $table->date('completed_date')->nullable();
+            $table->text('encharge_person')->nullable();
+            $table->string('picture')->nullable();
+            $table->text('remarks')->nullable();
             $table->foreignId('inventory_non_consumable_id')->nullable()->constrained('inventory_non_consumable')->onDelete('set null');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
@@ -146,8 +146,8 @@ return new class extends Migration
         Schema::dropIfExists('categories');
         Schema::dropIfExists('units');
         Schema::dropIfExists('items_purchase_request');
-        Schema::dropIfExists('purchase_request');
         Schema::dropIfExists('item_distributions');
+        Schema::dropIfExists('purchase_request');
         Schema::dropIfExists('service_records');
         Schema::dropIfExists('inventory_non_consumable');
         Schema::dropIfExists('inventory_consumable');

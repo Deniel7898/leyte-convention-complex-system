@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: leyte_complex_center_system
+    container_name: leyte_convention_complex_system
     ports:
       - "8000:80"
     volumes:
@@ -16,7 +16,7 @@ services:
     image: mysql:8
     container_name: mysql_db
     environment:
-      MYSQL_DATABASE: leyte_complex_center_system
+      MYSQL_DATABASE: leyte_convention_complex_system
       MYSQL_ROOT_PASSWORD: root
       MYSQL_USER: laravel
       MYSQL_PASSWORD: secret
