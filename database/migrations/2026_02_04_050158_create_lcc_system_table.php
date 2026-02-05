@@ -11,6 +11,36 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::create('categories', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamps();
+            $table->softDeletes();
+        });
+
+        Schema::create('units', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamps();
+            $table->softDeletes();
+        });
+
+        Schema::create('qr_codes', function (Blueprint $table) {
+            $table->id();
+            $table->string('code')->unique();
+            $table->enum('status', ['active', 'used', 'expired'])->default('active');
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamps();
+            $table->softDeletes();
+        });
+
         Schema::create('items', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -106,35 +136,6 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        Schema::create('qr_codes', function (Blueprint $table) {
-            $table->id();
-            $table->string('code')->unique();
-            $table->enum('status', ['active', 'used', 'expired'])->default('active');
-            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->timestamps();
-            $table->softDeletes();
-        });
-
-        Schema::create('categories', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->text('description')->nullable();
-            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->timestamps();
-            $table->softDeletes();
-        });
-
-        Schema::create('units', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->text('description')->nullable();
-            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->timestamps();
-            $table->softDeletes();
-        });
     }
 
     /**
@@ -142,13 +143,13 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('items');
-        Schema::dropIfExists('inventory_consumable');
-        Schema::dropIfExists('inventory_non_consumable');
-        Schema::dropIfExists('service_records');
-        Schema::dropIfExists('item_distribution');
+        Schema::dropIfExists('items_purchase_request');
         Schema::dropIfExists('purchase_request');
-        Schema::dropIfExists('item_purchase_request');
+        Schema::dropIfExists('item_distributions');
+        Schema::dropIfExists('service_records');
+        Schema::dropIfExists('inventory_non_consumable');
+        Schema::dropIfExists('inventory_consumable');
+        Schema::dropIfExists('items');
         Schema::dropIfExists('qr_codes');
         Schema::dropIfExists('categories');
         Schema::dropIfExists('units');
