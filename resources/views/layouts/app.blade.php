@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'Laravel') }}</title>
 
     <!-- ========== All CSS files linkup ========= -->
@@ -14,6 +15,7 @@
     <link rel="stylesheet" href="{{ asset('css/materialdesignicons.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/main.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/custom/categories.css') }}" />
 
     <!-- <link rel="stylesheet" href="{{ asset('css/custom/'.request()->segment(1).'.css') }}" /> -->
 </head>
@@ -166,6 +168,7 @@
     <!-- ======== main-wrapper end =========== -->
 
     <!-- ========= All Javascript files linkup ======== -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/Chart.min.js') }}"></script>
     <script src="{{ asset('js/dynamic-pie-chart.js') }}"></script>
@@ -176,7 +179,7 @@
     <script src="{{ asset('js/polyfill.js') }}"></script>
     <script src="{{ asset('js/main.js') }}"></script>
 
-    <!-- <script src="{{ asset('js/custom/'.request()->segment(1).'.js') }}"></script> -->
+    <script src="{{ asset('js/custom/'.request()->segment(1).'.js') }}"></script>
 </body>
 
 </html>
