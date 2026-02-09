@@ -1,0 +1,7 @@
+td button {
+    transition: 0.2s ease;
+}
+
+td button:hover {
+    transform: scale(1.15);
+}

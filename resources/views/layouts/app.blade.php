@@ -7,6 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{ config('app.name', 'Laravel') }}</title>
 
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <!-- ========== All CSS files linkup ========= -->
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/lineicons.css') }}" />
@@ -14,6 +16,14 @@
     <link rel="stylesheet" href="{{ asset('css/materialdesignicons.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/main.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/custom/custom_modal.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/custom/icon.css') }}">
+
+
+    <!-- Bootstrap Icons CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+
 
     <link rel="stylesheet" href="{{ asset('css/custom/'.request()->segment(1).'.css') }}" />
 </head>
@@ -166,6 +176,7 @@
     <!-- ======== main-wrapper end =========== -->
 
     <!-- ========= All Javascript files linkup ======== -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/Chart.min.js') }}"></script>
     <script src="{{ asset('js/dynamic-pie-chart.js') }}"></script>
