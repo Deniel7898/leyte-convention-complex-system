@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="{{ asset('css/main.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}" />
 
-    <!-- <link rel="stylesheet" href="{{ asset('css/custom/'.request()->segment(1).'.css') }}" /> -->
+    <link rel="stylesheet" href="{{ asset('css/custom/'.request()->segment(1).'.css') }}" />
 </head>
 
 <body>
@@ -176,7 +176,10 @@
     <script src="{{ asset('js/polyfill.js') }}"></script>
     <script src="{{ asset('js/main.js') }}"></script>
 
-    <!-- <script src="{{ asset('js/custom/'.request()->segment(1).'.js') }}"></script> -->
+    <script src="{{ asset('js/custom/'.request()->segment(1).'.js') }}"></script>
+
+    <!-- Sweet alert CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 
 </html>
