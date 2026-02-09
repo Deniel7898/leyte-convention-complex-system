@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('page_title', 'Reference Data')
+
 @section('content')
 <!-- ========== title-wrapper start ========== -->
 <div class="title-wrapper pt-30">

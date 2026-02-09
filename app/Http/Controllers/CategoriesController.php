@@ -1,8 +1,11 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\Categories;
+
 use Illuminate\Http\Request;
+use App\Models\Categories;
+use Illuminate\Support\Facades\Auth;
+
 
 class CategoriesController extends Controller
 {
@@ -12,8 +15,8 @@ class CategoriesController extends Controller
     public function index()
     {
         $categories = Categories::all();
-        $categories_table = view('settings.categories.table', compact('categories'))->render();
-        return view('settings.categories.index', compact('categories_table')); 
+        $categories_table = view('reference.categories.table', compact('categories'))->render();
+        return view('reference.categories.index', compact('categories_table'));
     }
 
     /**
@@ -21,7 +24,7 @@ class CategoriesController extends Controller
      */
     public function create()
     {
-        return view('settings.categories.form');
+        return view('reference.categories.form');
     }
 
     /**
@@ -29,18 +32,18 @@ class CategoriesController extends Controller
      */
     public function store(Request $request)
     {
-        $validate = $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
         ]);
 
-        $validate['created_by'] = auth()->user()->id;
-        $validate['updated_by'] = auth()->user()->id;
+        $validated['created_by'] = Auth::id();
+        $validated['updated_by'] = Auth::id();
 
-        Categories::create($validate);
+        Categories::create($validated);
 
         $categories = Categories::all();
-        $categories_table = view('settings.categories.table', compact('categories'))->render();
+        $categories_table = view('reference.categories.table', compact('categories'))->render();
         return $categories_table;
     }
 
@@ -58,7 +61,7 @@ class CategoriesController extends Controller
     public function edit(string $id)
     {
         $category = Categories::findOrFail($id);
-        return view('settings.categories.form', compact('category'));
+        return view('reference.categories.form', compact('category'));
     }
 
     /**
@@ -66,17 +69,17 @@ class CategoriesController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $validate = $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
         ]);
 
-        $validate['updated_by'] = auth()->user()->id;
+        $validated['created_by'] = Auth::id();
 
-        Categories::where('id', $id)->update($validate);
+        Categories::where('id', $id)->update($validated);
 
         $categories = Categories::all();
-        $categories_table = view('settings.categories.table', compact('categories'))->render();
+        $categories_table = view('reference.categories.table', compact('categories'))->render();
         return $categories_table;
     }
 
@@ -85,10 +88,11 @@ class CategoriesController extends Controller
      */
     public function destroy(string $id)
     {
-        Categories::destroy($id);
+        $category = Categories::findOrFail($id);
+        $category->delete();
 
         $categories = Categories::all();
-        $categories_table = view('settings.categories.table', compact('categories'))->render();
+        $categories_table = view('reference.categories.table', compact('categories'))->render();
         return $categories_table;
     }
 }

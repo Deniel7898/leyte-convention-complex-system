@@ -180,6 +180,9 @@
     <script src="{{ asset('js/main.js') }}"></script>
 
     <script src="{{ asset('js/custom/'.request()->segment(1).'.js') }}"></script>
+
+    <!-- Sweet alert CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 
 </html>
