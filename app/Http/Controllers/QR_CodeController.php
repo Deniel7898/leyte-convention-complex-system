@@ -2,63 +2,85 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\QR_Code;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use SimpleSoftwareIO\QrCode\Facades\QrCode as QrGenerator;
+use Illuminate\Support\Facades\Auth;
 
 class QR_CodeController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display list of QR codes
      */
     public function index()
     {
-        //
+        $qrCodes = QR_Code::latest()->paginate(10);
+        return view('reference.qr_code.index', compact('qrCodes'));
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
+     * Generate new QR Code
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'code' => 'nullable|string|unique:qr_codes,code',
+        ]);
+
+        $code = $request->code ?? 'LCC-' . strtoupper(Str::random(8));
+
+        QR_Code::create([
+            'code' => $code,
+            'status' => QR_Code::STATUS_ACTIVE,
+            'created_by' => Auth::id(),
+        ]);
+
+        return redirect()->route('qr_codes.index')
+            ->with('success', 'QR Code generated successfully.');
     }
 
     /**
-     * Display the specified resource.
+     * Show QR Image
      */
-    public function show(string $id)
+    public function show($id)
     {
-        //
+        $qr = QR_Code::findOrFail($id);
+
+        return response(
+            QrGenerator::size(300)->generate($qr->code)
+        )->header('Content-Type', 'image/svg+xml');
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Mark as Used
      */
-    public function edit(string $id)
+    public function markUsed($id)
     {
-        //
+        $qr = QR_Code::findOrFail($id);
+
+        if ($qr->isUsed()) {
+            return back()->with('error', 'QR Code is already used.');
+        }
+
+        $qr->markAsUsed();
+
+        return redirect()->route('qr_codes.index')
+            ->with('success', 'QR marked as used.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+    public function destroy($id)
+{
+    $qr = QR_Code::findOrFail($id);
+    $qr->delete();
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
+    $qrCodes = QR_Code::latest()->paginate(10);
+    $view = view('reference.qr_code.table', compact('qrCodes'))->render();
+
+    return response()->json([
+        'success' => true,
+        'html' => $view
+    ]);
+}
+
 }

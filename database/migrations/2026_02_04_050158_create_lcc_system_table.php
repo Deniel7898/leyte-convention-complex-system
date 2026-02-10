@@ -12,14 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('qr_codes', function (Blueprint $table) {
-            $table->id();
-            $table->string('code')->unique();
-            $table->enum('status', ['active', 'used', 'expired'])->default('active');
-            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->timestamps();
-            $table->softDeletes();
-        });
+        $table->id();
+        $table->string('code')->unique();
+        $table->enum('status', ['active', 'used', 'expired'])->default('active');
+        $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+        $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
+        $table->timestamp('used_at')->nullable();       // ✅ Add this
+        $table->timestamp('expired_at')->nullable();    // ✅ Optional
+        $table->timestamps();
+        $table->softDeletes();
+    });
         
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
@@ -138,19 +140,23 @@ return new class extends Migration
     }
 
     /**
-     * Reverse the migrations.
+     * Need to drop tables in reverse order of creation to avoid foreign key constraint issues
+     * Child tables must be dropped before parent tables that they reference
+     * cause if we try to drop a parent table first, the database will throw an error due to existing 
+     * foreign key constraints from child tables.
      */
     public function down(): void
     {
-        Schema::dropIfExists('qr_codes');
-        Schema::dropIfExists('categories');
-        Schema::dropIfExists('units');
         Schema::dropIfExists('items_purchase_request');
         Schema::dropIfExists('item_distributions');
-        Schema::dropIfExists('purchase_request');
         Schema::dropIfExists('service_records');
         Schema::dropIfExists('inventory_non_consumable');
         Schema::dropIfExists('inventory_consumable');
         Schema::dropIfExists('items');
+        Schema::dropIfExists('purchase_request');
+        Schema::dropIfExists('units');
+        Schema::dropIfExists('categories');
+        Schema::dropIfExists('qr_codes');
+
     }
 };

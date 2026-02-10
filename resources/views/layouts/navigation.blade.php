@@ -93,7 +93,7 @@
             </a>
             <ul id="ddmenu_1" class="dropdown-nav collapse mt-1 ps-4" data-bs-parent="#sidebarAccordion">
                 <li>
-                    <a href="#" title="{{ __('QR Codes & Labels') }}">
+                    <a href="{{ route('qr_codes.index') }}" title="{{ __('QR Codes & Labels') }}">
                         <span class="icon">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-qr-code" viewBox="0 0 16 16">
                                 <path d="M2 2h2v2H2z" />
