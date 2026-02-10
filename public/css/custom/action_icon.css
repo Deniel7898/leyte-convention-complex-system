@@ -1,0 +1,22 @@
+.action-icons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+}
+
+.icon-box {
+    width: 30px; /* reserves space even if icon is missing */
+    text-align: center;
+}
+
+.action-icons .btn {
+    transition: 0.2s ease-in-out;
+    border-radius: 50%;
+    padding: 6px;
+}
+
+.action-icons .btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    transform: scale(1.15);
+}
