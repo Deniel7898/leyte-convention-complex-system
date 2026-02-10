@@ -1,0 +1,11 @@
+.action-icons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+}
+
+.icon-box {
+    width: 30px; /* reserves space even if icon is missing */
+    text-align: center;
+}
