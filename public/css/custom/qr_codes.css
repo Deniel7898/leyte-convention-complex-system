@@ -1,0 +1,125 @@
+/* PAGE */
+.content-wrapper {
+    padding: 30px;
+}
+
+/* HEADER */
+.page-header h4 {
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+/* CARD */
+.card-custom {
+    background: #fff;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.04);
+}
+
+/* CARD HEADER */
+.card-header-custom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* ADD BUTTON */
+.btn-add {
+    background: #4e73df;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    transition: 0.2s;
+}
+
+.btn-add:hover {
+    background: #2e59d9;
+    transform: scale(1.05);
+}
+
+/* TABLE */
+.table-custom {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-custom th {
+    text-align: left;
+    padding: 12px;
+    font-weight: 600;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.table-custom td {
+    padding: 12px;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.table-custom tbody tr:hover {
+    background: #f8f9fc;
+}
+
+/* STATUS BADGES */
+.badge-active {
+    background: #d4edda;
+    color: #155724;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.badge-used {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.badge-expired {
+    background: #fff3cd;
+    color: #856404;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+/* ACTION BUTTONS */
+.actions a,
+.actions button {
+    margin-right: 10px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.action-view {
+    color: #36b9cc;
+}
+
+.action-warning {
+    color: #f6c23e;
+}
+
+/* ALERTS */
+.alert-success-custom {
+    background: #d4edda;
+    color: #155724;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+
+.alert-danger-custom {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
