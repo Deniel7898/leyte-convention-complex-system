@@ -36,3 +36,8 @@ Route::middleware('auth')->group(function () {
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::resource('categories', App\Http\Controllers\CategoriesController::class)->middleware('auth'); // includes all CRUD routes for categories
 Route::resource('units', App\Http\Controllers\UnitsController::class)->middleware('auth'); // includes all CRUD routes for units
+Route::resource('qr_codes', controller: App\Http\Controllers\QR_CodeController::class)->middleware('auth'); // includes all CRUD routes for QR codes
+
+Route::post('qr_codes/{qr_code}/mark-used',
+    [App\Http\Controllers\QR_CodeController::class, 'markUsed']
+)->name('qr_codes.markUsed')->middleware('auth');
