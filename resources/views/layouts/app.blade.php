@@ -18,6 +18,8 @@
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/custom/custom_modal.css') }}">
     <link rel="stylesheet" href="{{ asset('css/custom/icon.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/custom/qr_codes.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/custom/action_icon.css') }}">
 
 
     <!-- Bootstrap Icons CDN -->
