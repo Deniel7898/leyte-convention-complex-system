@@ -4,19 +4,8 @@
     <td>{{ $category->name }}</td>
     <td>{{ $category->description }}</td>
     <td class="text-center">
-
-        <!-- Edit Icon -->
-        <button class="btn btn-sm btn-link text-warning edit"
-                data-url="{{ route('categories.edit', $category->id) }}">
-            <i class="bi bi-pencil-square fs-5"></i>
-        </button>
-
-        <!-- Delete Icon -->
-        <button class="btn btn-sm btn-link text-danger delete"
-                data-url="{{ route('categories.destroy', $category->id) }}">
-            <i class="bi bi-trash fs-5"></i>
-        </button>
-
+        <button class="btn btn-primary edit" data-url="{{route('categories.edit', ['category' => $category->id])}}"><i class="lni lni-pencil"></i></button>
+        <button class="btn btn-danger delete" data-url="{{route('categories.destroy', ['category' => $category->id])}}"><i class="lni lni-trash-can"></i></button>
     </td>
 </tr>
 @endforeach
