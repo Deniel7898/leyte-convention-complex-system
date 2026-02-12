@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="{{ asset('css/custom/icon.css') }}">
     <link rel="stylesheet" href="{{ asset('css/custom/qr_codes.css') }}">
     <link rel="stylesheet" href="{{ asset('css/custom/action_icon.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/custom/purchase_request.css') }}">
 
 
     <!-- Bootstrap Icons CDN -->
