@@ -3010,3 +3010,7 @@
 #45 /var/www/html/public/index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
 #46 {main}
 "} 
+[2026-02-12 01:42:00] local.ERROR: Cannot use App\Models\Units as Units because the name is already in use {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Cannot use App\\Models\\Units as Units because the name is already in use at /var/www/html/app/Http/Controllers/UnitsController.php:6)
+[stacktrace]
+#0 {main}
+"} 

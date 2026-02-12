@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 use App\Models\Units;
 use Illuminate\Http\Request;
-use App\Models\Units;
 use Illuminate\Support\Facades\Auth;
 
 class unitsController extends Controller
