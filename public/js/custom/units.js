@@ -83,67 +83,41 @@ $(function () {
         });
     });
 
-    //form submit (only for modal forms)
-    $(document).on('submit', '#units_modal form', function (e) {
+    //form submit
+    $(document).on('submit', 'form', function (e) {
         e.preventDefault();
         $('#loading-spinner').addClass('active');
         var form = $(this);
         var url = form.attr('action');
-        var method = form.attr('method') || 'POST';
-
-        // If HTML form uses method spoofing (<input name="_method">), send as POST so _method is preserved in serialized data
-        if (form.find('input[name="_method"]').length) {
-            method = 'POST';
-        }
-
+        var method = form.attr('method');
         var data = form.serialize();
-
         $.ajax({
             url: url,
             type: method,
             data: data,
-            dataType: 'html'
-        })
-        .done(function (response) {
-            $('#units_table tbody').html(response);
+            success: function (response) {
+                $('#units_table tbody').html(response);
 
-            // Hide modal only if it's an update
-            if ($('#units_modal').data('action') === 'update') {
-                $('#units_modal').modal('hide');
+                // Hide modal only if it's an update
+                if ($('#units_modal').data('action') === 'update') {
+                    $('#units_modal').modal('hide');
+                }
+
+                form.find('input[type="text"], textarea').val('');
+                $('#loading-spinner').removeClass('active'); // hide
+
+                //Sweet ALert
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Data saved successfully!',
+                    showConfirmButton: false,
+                    timer: 1500,
+                    width: '400px',
+                    padding: '0.8rem',
+                    timerProgressBar: false // removes the countdown line
+                });
             }
-
-            form.find('input[type="text"], textarea').val('');
-            $('#loading-spinner').removeClass('active'); // hide
-
-            //Sweet Alert
-            Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: 'Data saved successfully!',
-                showConfirmButton: false,
-                timer: 1500,
-                width: '400px',
-                padding: '0.8rem',
-                timerProgressBar: false
-            });
         })
-        .fail(function (xhr) {
-            $('#loading-spinner').removeClass('active');
-            var message = 'Something went wrong.';
-            try {
-                var json = JSON.parse(xhr.responseText);
-                if (json.message) message = json.message;
-            } catch (e) {
-                // not JSON
-                if (xhr.responseText) message = xhr.responseText;
-            }
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: message,
-                width: '400px'
-            });
-            console.log(xhr.responseText);
-        });
-    });
+    })
 })
