@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 use App\Models\Units;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
-class UnitsController extends Controller
+class unitsController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -13,7 +14,7 @@ class UnitsController extends Controller
     {
         $units = Units::all();
         $units_table = view('reference.units.table', compact('units'))->render();
-        return view('reference.units.index', compact('units_table')); 
+        return view('reference.units.index', compact('units_table'));
     }
 
     /**
@@ -29,19 +30,18 @@ class UnitsController extends Controller
      */
     public function store(Request $request)
     {
-        $validate = $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
         ]);
 
-        $validate['created_by'] = auth()->user()->id;
-        $validate['updated_by'] = auth()->user()->id;
+        $validated['created_by'] = Auth::id();
+        $validated['updated_by'] = Auth::id();
 
-        Units::create($validate);
+        units::create($validated);
 
         $units = Units::all();
-        $units_table = view('reference.units.table', compact('units'))->render();
-        return $units_table;
+        return view('reference.units.table', compact('units'))->render();
     }
 
     /**
@@ -66,18 +66,17 @@ class UnitsController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $validate = $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
         ]);
 
-        $validate['updated_by'] = auth()->user()->id;
+        $validated['updated_by'] = Auth::id();
 
-        Units::where('id', $id)->update($validate);
+        Units::updateOrCreate(['id' => $id], $validated);
 
         $units = Units::all();
-        $units_table = view('reference.units.table', compact('units'))->render();
-        return $units_table;
+        return view('reference.units.table', compact('units'))->render();
     }
 
     /**
@@ -85,10 +84,10 @@ class UnitsController extends Controller
      */
     public function destroy(string $id)
     {
-        Units::destroy($id);
+        $unit = Units::findOrFail($id);
+        $unit->delete();
 
         $units = Units::all();
-        $units_table = view('reference.units.table', compact('units'))->render();
-        return $units_table;
+        return view('reference.units.table', compact('units'))->render();
     }
 }

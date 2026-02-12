@@ -22,31 +22,26 @@
         <div class="card-content">
             <h6 class="mb-25">{{ __('Units List') }}</h6>
             <div class="table-responsive">
-
-                <button class="btn btn-primary mb-3 add-unit"
-                        data-url="{{ route('units.create') }}">
+                <button class="btn btn-primary mb-3 add-unit" data-url="{{route('units.create')}}">
                     <i class="lni lni-plus"></i>
                 </button>
-
                 <table class="table" id="units_table">
                     <thead>
-                        <tr>
-                            <th class="align-middle">ID</th>
-                            <th class="align-middle">Name</th>
-                            <th class="align-middle">Description</th>
-                            <th class="text-center align-middle">Actions</th>
-                        </tr>
+                    <tr class="text-center">
+                        <th><h6>{{ __('#') }}</h6></th>
+                        <th><h6>{{ __('Name') }}</h6></th>
+                        <th><h6>{{ __('Description') }}</h6></th>
+                        <th><h6>{{ __('Actions') }}</h6></th>
+                    </tr>
                     </thead>
                     <tbody>
-                        {!! $units_table !!}
+                    {!!$units_table!!}
                     </tbody>
                 </table>
-
             </div>
         </div>
     </div>
 </div>
-
 <!-- Modal -->
 <div class="modal fade" id="units_modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -55,9 +50,8 @@
         </div>
     </div>
 </div>
-
 <!-- Loading Spinner -->
 <div id="loading-spinner">
-    <div class="spinner"></div>
+  <div class="spinner"></div>
 </div>
 @endsection
