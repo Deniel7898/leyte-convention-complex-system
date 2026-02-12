@@ -1,0 +1,79 @@
+#loading-spinner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.7);
+  z-index: 9999;
+  display: none;
+  /* Hidden by default */
+}
+
+/* When shown (e.g., via JS), it becomes flex */
+#loading-spinner.active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #3498db;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Modern nav styling */
+.nav-modern {
+  background: #fff;
+  padding: 0.30rem 0.75rem;
+  /* reduced padding for smaller height */
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  /* lighter shadow */
+  display: flex;
+  gap: 0.5rem;
+  /* tighter spacing */
+  max-width: 450px;
+  margin-bottom: 0;
+  /* remove bottom margin */
+}
+
+.nav-modern a {
+  flex: 1;
+  text-align: center;
+  padding: 0.35rem 0;
+  /* smaller height */
+  border-radius: 0.5rem;
+  font-weight: 550;
+  font-size: 1rem;
+  /* slightly smaller font */
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: #495057;
+}
+
+.nav-modern a:hover {
+  background-color: hsl(237, 34%, 25%);
+  color: #fff;
+  transform: translateY(-1px);
+  /* subtle lift effect */
+}
+
+.nav-modern a.active {
+  background-color: rgb(43, 45, 87);
+  color: #fff;
+}
