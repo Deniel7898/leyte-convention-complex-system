@@ -49,7 +49,6 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->boolean('availability');
             $table->string('quantity');
-            $table->string('remaining');
             $table->string('picture')->nullable();
             $table->foreignId('category_id')->nullable()->constrained('categories')->onDelete('set null');
             $table->foreignId('unit_id')->nullable()->constrained('units')->onDelete('set null');
