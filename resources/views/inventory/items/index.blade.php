@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('page_title', 'Items Record')
+@section('page_title', 'Inventory Management')
 
 @section('content')
 
@@ -46,11 +46,9 @@
 
         <div class="col-auto">
             <div class="col-auto add-item" data-url="{{route('items.create')}}">
-                <div class="col-auto add-item" data-url="{{route('items.create')}}">
-                    <button class="btn px-4 text-white" style="background-color: hsl(237, 34%, 30%);" onmouseover="this.style.backgroundColor='hsl(237, 34%, 40%)'" onmouseout="this.style.backgroundColor='hsl(237, 34%, 30%)'">
-                        + Add Item
-                    </button>
-                </div>
+                <button class="btn px-4 text-white" style="background-color: hsl(237, 34%, 30%);" onmouseover="this.style.backgroundColor='hsl(237, 34%, 40%)'" onmouseout="this.style.backgroundColor='hsl(237, 34%, 30%)'">
+                    + Add Item
+                </button>
             </div>
         </div>
     </div>
@@ -70,36 +68,17 @@
                 <table class="table" id="items_table">
                     <thead>
                         <tr class="text-center">
-                            <th>
-                                <h6>{{ __('#') }}</h6>
-                            </th>
-                            <th>
-                                <h6>{{ __('Name') }}</h6>
-                            </th>
-                            <th>
-                                <h6>{{ __('Availability') }}</h6>
-                            </th>
-                            <th>
-                                <h6>{{ __('Quantity') }}</h6>
-                            </th>
-                            <th>
-                                <h6>{{ __('Remaining') }}</h6>
-                            </th>
-                            <th>
-                                <h6>{{ __('Unit') }}</h6>
-                            </th>
-                            <th>
-                                <h6>{{ __('Category') }}</h6>
-                            </th>
-                            <th>
-                                <h6>{{ __('Description') }}</h6>
-                            </th>
-                            <th>
-                                <h6>{{ __('Picture') }}</h6>
-                            </th>
-                            <th>
-                                <h6>{{ __('Actions') }}</h6>
-                            </th>
+                            <th>{{ __('#') }}</th>
+                            <th>{{ __('Name') }}</th>
+                            <th>{{ __('Type') }}</th>
+                            <th>{{ __('Availability') }}</th>
+                            <th>{{ __('Quantity') }}</th>
+                            <th>{{ __('Remaining') }}</th>
+                            <th>{{ __('Unit') }}</th>
+                            <th>{{ __('Category') }}</th>
+                            <th>{{ __('Description') }}</th>
+                            <th>{{ __('Picture') }}</th>
+                            <th>{{ __('Actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -113,7 +92,7 @@
 </div>
 <!-- Modal -->
 <div class="modal fade" id="items_modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
 
         </div>

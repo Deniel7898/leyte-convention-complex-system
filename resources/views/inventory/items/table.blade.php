@@ -2,8 +2,15 @@
     <tr class="text-center">
         <td><p>{{ $loop->iteration }}</p></td>
         <td><p>{{ $item->name ?? '--' }}</p></td>
+         <td>
+            @if($item->type == 0)
+                <span class="badge bg-danger text-white">Consumable</span>
+            @else
+                <span class="badge bg-success text-white">Non-Consumable</span>
+            @endif
+        </td>
         <td>
-            @if($item->availability === 1)
+            @if($item->availability == 1)
                 <span class="badge bg-success text-white">Available</span>
             @else
                 <span class="badge bg-danger text-white">Not Available</span>

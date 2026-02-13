@@ -43,10 +43,12 @@
             </select>
         </div>
 
-        <div class="col-auto add-inventory" data-url="{{route('inventory.create')}}">
-            <button class="btn px-4 text-white" style="background-color: hsl(237, 34%, 30%);" onmouseover="this.style.backgroundColor='hsl(237, 34%, 40%)'" onmouseout="this.style.backgroundColor='hsl(237, 34%, 30%)'">
-                + Add Item
-            </button>
+        <div class="col-auto">
+            <div class="col-auto add-inventory" data-url="{{route('inventory.create')}}">
+                <button class="btn px-4 text-white" style="background-color: hsl(237, 34%, 30%);" onmouseover="this.style.backgroundColor='hsl(237, 34%, 40%)'" onmouseout="this.style.backgroundColor='hsl(237, 34%, 30%)'">
+                    + Add Item
+                </button>
+            </div>
         </div>
     </div>
 
@@ -59,36 +61,35 @@
     <div class="card-style-3 mb-30">
         <div class="card-content">
             <div class="d-flex justify-content-between align-items-center">
-    
-            </div>
-            <div class="table-responsive">
-                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
 
+            </div>
+            <div class="table-responsive" >
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="fw-800">{{ __('Inventory List') }}</h6>
                 </div>
-                <table class="table table-hover table-sm align-middle text-center" id="inventories_table">
-                    <thead class="table-secondary">
-                        <tr>
+                <table class="table" id="inventories_table">
+                    <thead>
+                        <tr class="text-center">
                             <th>{{ __('#') }}</th>
                             <th>{{ __('Item') }}</th>
                             <th>{{ __('Recieved Date') }}</th>
+                            <th>{{ __('Type') }}</th>
                             <th>{{ __('QR Code') }}</th>
-                            <th>{{ __('Description') }}</th>
                             <th>{{ __('Warranty Expires') }}</th>
                             <th>{{ __('Actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {!! $inventories_table !!}
+                        {!!$inventories_table!!}
                     </tbody>
                 </table>
-
             </div>
         </div>
     </div>
 </div>
 <!-- Modal -->
-<div class="modal fade index 02" id="inventories_modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+<div class="modal modal-large fade index 02" id="inventories_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
 
         </div>
