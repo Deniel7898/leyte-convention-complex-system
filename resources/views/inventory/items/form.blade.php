@@ -25,72 +25,74 @@
                 required>
         </div>
 
-        <!-- Category -->
-        <div class="mb-3">
-            <label for="item-category" class="form-label">Category</label>
-            <select class="form-select" id="item-category" name="category_id" required>
-                <option value="">Select Category</option>
-                <option value="0" {{ (isset($item) && $item->category_id == 0) ? 'selected' : '' }}>
-                    Consumable
-                </option>
-                <option value="1" {{ (isset($item) && $item->category_id == 1) ? 'selected' : '' }}>
-                    Non-Consumable
-                </option>
-            </select>
-        </div>
-
-        <!-- Quantity -->
-        @if(!isset($item))
-        <div class="mb-3">
-            <label for="item-quantity" class="form-label">Quantity</label>
-            <input type="number"
-                class="form-control"
-                id="item-quantity"
-                name="quantity"
-                min="1"
-                required>
-        </div>
-        @else
-        <input type="hidden" name="quantity" value="{{ $item->quantity }}">
-        @endif
-
-        <!-- Unit -->
-        <div class="mb-3">
-            <label for="item-unit" class="form-label">Unit</label>
-            <select class="form-select" id="item-unit" name="unit_id" required>
-                <option value="">Select Unit</option>
-                @foreach ($units as $unit)
-                <option value="{{ $unit->id }}"
-                    {{ (isset($item) && $item->unit_id == $unit->id) ? 'selected' : '' }}>
-                    {{ $unit->name }}
-                </option>
-                @endforeach
-            </select>
-        </div>
-
-        <!-- Picture Upload -->
-        <div class="mb-3">
-            <label class="form-label">Item Picture</label>
-            <div class="border rounded p-3 text-center"
-                style="cursor: pointer;"
-                onclick="document.getElementById('item-image').click();">
-
-                <input type="file"
-                    id="item-image"
-                    name="image"
-                    accept="image/*"
-                    onchange="previewImage(event)"
-                    style="display:none;">
-
-                <img id="image-preview"
-                    src="{{ isset($item) && $item->image ? asset('storage/' . $item->image) : '' }}"
-                    class="img-fluid rounded mb-2"
-                    style="max-height: 150px; {{ isset($item) && $item->image ? '' : 'display:none;' }}">
-
-                <div class="text-muted small">
-                    Click to upload image
-                </div>
+        <div class="row">
+            <!-- Type -->
+            <div class="col-md-6 mb-3">
+                @if(!isset($item))
+                <label for="item-type" class="form-label">Type</label>
+                <select class="form-select" id="item-type" name="type" required>
+                    <option value="">Select type</option>
+                    <option value="0" {{ (isset($item) && $item->type == 0) ? 'selected' : '' }}>Consumable</option>
+                    <option value="1" {{ (isset($item) && $item->type == 1) ? 'selected' : '' }}>Non-Consumable</option>
+                </select>
+                @else
+                <input type="hidden" name="type" value="{{ $item->type }}">
+                @endif
             </div>
+
+            <!-- Quantity -->
+            <div class="col-md-6 mb-3">
+                @if(!isset($item))
+                <label for="item-quantity" class="form-label">Quantity</label>
+                <input type="number"
+                    class="form-control"
+                    id="item-quantity"
+                    name="quantity"
+                    min="1"
+                    required>
+                @else
+                <input type="hidden" name="quantity" value="{{ $item->quantity }}">
+                @endif
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Unit -->
+            <div class="col-md-6 mb-3">
+                <label for="item-unit" class="form-label">Unit</label>
+                <select class="form-select" id="item-unit" name="unit_id" required>
+                    <option value="">Select Unit</option>
+                    @foreach ($units as $unit)
+                    <option value="{{ $unit->id }}"
+                        {{ (isset($item) && $item->unit_id == $unit->id) ? 'selected' : '' }}>
+                        {{ $unit->name }}
+                    </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Category -->
+            <div class="col-md-6 mb-3">
+                <label for="item-category" class="form-label">Category</label>
+                <select class="form-select" id="item-category" name="category_id" required>
+                    <option value="">Select category</option>
+                    @foreach($categories as $category)
+                    <option value="{{ $category->id }}"
+                        {{ (isset($item) && $item->category_id == $category->id) ? 'selected' : '' }}>
+                        {{ $category->name }}
+                    </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
+        <div class="mb-3 non-consumable-fields" style="{{ isset($item) && $item->type == 1 ? '' : 'display:none;' }}">
+            <label for="warranty-expires" class="form-label">Warranty Expires</label>
+            <input type="date"
+                class="form-control"
+                id="warranty-expires"
+                name="warranty_expires"
+                value="{{ isset($item) ? $item->warranty_expires : '' }}">
         </div>
 
         <!-- Description (Styled Like Normal Input But Scrollable) -->
@@ -103,6 +105,32 @@
                 style="resize: none; overflow-y: auto; max-height: 80px;">{{ isset($item) ? $item->description : '' }}</textarea>
         </div>
 
+        <!-- Simple Picture Upload -->
+        <div class="mb-3">
+            <label class="form-label">Item Picture</label>
+            <div class="border rounded p-3 text-center"
+                id="picture-dropzone"
+                style="cursor: pointer; min-height: 150px; display: flex; align-items: center; justify-content: center;">
+
+                <input type="file"
+                    id="item-picture"
+                    name="picture"
+                    accept="image/*"
+                    onchange="previewPicture(event)"
+                    style="display:none;">
+
+                <img id="picture-preview"
+                    src="{{ isset($item) && $item->picture ? asset('storage/' . $item->picture) : '' }}"
+                    class="img-fluid rounded"
+                    style="max-height: 120px; {{ isset($item) && $item->picture ? '' : 'display:none;' }}">
+
+                <div id="picture-placeholder"
+                    class="text-muted"
+                    style="{{ isset($item) && $item->picture ? 'display:none;' : '' }}">
+                    Click or drag to upload picture
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="modal-footer">
@@ -112,17 +140,64 @@
 </form>
 
 <script>
-    function previewImage(event) {
-        const input = event.target;
-        const preview = document.getElementById('image-preview');
+    (function() {
+        // Everything inside this IIFE is local
+        const dropzone = document.getElementById('picture-dropzone');
+        const inputFile = document.getElementById('item-picture');
+        const preview = document.getElementById('picture-preview');
+        const placeholder = document.getElementById('picture-placeholder');
 
-        if (input.files && input.files[0]) {
+        if (!dropzone) return; // safety check
+
+        // Click opens file dialog
+        dropzone.addEventListener('click', () => inputFile.click());
+
+        // Drag & Drop
+        dropzone.addEventListener('dragover', e => e.preventDefault());
+        dropzone.addEventListener('drop', e => {
+            e.preventDefault();
+            if (e.dataTransfer.files.length > 0) {
+                inputFile.files = e.dataTransfer.files;
+                previewFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        // Preview function
+        function previewFile(file) {
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = e => {
                 preview.src = e.target.result;
                 preview.style.display = 'block';
-            };
-            reader.readAsDataURL(input.files[0]);
+                placeholder.style.display = 'none';
+            }
+            reader.readAsDataURL(file);
         }
+
+        // Input change event
+        inputFile.addEventListener('change', () => {
+            if (inputFile.files.length > 0) {
+                previewFile(inputFile.files[0]);
+            }
+        });
+    })();
+</script>
+
+<script>
+    function setupNonConsumableToggle() {
+        let typeSelect = document.getElementById('item-type');
+        let nonConsumableFields = document.querySelectorAll('.non-consumable-fields');
+
+        if (!typeSelect) return; // safety check
+
+        typeSelect.addEventListener('change', function() {
+            if (this.value === '1') {
+                nonConsumableFields.forEach(field => field.style.display = 'block');
+            } else {
+                nonConsumableFields.forEach(field => field.style.display = 'none');
+            }
+        });
     }
+
+    // Call the function after the form is loaded
+    setupNonConsumableToggle();
 </script>

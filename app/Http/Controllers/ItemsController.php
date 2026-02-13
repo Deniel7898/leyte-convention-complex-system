@@ -6,19 +6,46 @@ use Illuminate\Http\Request;
 use App\Models\Item;
 use App\Models\Category;
 use App\Models\Units;
+use App\Models\InventoryConsumable;
+use App\Models\InventoryNonConsumable;
 use Illuminate\Support\Facades\Auth;
 
 class ItemsController extends Controller
 {
     /**
+     * Helper: get items with remaining, unit, category
+     */
+    private function getItems()
+    {
+        return Item::with(['unit', 'category'])->get()->map(function ($item) {
+
+            $remaining = $item->type == 0
+                ? InventoryConsumable::where('item_id', $item->id)->count()
+                : InventoryNonConsumable::where('item_id', $item->id)->count();
+
+            return (object)[
+                'id' => $item->id,
+                'name' => $item->name,
+                'type' => $item->type,
+                'availability' => $item->availability,
+                'quantity' => $item->quantity,
+                'remaining' => $remaining,
+                'unit' => $item->unit ?? null,
+                'category' => $item->category ?? null,
+                'description' => $item->description ?? '--',
+                'picture' => $item->picture,
+            ];
+        });
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $items = Item::all(); // 10 items per page
+        $items = $this->getItems();
         $items_table = view('inventory.items.table', compact('items'))->render();
-
-        return view('inventory.items.index', compact('items_table'));
+        return view('inventory.items.index', compact('items_table', 'items'));
     }
 
     /**
@@ -38,37 +65,54 @@ class ItemsController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'type' => 'required|integer|in:0,1',
             'category_id' => 'required|integer',
-            'quantity' => 'required|integer|min:1',
+            'quantity' => 'required|integer',
             'unit_id' => 'required|integer',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
+            'picture' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
+            'warranty_expires' => 'nullable|date', // For non-consumable
         ]);
 
-        // Set default availability to 1 if not provided
-        $validated['availability'] = $validated['availability'] ?? 1;
+        if ($request->hasFile('picture')) {
+            $picture = $request->file('picture');
+            $pictureName = time() . '_' . uniqid() . '.' . $picture->getClientOriginalExtension();
+            $picture->storeAs('items', $pictureName, 'public');
+            $validated['picture'] = 'items/' . $pictureName;
+        }
 
+        $validated['availability'] = 1;
         $validated['created_by'] = Auth::id();
         $validated['updated_by'] = Auth::id();
 
-        // Create the item
         $item = Item::create($validated);
 
-        $items = Item::withCount('inventory')->paginate(10); // 10 items per page
-        $items_count = Item::all();
-        $totalItems = $items_count->count(); // get total number of items
+        // Create inventory records
+        for ($i = 0; $i < $item->quantity; $i++) {
+            if ($item->type == 0) {
+                InventoryConsumable::create([
+                    'item_id' => $item->id,
+                    'receive_date' => now(),
+                    'created_by' => Auth::id(),
+                    'updated_by' => Auth::id(),
+                ]);
+            } else {
+                InventoryNonConsumable::create([
+                    'item_id' => $item->id,
+                    'warranty_expires' => $request->warranty_expires,
+                    'receive_date' => now(),
+                    'created_by' => Auth::id(),
+                    'updated_by' => Auth::id(),
+                ]);
+            }
+        }
+
+        $items = $this->getItems(); // Use helper to recalc remaining
 
         return response()->json([
             'html' => view('inventory.items.table', compact('items'))->render(),
+            'message' => 'Item added successfully',
         ]);
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
     }
 
     /**
@@ -76,7 +120,10 @@ class ItemsController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $categories = Category::all();
+        $units = Units::all();
+        $item = Item::findOrFail($id);
+        return view('inventory.items.form', compact('item', 'categories', 'units'));
     }
 
     /**
@@ -84,7 +131,35 @@ class ItemsController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'type' => 'required|integer|in:0,1',
+            'category_id' => 'required|integer',
+            'quantity' => 'required|integer',
+            'unit_id' => 'required|integer',
+            'description' => 'nullable|string',
+            'picture' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
+            'warranty_expires' => 'nullable|date',
+        ]);
+
+        if ($request->hasFile('picture')) {
+            $picture = $request->file('picture');
+            $pictureName = time() . '_' . uniqid() . '.' . $picture->getClientOriginalExtension();
+            $picture->storeAs('items', $pictureName, 'public');
+            $validated['picture'] = 'items/' . $pictureName;
+        }
+
+        $validated['updated_by'] = Auth::id();
+
+        $item = Item::findOrFail($id);
+        $item->update($validated);
+
+        $items = $this->getItems(); // Recalculate remaining
+
+        return response()->json([
+            'html' => view('inventory.items.table', compact('items'))->render(),
+            'message' => 'Item updated successfully',
+        ]);
     }
 
     /**
@@ -92,6 +167,13 @@ class ItemsController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $item = Item::findOrFail($id);
+        $item->delete();
+
+        $items = $this->getItems(); // Recalculate remaining
+
+        return response()->json([
+            'html' => view('inventory.items.table', compact('items'))->render(),
+        ]);
     }
 }

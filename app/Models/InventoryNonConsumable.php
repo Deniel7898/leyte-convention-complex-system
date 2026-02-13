@@ -14,7 +14,7 @@ class InventoryNonConsumable extends Model
     protected $fillable = [
         'receive_date',
         'item_id',
-        'qr_code_id',
+        'warranty_expires',
         'created_by',
         'updated_by',
     ];

@@ -46,6 +46,7 @@ return new class extends Migration
         Schema::create('items', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->tinyInteger('type')->default(0);
             $table->text('description')->nullable();
             $table->boolean('availability');
             $table->string('quantity');
@@ -55,7 +56,7 @@ return new class extends Migration
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
-            $table->softDeletes();
+            $table->softDeletes();  
         });
 
         Schema::create('inventory_consumable', function (Blueprint $table) {

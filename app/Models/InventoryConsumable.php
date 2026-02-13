@@ -14,7 +14,6 @@ class InventoryConsumable extends Model
     protected $fillable = [
         'receive_date',
         'item_id',
-        'qr_code_id',
         'created_by',
         'updated_by',
     ];
