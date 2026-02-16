@@ -141,26 +141,30 @@ class InventoriesController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // Validate the input
+        // Validate input
         $validated = $request->validate([
             'warranty_expires' => 'nullable|date',
         ]);
 
-        $item = Item::findOrFail($id);
+        // Fetch the non-consumable inventory record
+        $inventory = InventoryNonConsumable::with('item')->findOrFail($id);
 
-        // Only update non-consumables
-        if ($item->type == 1) {
-            $item->update([
+        // Ensure this belongs to a non-consumable item
+        if ($inventory->item->type == 1) {
+
+            // Update the InventoryNonConsumable record itself
+            $inventory->update([
                 'warranty_expires' => $validated['warranty_expires'] ?? null,
                 'updated_by' => Auth::id(),
             ]);
 
-            // Also update all related InventoryNonConsumable records
-            InventoryNonConsumable::where('item_id', $item->id)
+            // Update all other InventoryNonConsumable records of this item
+            InventoryNonConsumable::where('item_id', $inventory->item_id)
+                ->where('id', '!=', $inventory->id) // optional: exclude current
                 ->update(['warranty_expires' => $validated['warranty_expires'] ?? null]);
         }
 
-        // Refresh inventories table for response
+        // Refresh inventories table for AJAX response
         $consumables = InventoryConsumable::with(['item', 'qr_code'])->get()->each(function ($c) {
             $c->type = 'Consumable';
             $c->description = $c->description ?? '--';

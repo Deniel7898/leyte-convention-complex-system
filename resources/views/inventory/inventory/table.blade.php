@@ -13,10 +13,13 @@
         <td><p>{{ $inventory->qr_code->code ?? '--' }}</p></td>
         <td><p>{{ $inventory->warranty_expires ?? '--' }}</p></td>
         <td>
-          <button class="btn btn-primary edit" 
+            <a href="#" class="btn btn-warning">
+                <i class="lni lni-eye"></i>
+            </a>
+            <button class="btn btn-primary edit" 
                 data-url="{{ route('inventory.edit', ['inventory' => $inventory->id]) }}">
-            <i class="lni lni-pencil"></i>
-        </button>
+                <i class="lni lni-pencil"></i>
+            </button>
            <button class="btn btn-danger delete"
                 data-url="{{ route('inventory.destroy', $inventory->id) }}">
                 <i class="lni lni-trash-can"></i>

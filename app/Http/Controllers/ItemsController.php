@@ -12,6 +12,94 @@ use Illuminate\Support\Facades\Auth;
 
 class ItemsController extends Controller
 {
+    public function liveSearch(Request $request)
+    {
+        $searchTerm = $request->input('query', '');
+        $typeFilter = $request->input('type', null);
+        $availabilityFilter = $request->input('availability', null);
+        $categoryFilter = $request->input('category', null);
+
+        // Use getItems() helper to fetch all items with remaining, unit, category
+        $items = $this->getItems();
+
+        // Apply search filters on the collection
+        if ($searchTerm != '') {
+            $searchLower = strtolower($searchTerm);
+
+            $items = $items->filter(function ($item) use ($searchTerm, $searchLower) {
+                $match = false;
+
+                // Text search in name or description
+                if (stripos($item->name, $searchTerm) !== false || stripos($item->description, $searchTerm) !== false) {
+                    $match = true;
+                }
+
+                // Numeric search in quantity
+                if (is_numeric($searchTerm) && $item->quantity == $searchTerm) {
+                    $match = true;
+                }
+
+                // Search in unit name
+                if ($item->unit && stripos($item->unit->name, $searchTerm) !== false) {
+                    $match = true;
+                }
+
+                // Search in category name
+                if ($item->category && stripos($item->category->name, $searchTerm) !== false) {
+                    $match = true;
+                }
+
+                // Type mapping keywords
+                if (in_array($searchLower, ['consumable', 'con']) && $item->type == 0) {
+                    $match = true;
+                }
+                if (in_array($searchLower, ['non-consumable', 'non', 'non consumable']) && $item->type == 1) {
+                    $match = true;
+                }
+
+                // Availability mapping keywords
+                if (in_array($searchLower, ['available', 'avail']) && $item->availability == 1) {
+                    $match = true;
+                }
+                if (in_array($searchLower, ['not-available', 'not available', 'not']) && $item->availability == 0) {
+                    $match = true;
+                }
+
+                return $match;
+            });
+        }
+
+        // Apply type filter (dropdown)
+        if ($typeFilter && strtolower($typeFilter) != 'all') {
+            $items = $items->filter(function ($item) use ($typeFilter) {
+                if (strtolower($typeFilter) === 'consumable') return $item->type == 0;
+                if (in_array(strtolower($typeFilter), ['non-consumable', 'non'])) return $item->type == 1;
+                return true;
+            });
+        }
+
+        // Apply availability filter (dropdown)
+        if ($availabilityFilter && strtolower($availabilityFilter) != 'all') {
+            $items = $items->filter(function ($item) use ($availabilityFilter) {
+                if (strtolower($availabilityFilter) === 'available') return $item->availability == 1;
+                if (strtolower($availabilityFilter) === 'not available') return $item->availability == 0;
+                return true;
+            });
+        }
+
+        // Apply category filter (dropdown)
+        if ($categoryFilter && strtolower($categoryFilter) != 'all') {
+            $items = $items->filter(function ($item) use ($categoryFilter) {
+                return $item->category && $item->category->id == $categoryFilter;
+            });
+        }
+
+        // Reset keys after filtering
+        $items = $items->values();
+
+        return view('inventory.items.table', compact('items'));
+    }
+
     /**
      * Helper: get items with remaining, unit, category
      */
@@ -44,8 +132,9 @@ class ItemsController extends Controller
     public function index()
     {
         $items = $this->getItems();
+        $categories = Category::all();
         $items_table = view('inventory.items.table', compact('items'))->render();
-        return view('inventory.items.index', compact('items_table', 'items'));
+        return view('inventory.items.index', compact('items_table', 'items', 'categories'));
     }
 
     /**
