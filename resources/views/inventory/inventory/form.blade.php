@@ -98,7 +98,7 @@
             </div>
         </div>
 
-        <div class="mb-3 non-consumable-fields" style="{{ isset($inventory) && $inventory->type == 1 ? '' : 'display:none;' }}">
+        <div class="mb-3 non-consumable-fields" style="{{ isset($inventory) ? '' : 'display:none;' }}">
             <label for="warranty-expires" class="form-label">Warranty Expires</label>
             <input type="date"
                 class="form-control"
@@ -207,10 +207,10 @@
         let typeSelect = document.getElementById('inventory-type');
         let nonConsumableFields = document.querySelectorAll('.non-consumable-fields');
 
-        if (!typeSelect) return; // safety check
+        if (!typeSelect) return;
 
         typeSelect.addEventListener('change', function() {
-            if (this.value === '1') {
+            if (this.value !== '') { // Show for both 0 and 1
                 nonConsumableFields.forEach(field => field.style.display = 'block');
             } else {
                 nonConsumableFields.forEach(field => field.style.display = 'none');
@@ -218,6 +218,5 @@
         });
     }
 
-    // Call the function after the form is loaded
     setupNonConsumableToggle();
 </script>

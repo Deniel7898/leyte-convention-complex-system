@@ -62,7 +62,7 @@ $(function () {
                 })
                     .done(function (response) {
                         $('#items_table tbody').html(response.html);
-                       
+
                         Swal.fire({
                             title: "Deleted!",
                             text: "The record has been removed.",
@@ -109,7 +109,7 @@ $(function () {
                 }
 
                 // Reset all fields
-                form.find('input[type="text"], input[type="number"], textarea, input[type="date"]').val(''); 
+                form.find('input[type="text"], input[type="number"], textarea, input[type="date"]').val('');
                 form.find('select').prop('selectedIndex', 0);
                 form.find('input[type="file"]').val(null);
                 $('#picture-preview').attr('src', '').hide();
@@ -133,4 +133,37 @@ $(function () {
             }
         });
     });
+
+    $(function () {
+        function performSearch() {
+            let query = $('#item-search').val();
+            let type = $('#type-filter').val();          // dropdown for type
+            let availability = $('#availability-filter').val(); // dropdown for availability
+            let category = $('#categories-filter').val(); // dropdown for category
+
+            $.ajax({
+                url: window.liveSearchUrl, // e.g., "/items/live-search"
+                type: 'GET',
+                data: {
+                    query: query,
+                    type: type,
+                    availability: availability,
+                    category: category
+                },
+                success: function (response) {
+                    $('#items-table-body').html(response);
+                },
+                error: function (xhr) {
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+
+        // Trigger search on typing
+        $('#item-search').on('keyup', performSearch);
+
+        // Trigger search when any dropdown changes
+        $('#type-filter, #availability-filter, #categories-filter').on('change', performSearch);
+    });
+
 })
