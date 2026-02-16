@@ -8,13 +8,13 @@
     @endif
 
     <div class="modal-header" style=" background-color: rgb(43, 45, 87);">
-        <h5 class="modal-title text-white">{{ isset($inventory) ? 'Edit Item' : 'Add Item' }}</h5>
+        <h5 class="modal-title text-white">{{ isset($inventory) ? 'Edit inventory' : 'Add inventory' }}</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
     </div>
 
     <div class="modal-body">
 
-        <!-- Item Name -->
+        <!-- inventory Name -->
         <div class="mb-3">
             @if(!isset($inventory))
             <label for="inventory-name" class="form-label">Inventory Name</label>
@@ -98,13 +98,31 @@
             </div>
         </div>
 
-        <div class="mb-3 non-consumable-fields" style="{{ isset($inventory) ? '' : 'display:none;' }}">
-            <label for="warranty-expires" class="form-label">Warranty Expires</label>
-            <input type="date"
-                class="form-control"
-                id="warranty-expires"
-                name="warranty_expires"
-                value="{{ isset($inventory) ? $inventory->warranty_expires : '' }}">
+        <div class="row">
+            <!-- Status -->
+            <div class="col-md-6 mb-3">
+                <label for="inventory-status" class="form-label">Status</label>
+                <select class="form-select" id="inventory-status" name="status" required>
+                    <option value="">Select Status</option>
+                    <option value="1" {{ (isset($inventory) && $inventory->item->status == 1) ? 'selected' : '' }}>
+                        Available
+                    </option>
+                    <option value="0" {{ (isset($inventory) && $inventory->item->status == 0) ? 'selected' : '' }}>
+                        Not Available
+                    </option>
+                </select>
+            </div>
+
+            <!-- Warranty Expires -->
+            <div class="col-md-6 mb-3 non-consumable-fields"
+                style="{{ isset($inventory) && $inventory->item->type == 1 ? '' : 'display:none;' }}">
+                <label for="warranty-expires" class="form-label">Warranty Expires</label>
+                <input type="date"
+                    class="form-control"
+                    id="warranty-expires"
+                    name="warranty_expires"
+                    value="{{ $inventory->warranty_expires ?? '' }}">
+            </div>
         </div>
 
         <!-- Description (Styled Like Normal Input But Scrollable) -->
@@ -124,10 +142,10 @@
         <!-- Simple Picture Upload -->
         <div class="mb-3">
             @if(!isset($inventory))
-            <label class="form-label">Item Picture</label>
+            <label class="form-label">Inventory Picture</label>
             <div class="border rounded p-3 text-center"
                 id="picture-dropzone"
-                style="cursor: pointer; min-height: 150px; display: flex; align-items: center; justify-content: center;">
+                style="cursor: pointer; min-height: 150px; display: flex; align-inventory: center; justify-content: center;">
 
                 <input type="file"
                     id="inventory-picture"
@@ -155,7 +173,7 @@
 
     <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="submit" class="btn text-white" style=" background-color: rgb(43, 45, 87);">Save Item</button>
+        <button type="submit" class="btn text-white" style=" background-color: rgb(43, 45, 87);">Save inventory</button>
     </div>
 </form>
 
@@ -204,13 +222,13 @@
 
 <script>
     function setupNonConsumableToggle() {
-        let typeSelect = document.getElementById('inventory-type');
+        let typeSelect = document.getElementById('item-type');
         let nonConsumableFields = document.querySelectorAll('.non-consumable-fields');
 
-        if (!typeSelect) return;
+        if (!typeSelect) return; // safety check
 
         typeSelect.addEventListener('change', function() {
-            if (this.value !== '') { // Show for both 0 and 1
+            if (this.value === '1') {
                 nonConsumableFields.forEach(field => field.style.display = 'block');
             } else {
                 nonConsumableFields.forEach(field => field.style.display = 'none');
@@ -218,5 +236,6 @@
         });
     }
 
+    // Call the function after the form is loaded
     setupNonConsumableToggle();
 </script>

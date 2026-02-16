@@ -42,7 +42,7 @@
         </div>
 
         <div class="col-auto" style="min-width: 140px;">
-            <select id="availability-filter" class="form-select">
+            <select id="status-filter" class="form-select">
                 <option>All Status</option>
                 <option>Available</option>
                 <option>Not Available</option>
@@ -80,7 +80,7 @@
                             <th>{{ __('Remaining') }}</th>
                             <th>{{ __('Unit') }}</th>
                             <th>{{ __('Category') }}</th>
-                            <th>{{ __('Availability') }}</th>
+                            <th>{{ __('Status') }}</th>
                             <th>{{ __('Description') }}</th>
                             <th>{{ __('Picture') }}</th>
                             <th>{{ __('Actions') }}</th>

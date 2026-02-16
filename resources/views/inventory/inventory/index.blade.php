@@ -18,28 +18,32 @@
                         <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
                     </svg>
                 </span>
-                <input
-                    type="search"
-                    class="form-control border-start-0 ps-1"
-                    placeholder="Search by item name or QR ID..." />
+                <input type="search" id="inventory-search" class="form-control" placeholder="Search by item name or QR ID...">
             </div>
         </div>
 
-
         <div class="col-auto" style="min-width: 140px;">
-            <select class="form-select">
-                <option selected>All Categories</option>
-                <option>Category 1</option>
-                <option>Category 2</option>
+            <select id="type-filter" class="form-select">
+                <option>All Type</option>
+                <option>Consumable</option>
+                <option>Non-Consumable</option>
             </select>
         </div>
 
         <div class="col-auto" style="min-width: 140px;">
-            <select class="form-select">
-                <option selected>All Status</option>
-                <option>Active</option>
-                <option>Used</option>
-                <option>Expired</option>
+            <select id="categories-filter" class="form-select">
+                <option value="All">All Category</option>
+                @foreach($categories as $category)
+                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="col-auto" style="min-width: 140px;">
+            <select id="status-filter" class="form-select">
+                <option>All Status</option>
+                <option>Available</option>
+                <option>Not Available</option>
             </select>
         </div>
 
@@ -63,7 +67,7 @@
             <div class="d-flex justify-content-between align-items-center">
 
             </div>
-            <div class="table-responsive" >
+            <div class="table-responsive">
                 <div class="d-flex justify-content-between align-items-center">
                     <h6 class="fw-800">{{ __('Inventory List') }}</h6>
                 </div>
@@ -74,12 +78,15 @@
                             <th>{{ __('Item') }}</th>
                             <th>{{ __('Recieved Date') }}</th>
                             <th>{{ __('Type') }}</th>
+                            <th>{{ __('Unit') }}</th>
+                            <th>{{ __('Category') }}</th>
+                            <th>{{ __('Status') }}</th>
                             <th>{{ __('QR Code') }}</th>
                             <th>{{ __('Warranty Expires') }}</th>
                             <th>{{ __('Actions') }}</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="inventory-table-body">
                         {!!$inventories_table!!}
                     </tbody>
                 </table>
@@ -95,8 +102,13 @@
         </div>
     </div>
 </div>
+
 <!-- Loading Spinner -->
 <div id="loading-spinner">
     <div class="spinner"></div>
 </div>
+
+<script>
+    window.liveSearchUrl = "{{ route('inventory.liveSearch') }}";
+</script>
 @endsection

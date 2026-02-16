@@ -132,4 +132,40 @@ $(function () {
             }
         });
     });
+
+    $(function () {
+
+        function performSearch() {
+            let query = $('#inventory-search').val();
+            let type = $('#type-filter').val();          // dropdown for type
+            let status = $('#status-filter').val(); // dropdown for status
+            let category = $('#categories-filter').val(); // dropdown for category
+
+            $.ajax({
+                url: window.liveSearchUrl,
+                type: 'GET',
+                data: {
+                    query: query,
+                    type: type,
+                    status: status,
+                    category: category
+                },
+                success: function (response) {
+                    $('#inventory-table-body').html(response);
+                },
+                error: function (xhr) {
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+
+        // Trigger search while typing
+        $('#inventory-search').on('keyup', function () {
+            performSearch();
+        });
+
+        // Trigger search when any dropdown changes
+        $('#type-filter, #status-filter, #categories-filter').on('change', performSearch);
+
+    });
 })

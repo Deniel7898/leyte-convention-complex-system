@@ -3,6 +3,7 @@
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ItemsController;
+use App\Http\Controllers\InventoriesController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -38,6 +39,7 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 
 // Live search route for AJAX
 Route::get('/items/live-search', [ItemsController::class, 'liveSearch'])->name('items.liveSearch');
+Route::get('/inentory/live-search', [InventoriesController::class, 'liveSearch'])->name('inventory.liveSearch');
 
 //inventory routes
 Route::resource('items', App\Http\Controllers\ItemsController::class)->middleware('auth'); // includes all CRUD routes for items

@@ -13,7 +13,7 @@ class Item extends Model
         'name',
         'type',
         'description',
-        'availability',
+        'status',
         'quantity',
         'picture',
         'category_id',

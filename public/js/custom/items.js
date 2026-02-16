@@ -138,7 +138,7 @@ $(function () {
         function performSearch() {
             let query = $('#item-search').val();
             let type = $('#type-filter').val();          // dropdown for type
-            let availability = $('#availability-filter').val(); // dropdown for availability
+            let status = $('#status-filter').val(); // dropdown for status
             let category = $('#categories-filter').val(); // dropdown for category
 
             $.ajax({
@@ -147,7 +147,7 @@ $(function () {
                 data: {
                     query: query,
                     type: type,
-                    availability: availability,
+                    status: status,
                     category: category
                 },
                 success: function (response) {
@@ -159,11 +159,12 @@ $(function () {
             });
         }
 
-        // Trigger search on typing
-        $('#item-search').on('keyup', performSearch);
+        // Trigger search while typing
+        $('#item-search').on('keyup', function () {
+            performSearch();
+        });
 
         // Trigger search when any dropdown changes
-        $('#type-filter, #availability-filter, #categories-filter').on('change', performSearch);
+        $('#type-filter, #status-filter, #categories-filter').on('change', performSearch);
     });
-
 })

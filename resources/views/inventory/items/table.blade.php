@@ -22,7 +22,7 @@
             </p>
         </td>
         <td>
-            @if($item->availability == 1)
+            @if($item->status == 1)
                 <span class="badge bg-success text-white">Available</span>
             @else
                 <span class="badge bg-danger text-white">Not Available</span>
