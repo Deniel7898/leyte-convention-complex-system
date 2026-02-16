@@ -4,7 +4,7 @@
         <td><p>{{ $inventory->item->name ?? '--' }}</p></td>
         <td><p>{{ $inventory->receive_date ?? '--' }}</p></td>
         <td>
-           @if($inventory->item->type == 0)
+           @if(($inventory->item?->type ?? 0) == 0)
                 <span class="badge bg-danger text-white">Consumable</span>
             @else
                 <span class="badge bg-success text-white">Non-Consumable</span>
@@ -21,7 +21,7 @@
             </p>
         </td>
         <td>
-            @if($inventory->item->status == 1)
+             @if(($inventory->item?->status ?? 0) == 1)
                 <span class="badge bg-success text-white">Available</span>
             @else
                 <span class="badge bg-danger text-white">Not Available</span>

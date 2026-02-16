@@ -36,8 +36,8 @@
                 <label for="inventory-type" class="form-label">Type</label>
                 <select class="form-select" id="inventory-type" name="type" required>
                     <option value="">Select type</option>
-                    <option value="0" {{ (isset($inventory) && $inventory->type == 0) ? 'selected' : '' }}>Consumable</option>
-                    <option value="1" {{ (isset($inventory) && $inventory->type == 1) ? 'selected' : '' }}>Non-Consumable</option>
+                    <option value="0" {{ (isset($inventory) && $inventory->item->type == 0) ? 'selected' : '' }}>Consumable</option>
+                    <option value="1" {{ (isset($inventory) && $inventory->item->type == 1) ? 'selected' : '' }}>Non-Consumable</option>
                 </select>
                 @else
                 <input type="hidden" name="type" value="{{ $inventory->type }}">
@@ -115,7 +115,7 @@
 
             <!-- Warranty Expires -->
             <div class="col-md-6 mb-3 non-consumable-fields"
-                style="{{ isset($inventory) && $inventory->item->type == 1 ? '' : 'display:none;' }}">
+                style="{{ isset($inventory) && ($inventory->item->type ?? 0) == 1 ? '' : 'display:none;' }}">
                 <label for="warranty-expires" class="form-label">Warranty Expires</label>
                 <input type="date"
                     class="form-control"
@@ -222,7 +222,7 @@
 
 <script>
     function setupNonConsumableToggle() {
-        let typeSelect = document.getElementById('item-type');
+        let typeSelect = document.getElementById('inventory-type');
         let nonConsumableFields = document.querySelectorAll('.non-consumable-fields');
 
         if (!typeSelect) return; // safety check
