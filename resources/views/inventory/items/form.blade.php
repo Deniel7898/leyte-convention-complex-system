@@ -86,13 +86,26 @@
             </div>
         </div>
 
-        <div class="mb-3 non-consumable-fields" style="{{ isset($item) && $item->type == 1 ? '' : 'display:none;' }}">
-            <label for="warranty-expires" class="form-label">Warranty Expires</label>
-            <input type="date"
-                class="form-control"
-                id="warranty-expires"
-                name="warranty_expires"
-                value="{{ isset($item) ? $item->warranty_expires : '' }}">
+        <div class="row">
+            <!-- Status -->
+            <div class="col-md-6 mb-3">
+                <label for="item-status" class="form-label">Status</label>
+                <select class="form-select" id="item-status" name="status" required>
+                    <option value="">Select Status</option>
+                    <option value="1" {{ (isset($item) && $item->status == 1) ? 'selected' : '' }}>Available</option>
+                    <option value="0" {{ (isset($item) && $item->status == 0) ? 'selected' : '' }}>Not Available</option>
+                </select>
+            </div>
+
+            <!-- Warranty Expires -->
+            <div class="col-md-6 mb-3 non-consumable-fields" style="{{ isset($item) && $item->type == 1 ? '' : 'display:none;' }}">
+                <label for="warranty-expires" class="form-label">Warranty Expires</label>
+                <input type="date"
+                    class="form-control"
+                    id="warranty-expires"
+                    name="warranty_expires"
+                    value="{{ isset($non_consumable) ? $non_consumable->warranty_expires : '' }}">
+            </div>
         </div>
 
         <!-- Description (Styled Like Normal Input But Scrollable) -->

@@ -12,11 +12,14 @@ use Illuminate\Support\Facades\Auth;
 
 class ItemsController extends Controller
 {
+    /**
+     * Live Search for Items.
+     */
     public function liveSearch(Request $request)
     {
         $searchTerm = $request->input('query', '');
         $typeFilter = $request->input('type', null);
-        $availabilityFilter = $request->input('availability', null);
+        $statusFilter = $request->input('status', null);
         $categoryFilter = $request->input('category', null);
 
         // Use getItems() helper to fetch all items with remaining, unit, category
@@ -57,11 +60,11 @@ class ItemsController extends Controller
                     $match = true;
                 }
 
-                // Availability mapping keywords
-                if (in_array($searchLower, ['available', 'avail']) && $item->availability == 1) {
+                // status mapping keywords
+                if (in_array($searchLower, ['available', 'avail']) && $item->status == 1) {
                     $match = true;
                 }
-                if (in_array($searchLower, ['not-available', 'not available', 'not']) && $item->availability == 0) {
+                if (in_array($searchLower, ['not-available', 'not available', 'not']) && $item->status == 0) {
                     $match = true;
                 }
 
@@ -78,11 +81,11 @@ class ItemsController extends Controller
             });
         }
 
-        // Apply availability filter (dropdown)
-        if ($availabilityFilter && strtolower($availabilityFilter) != 'all') {
-            $items = $items->filter(function ($item) use ($availabilityFilter) {
-                if (strtolower($availabilityFilter) === 'available') return $item->availability == 1;
-                if (strtolower($availabilityFilter) === 'not available') return $item->availability == 0;
+        // Apply status filter (dropdown)
+        if ($statusFilter && strtolower($statusFilter) != 'all') {
+            $items = $items->filter(function ($item) use ($statusFilter) {
+                if (strtolower($statusFilter) === 'available') return $item->status == 1;
+                if (strtolower($statusFilter) === 'not available') return $item->status == 0;
                 return true;
             });
         }
@@ -115,7 +118,7 @@ class ItemsController extends Controller
                 'id' => $item->id,
                 'name' => $item->name,
                 'type' => $item->type,
-                'availability' => $item->availability,
+                'status' => $item->status,
                 'quantity' => $item->quantity,
                 'remaining' => $remaining,
                 'unit' => $item->unit ?? null,
@@ -158,6 +161,7 @@ class ItemsController extends Controller
             'category_id' => 'required|integer',
             'quantity' => 'required|integer',
             'unit_id' => 'required|integer',
+            'status' => 'required|integer|in:0,1',
             'description' => 'nullable|string',
             'picture' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
             'warranty_expires' => 'nullable|date', // For non-consumable
@@ -170,7 +174,6 @@ class ItemsController extends Controller
             $validated['picture'] = 'items/' . $pictureName;
         }
 
-        $validated['availability'] = 1;
         $validated['created_by'] = Auth::id();
         $validated['updated_by'] = Auth::id();
 
@@ -211,8 +214,17 @@ class ItemsController extends Controller
     {
         $categories = Category::all();
         $units = Units::all();
+
+        // Get the item first
         $item = Item::findOrFail($id);
-        return view('inventory.items.form', compact('item', 'categories', 'units'));
+
+        // Only fetch non-consumable if the item is non-consumable
+        $non_consumable = null;
+        if ($item->type == 1) { // assuming 1 = non-consumable
+            $non_consumable = InventoryNonConsumable::where('item_id', $item->id)->first();
+        }
+
+        return view('inventory.items.form', compact('item', 'categories', 'units', 'non_consumable'));
     }
 
     /**
@@ -222,15 +234,17 @@ class ItemsController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'required|integer|in:0,1',
+            'type' => 'required|integer|in:0,1', // 0 = consumable, 1 = non-consumable
             'category_id' => 'required|integer',
             'quantity' => 'required|integer',
             'unit_id' => 'required|integer',
+            'status' => 'required|integer|in:0,1',
             'description' => 'nullable|string',
             'picture' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
-            'warranty_expires' => 'nullable|date',
+            'warranty_expires' => 'nullable|date', // validate date format
         ]);
 
+        // Handle picture upload
         if ($request->hasFile('picture')) {
             $picture = $request->file('picture');
             $pictureName = time() . '_' . uniqid() . '.' . $picture->getClientOriginalExtension();
@@ -240,8 +254,24 @@ class ItemsController extends Controller
 
         $validated['updated_by'] = Auth::id();
 
+        // Update the item
         $item = Item::findOrFail($id);
         $item->update($validated);
+
+        // Update warranty_expires for non-consumables only
+        if ($item->type == 1) { // 1 = non-consumable
+            $nonConsumable = InventoryNonConsumable::firstOrCreate(
+                ['item_id' => $item->id],
+                ['warranty_expires' => $validated['warranty_expires'] ?? null]
+            );
+
+            // If record already exists, update it
+            if (!$nonConsumable->wasRecentlyCreated) {
+                $nonConsumable->update([
+                    'warranty_expires' => $validated['warranty_expires'] ?? null,
+                ]);
+            }
+        }
 
         $items = $this->getItems(); // Recalculate remaining
 

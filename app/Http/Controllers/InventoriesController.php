@@ -13,24 +13,158 @@ use Illuminate\Support\Facades\Auth;
 class InventoriesController extends Controller
 {
     /**
+     * Live Search for Inventory
+     */
+    public function liveSearch(Request $request)
+    {
+        $searchTerm = $request->input('query', '');
+        $typeFilter = $request->input('type', null);
+        $statusFilter = $request->input('status', null);
+        $categoryFilter = $request->input('category', null);
+
+        $inventories = $this->getInventories();
+
+        // Apply text search
+        if ($searchTerm != '') {
+            $searchLower = strtolower($searchTerm);
+
+            $inventories = $inventories->filter(function ($inventory) use ($searchTerm, $searchLower) {
+
+                if (!$inventory->item) return false;
+
+                $match = false;
+
+                // Search item name
+                if (stripos($inventory->item->name, $searchTerm) !== false) {
+                    $match = true;
+                }
+
+                // Search received date
+                if (
+                    !empty($inventory->receive_date) &&
+                    stripos($inventory->receive_date, $searchTerm) !== false
+                ) {
+                    $match = true;
+                }
+
+                // Search warranty date
+                if (
+                    !empty($inventory->warranty_expires) &&
+                    stripos($inventory->warranty_expires, $searchTerm) !== false
+                ) {
+                    $match = true;
+                }
+
+                // Type keywords
+                if (in_array($searchLower, ['consumable', 'con']) && $inventory->item->type == 0) {
+                    $match = true;
+                }
+                if (in_array($searchLower, ['non-consumable', 'non', 'non consumable']) && $inventory->item->type == 1) {
+                    $match = true;
+                }
+
+                // Status keywords
+                if (in_array($searchLower, ['available', 'avail']) && $inventory->item->status == 1) {
+                    $match = true;
+                }
+                if (in_array($searchLower, ['not available', 'not-available', 'not']) && $inventory->item->status == 0) {
+                    $match = true;
+                }
+
+                // Search in unit name
+                if (
+                    $inventory->item->unit &&
+                    stripos($inventory->item->unit->name, $searchTerm) !== false
+                ) {
+                    $match = true;
+                }
+
+                // Search in category name
+                if (
+                    $inventory->item->category &&
+                    stripos($inventory->item->category->name, $searchTerm) !== false
+                ) {
+                    $match = true;
+                }
+
+                return $match;
+            });
+        }
+
+        // Apply type filter
+        if ($typeFilter && strtolower($typeFilter) != 'all') {
+            $inventories = $inventories->filter(function ($inventory) use ($typeFilter) {
+                if (strtolower($typeFilter) === 'consumable') return $inventory->item->type == 0;
+                if (in_array(strtolower($typeFilter), ['non-consumable', 'non'])) return $inventory->item->type == 1;
+                return true;
+            });
+        }
+
+        // Apply status filter
+        if ($statusFilter && strtolower($statusFilter) != 'all') {
+            $inventories = $inventories->filter(function ($inventory) use ($statusFilter) {
+                if (strtolower($statusFilter) === 'available') return $inventory->item->status == 1;
+                if (strtolower($statusFilter) === 'not available') return $inventory->item->status == 0;
+                return true;
+            });
+        }
+
+        // Apply category filter
+        if ($categoryFilter && strtolower($categoryFilter) != 'all') {
+            $inventories = $inventories->filter(function ($inventory) use ($categoryFilter) {
+                return $inventory->item->category && $inventory->item->category->id == $categoryFilter;
+            });
+        }
+
+        // Reset keys after filtering
+        $inventories = $inventories->values();
+
+        return view('inventory.inventory.table', compact('inventories'));
+    }
+
+    /**
+     * Helper: Get all inventories (Consumable + Non-Consumable)
+     */
+    private function getInventories()
+    {
+        $consumables = InventoryConsumable::with(['item', 'qr_code'])
+            ->get()
+            ->map(function ($c) {
+                $c->inventory_type = 'Consumable';
+                $c->warranty_expires = '--'; // consumables don't have warranty
+                return $c;
+            });
+
+        $nonConsumables = InventoryNonConsumable::with(['item', 'qr_code'])
+            ->get()
+            ->map(function ($n) {
+                $n->inventory_type = 'Non-Consumable';
+                $n->warranty_expires = $n->warranty_expires ?? '--';
+                return $n;
+            });
+
+        return $consumables
+            ->merge($nonConsumables)
+            ->sortByDesc('receive_date')
+            ->values();
+    }
+
+    /**
      * Display a listing of the resource.
      */
-
     public function index()
     {
-        // Get all consumables and non-consumables with relationships
-        $consumables = InventoryConsumable::with(['item', 'qr_code'])->get();
-        $nonConsumables = InventoryNonConsumable::with(['item', 'qr_code'])->get();
+        // Get all inventories (consumables + non-consumables)
+        $inventories = $this->getInventories();
 
-        // Merge both collections
-        $inventories = $consumables->merge($nonConsumables)
-            ->sortByDesc('receive_date') // Optional sorting
-            ->values(); // Reset keys
+        // Get all categories for filter dropdowns
+        $categories = Category::all();
 
+        // Render the inventory table partial
         $inventories_table = view('inventory.inventory.table', compact('inventories'))->render();
 
-        // Return main view with the table
-        return view('inventory.inventory.index', compact('inventories_table'));
+        // Return the main index view
+        return view('inventory.inventory.index', compact('inventories_table', 'categories'));
     }
 
     /**
@@ -55,6 +189,7 @@ class InventoriesController extends Controller
             'category_id' => 'required|integer',
             'quantity' => 'required|integer|min:1',
             'unit_id' => 'required|integer',
+            'status' => 'required|integer|in:0,1',
             'description' => 'nullable|string',
             'picture' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
         ]);
@@ -67,7 +202,6 @@ class InventoriesController extends Controller
             $validated['picture'] = 'items/' . $pictureName;
         }
 
-        $validated['availability'] = 1;
         $validated['created_by'] = Auth::id();
         $validated['updated_by'] = Auth::id();
 
@@ -94,13 +228,8 @@ class InventoriesController extends Controller
             }
         }
 
-        $consumables = InventoryConsumable::with(['item', 'qr_code'])->get();
-        $nonConsumables = InventoryNonConsumable::with(['item', 'qr_code'])->get();
-
-        // Merge and sort
-        $inventories = $consumables->merge($nonConsumables)
-            ->sortByDesc('receive_date')
-            ->values();
+        // Get all inventories (consumables + non-consumables)
+        $inventories = $this->getInventories();
 
         // Return the table partial with inventories
         return response()->json([
@@ -125,11 +254,9 @@ class InventoriesController extends Controller
         $categories = Category::all();
         $units = Units::all();
 
-        // Try to find in consumables first
-        $inventory = InventoryConsumable::with('item')->find($id);
-
-        // If not found, try non-consumables
-        if (!$inventory) {
+        try {
+            $inventory = InventoryConsumable::with('item')->findOrFail($id);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             $inventory = InventoryNonConsumable::with('item')->findOrFail($id);
         }
 
@@ -141,49 +268,40 @@ class InventoriesController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // Validate input
         $validated = $request->validate([
+            'status' => 'required|integer|in:0,1',
             'warranty_expires' => 'nullable|date',
         ]);
 
-        // Fetch the non-consumable inventory record
-        $inventory = InventoryNonConsumable::with('item')->findOrFail($id);
+        // Try to find in consumables first
+        try {
+            $inventory = InventoryConsumable::with('item')->findOrFail($id);
+            $isNonConsumable = false;
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            $inventory = InventoryNonConsumable::with('item')->findOrFail($id);
+            $isNonConsumable = true;
+        }
 
-        // Ensure this belongs to a non-consumable item
-        if ($inventory->item->type == 1) {
+        // ✅ Update Item status (because status is from items table)
+        $inventory->item->update([
+            'status' => $validated['status'],
+            'updated_by' => Auth::id(),
+        ]);
 
-            // Update the InventoryNonConsumable record itself
+        // ✅ If Non-Consumable, update warranty
+        if ($isNonConsumable) {
             $inventory->update([
                 'warranty_expires' => $validated['warranty_expires'] ?? null,
                 'updated_by' => Auth::id(),
             ]);
-
-            // Update all other InventoryNonConsumable records of this item
-            InventoryNonConsumable::where('item_id', $inventory->item_id)
-                ->where('id', '!=', $inventory->id) // optional: exclude current
-                ->update(['warranty_expires' => $validated['warranty_expires'] ?? null]);
         }
 
-        // Refresh inventories table for AJAX response
-        $consumables = InventoryConsumable::with(['item', 'qr_code'])->get()->each(function ($c) {
-            $c->type = 'Consumable';
-            $c->description = $c->description ?? '--';
-            $c->warranty_expires = $c->warranty_expires ?? '--';
-        });
-
-        $nonConsumables = InventoryNonConsumable::with(['item', 'qr_code'])->get()->each(function ($n) {
-            $n->type = 'Non-Consumable';
-            $n->description = $n->description ?? '--';
-            $n->warranty_expires = $n->warranty_expires ?? '--';
-        });
-
-        $inventories = $consumables->merge($nonConsumables)
-            ->sortByDesc('receive_date')
-            ->values();
+        // Get all inventories (consumables + non-consumables)
+        $inventories = $this->getInventories();
 
         return response()->json([
             'html' => view('inventory.inventory.table', compact('inventories'))->render(),
-            'message' => 'Warranty updated successfully',
+            'message' => 'Inventory updated successfully',
         ]);
     }
 
@@ -204,21 +322,8 @@ class InventoriesController extends Controller
             return response()->json(['error' => 'Inventory not found'], 404);
         }
 
-        $consumables = InventoryConsumable::with(['item', 'qr_code'])->get()->each(function ($c) {
-            $c->type = 'Consumable';
-            $c->description = $c->description ?? '--';
-            $c->warranty_expires = $c->warranty_expires ?? '--';
-        });
-
-        $nonConsumables = InventoryNonConsumable::with(['item', 'qr_code'])->get()->each(function ($n) {
-            $n->type = 'Non-Consumable';
-            $n->description = $n->description ?? '--';
-            $n->warranty_expires = $n->warranty_expires ?? '--';
-        });
-
-        $inventories = $consumables->merge($nonConsumables)
-            ->sortByDesc('receive_date')
-            ->values();
+        // Get all inventories (consumables + non-consumables)
+        $inventories = $this->getInventories();
 
         return response()->json([
             'html' => view('inventory.inventory.table', compact('inventories'))->render(),
