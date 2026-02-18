@@ -23,7 +23,7 @@
         </a>
     </li>
 
-    <li class="nav-item  @if(collect(['inventory.*','items.*'])->contains(fn($pattern) => request()->routeIs($pattern))) active @endif">
+    <li class="nav-item  @if(collect(['inventory.*','items.*','viewItem.*'])->contains(fn($pattern) => request()->routeIs($pattern))) active @endif">
         <a href="{{ route('inventory.index') }}" title="{{ __('Inventory') }}">
             <span class="icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-box-seam" viewBox="0 0 16 16">
@@ -80,7 +80,7 @@
     </li>
     <ul class="nav flex-column" id="sidebarAccordion">
 
-        <li class="nav-item nav-item-has-children">
+        <li class="nav-item nav-item-has-children @if(collect(['qr_codes.*','categories.*','units.*'])->contains(fn($pattern) => request()->routeIs($pattern))) active @endif">
             <a class="collapsed" href="#0" class="" data-bs-toggle="collapse" data-bs-target="#ddmenu_1"
                 aria-controls="ddmenu_1" aria-expanded="false" aria-label="Toggle navigation" title="{{ __('Master Data') }}">
                 <span class="icon">

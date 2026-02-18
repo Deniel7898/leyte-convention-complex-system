@@ -19,7 +19,7 @@
       </div>
 
       <div class="mb-4">
-          <label for="category-description" class="col-form-label">Description:</label>
+          <label for="category-description" class="col-form-label">Description: (optional)</label>
           <textarea class="form-control"
                     id="category-description"
                     name="description">

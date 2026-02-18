@@ -31,7 +31,7 @@
         <td><p>{{ $item->description ?? '--' }}</p></td>
         <td><p>{{ $item->picture ?? '--' }}</p></td>
         <td>
-            <a href="#" class="btn btn-warning">
+             <a href="{{ route('viewItem.show', $item->id) }}" class="btn btn-warning">
                 <i class="lni lni-eye"></i>
             </a>
             <button class="btn btn-primary edit" data-url="{{route('items.edit', ['item' => $item->id])}}"><i class="lni lni-pencil"></i></button>
