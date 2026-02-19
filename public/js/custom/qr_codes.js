@@ -1,47 +1,110 @@
-$(document).on('click', '.delete-qr', function () {
+$(document).ready(function () {
 
-    let url = $(this).data('url');
+    /* ===============================
+       FADE SESSION SUCCESS (Add Button)
+    =============================== */
 
-    Swal.fire({
-        title: "Delete QR Code?",
-        text: "This cannot be undone.",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#6c757d",
-        confirmButtonText: "Yes, delete",
-        width: '400px'
-    }).then((result) => {
+    let sessionAlert = $('#success-alert');
 
-        if (result.isConfirmed) {
+    if (sessionAlert.length) {
 
-            $.ajax({
-                url: url,
-                type: 'POST',
-                data: {
-                    _token: $('meta[name="csrf-token"]').attr('content'),
-                    _method: 'DELETE'
-                },
-                dataType: 'json'
-            })
-            .done(function (response) {
+        sessionAlert.hide().fadeIn(400); // fade in first
 
-                $('#qr_table').replaceWith(response.html);
+        setTimeout(function () {
+            sessionAlert.fadeOut(500, function () {
+                $(this).remove();
+            });
+        }, 3000);
+    }
 
-                Swal.fire({
-                    icon: "success",
-                    title: "Deleted!",
-                    text: "QR Code removed successfully.",
-                    timer: 1500,
-                    showConfirmButton: false
+
+    /* ===============================
+       AUTO FADE SUCCESS MESSAGE (AJAX)
+    =============================== */
+
+    function showSuccessMessage(message) {
+
+        $('#success-alert').remove();
+
+        let alertHtml = `
+            <div id="success-alert" class="alert-success-custom" style="display:none;">
+                ${message}
+            </div>
+        `;
+
+        $('.card-custom').prepend(alertHtml);
+
+        $('#success-alert').fadeIn(400); // fade in
+
+        setTimeout(function () {
+            $('#success-alert').fadeOut(500, function () {
+                $(this).remove();
+            });
+        }, 3000);
+    }
+
+
+    /* ===============================
+       DELETE QR
+    =============================== */
+
+    $(document).on('click', '.delete-qr', function () {
+
+        let url = $(this).data('url');
+
+        Swal.fire({
+            title: "Delete QR Code?",
+            text: "This cannot be undone.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#6c757d",
+            confirmButtonText: "Yes, delete",
+            width: '400px'
+        }).then((result) => {
+
+            if (result.isConfirmed) {
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content'),
+                        _method: 'DELETE'
+                    },
+                    dataType: 'json'
+                })
+                .done(function (response) {
+
+                    if (response.success) {
+
+                        $('#qr_table').html(response.html);
+
+                        showSuccessMessage("QR Code removed successfully.");
+
+                    } else {
+
+                        Swal.fire({
+                            icon: "error",
+                            title: "Cannot Delete",
+                            text: response.message,
+                        });
+
+                    }
+
+                })
+                .fail(function () {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error!",
+                        text: "Something went wrong.",
+                    });
                 });
 
-            })
-            .fail(function () {
-                Swal.fire("Error!", "Something went wrong.", "error");
-            });
+            }
 
-        }
+        });
 
     });
+
 });

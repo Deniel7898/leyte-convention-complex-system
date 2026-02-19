@@ -16,11 +16,12 @@
         </div>
 
         {{-- Success Message --}}
-        @if(session('success'))
-            <div class="alert-success-custom">
-                {{ session('success') }}
+        @if(session(key: 'success'))
+            <div id="success-alert" class="alert-success-custom">
+            {{ session('success') }}
             </div>
         @endif
+
 
         {{-- Error Message --}}
         @if(session('error'))
@@ -29,8 +30,10 @@
             </div>
         @endif
 
-        {{-- TABLE INCLUDE (FIXED PATH) --}}
-        @include('reference.qr_code.table')
+        {{-- ✅ Wrap Table --}}
+        <div id="qr_table">
+            @include('reference.qr_code.table')
+        </div>
 
     </div>
 </div>
