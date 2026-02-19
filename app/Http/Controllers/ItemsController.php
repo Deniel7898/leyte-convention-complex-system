@@ -12,6 +12,23 @@ use Illuminate\Support\Facades\Auth;
 
 class ItemsController extends Controller
 {
+
+    /**
+     * Dynamic Item Status.
+     */
+    // private function updateItemStatus($itemId)
+    // {
+    //     $remaining = InventoryConsumable::where('item_id', $itemId)->count()
+    //         + InventoryNonConsumable::where('item_id', $itemId)->count();
+
+    //     $item = Item::find($itemId);
+
+    //     if ($item) {
+    //         $item->status = $remaining > 0 ? 1 : 0;
+    //         $item->save();
+    //     }
+    // }
+
     /**
      * Live Search for Items.
      */
@@ -164,6 +181,7 @@ class ItemsController extends Controller
             'status' => 'required|integer|in:0,1',
             'description' => 'nullable|string',
             'picture' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
+            'received_date' => 'nullable|date',
             'warranty_expires' => 'nullable|date', // For non-consumable
         ]);
 
@@ -184,15 +202,15 @@ class ItemsController extends Controller
             if ($item->type == 0) {
                 InventoryConsumable::create([
                     'item_id' => $item->id,
-                    'receive_date' => now(),
+                    'received_date' => $request->received_date,
                     'created_by' => Auth::id(),
                     'updated_by' => Auth::id(),
                 ]);
             } else {
                 InventoryNonConsumable::create([
                     'item_id' => $item->id,
+                    'received_date' => $request->received_date,
                     'warranty_expires' => $request->warranty_expires,
-                    'receive_date' => now(),
                     'created_by' => Auth::id(),
                     'updated_by' => Auth::id(),
                 ]);
@@ -208,6 +226,14 @@ class ItemsController extends Controller
     }
 
     /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        //
+    }
+
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit(string $id)
@@ -215,16 +241,14 @@ class ItemsController extends Controller
         $categories = Category::all();
         $units = Units::all();
 
-        // Get the item first
         $item = Item::findOrFail($id);
 
-        // Only fetch non-consumable if the item is non-consumable
-        $non_consumable = null;
-        if ($item->type == 1) { // assuming 1 = non-consumable
-            $non_consumable = InventoryNonConsumable::where('item_id', $item->id)->first();
-        }
+        // Fetch the first inventory record based on item type
+        $inventory = $item->type == 0
+            ? InventoryConsumable::where('item_id', $item->id)->first()
+            : InventoryNonConsumable::where('item_id', $item->id)->first();
 
-        return view('inventory.items.form', compact('item', 'categories', 'units', 'non_consumable'));
+        return view('inventory.items.form', compact('item', 'categories', 'units', 'inventory'));
     }
 
     /**
@@ -241,7 +265,7 @@ class ItemsController extends Controller
             'status' => 'required|integer|in:0,1',
             'description' => 'nullable|string',
             'picture' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
-            'warranty_expires' => 'nullable|date', // validate date format
+            // 'warranty_expires' => 'nullable|date', // validate date format
         ]);
 
         // Handle picture upload
@@ -259,19 +283,19 @@ class ItemsController extends Controller
         $item->update($validated);
 
         // Update warranty_expires for non-consumables only
-        if ($item->type == 1) { // 1 = non-consumable
-            $nonConsumable = InventoryNonConsumable::firstOrCreate(
-                ['item_id' => $item->id],
-                ['warranty_expires' => $validated['warranty_expires'] ?? null]
-            );
+        // if ($item->type == 1) { // 1 = non-consumable
+        //     $nonConsumable = InventoryNonConsumable::firstOrCreate(
+        //         ['item_id' => $item->id],
+        //         ['warranty_expires' => $validated['warranty_expires'] ?? null]
+        //     );
 
-            // If record already exists, update it
-            if (!$nonConsumable->wasRecentlyCreated) {
-                $nonConsumable->update([
-                    'warranty_expires' => $validated['warranty_expires'] ?? null,
-                ]);
-            }
-        }
+        //     // If record already exists, update it
+        //     if (!$nonConsumable->wasRecentlyCreated) {
+        //         $nonConsumable->update([
+        //             'warranty_expires' => $validated['warranty_expires'] ?? null,
+        //         ]);
+        //     }
+        // }
 
         $items = $this->getItems(); // Recalculate remaining
 

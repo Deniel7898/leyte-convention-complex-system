@@ -40,7 +40,8 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 
 // Live search route for AJAX
 Route::get('/items/live-search', [ItemsController::class, 'liveSearch'])->name('items.liveSearch');
-Route::get('/inentory/live-search', [InventoriesController::class, 'liveSearch'])->name('inventory.liveSearch');
+Route::get('/inventory/live-search', [InventoriesController::class, 'liveSearch'])->name('inventory.liveSearch');
+Route::get('/viewItem/live-search', [ViewItemController::class, 'liveSearch'])->name('viewItem.liveSearch');
 
 //inventory routes
 Route::resource('items', App\Http\Controllers\ItemsController::class)->middleware('auth'); // includes all CRUD routes for items

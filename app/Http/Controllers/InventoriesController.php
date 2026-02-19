@@ -41,8 +41,8 @@ class InventoriesController extends Controller
 
                 // Search received date
                 if (
-                    !empty($inventory->receive_date) &&
-                    stripos($inventory->receive_date, $searchTerm) !== false
+                    !empty($inventory->received_date) &&
+                    stripos($inventory->received_date, $searchTerm) !== false
                 ) {
                     $match = true;
                 }
@@ -127,27 +127,28 @@ class InventoriesController extends Controller
      */
     private function getInventories()
     {
-        $consumables = InventoryConsumable::with(['item', 'qr_code'])
+        $consumables = InventoryConsumable::with(['item', 'qr_code', 'distribution'])
             ->get()
             ->map(function ($c) {
                 $c->inventory_type = 'Consumable';
-                $c->warranty_expires = '--'; // consumables don't have warranty
+                $c->warranty_expires = '--';
+                $c->distribution_status = $c->distribution->status ?? 'Available';
                 return $c;
             });
 
-        $nonConsumables = InventoryNonConsumable::with(['item', 'qr_code'])
+        $nonConsumables = InventoryNonConsumable::with(['item', 'qr_code', 'distribution'])
             ->get()
             ->map(function ($n) {
                 $n->inventory_type = 'Non-Consumable';
                 $n->warranty_expires = $n->warranty_expires ?? '--';
+                $n->distribution_status = $n->distribution->status ?? 'Available';
                 return $n;
             });
 
-        return $consumables
-            ->merge($nonConsumables)
-            ->sortByDesc('receive_date')
+        return $consumables->merge($nonConsumables)
+            ->sortByDesc('received_date')
             ->values();
-    }
+    }       
 
     /**
      * Display a listing of the resource.
@@ -157,13 +158,10 @@ class InventoriesController extends Controller
         // Get all inventories (consumables + non-consumables)
         $inventories = $this->getInventories();
 
-        // Get all categories for filter dropdowns
         $categories = Category::all();
 
-        // Render the inventory table partial
         $inventories_table = view('inventory.inventory.table', compact('inventories'))->render();
 
-        // Return the main index view
         return view('inventory.inventory.index', compact('inventories_table', 'categories'));
     }
 
@@ -192,6 +190,8 @@ class InventoriesController extends Controller
             'status' => 'required|integer|in:0,1',
             'description' => 'nullable|string',
             'picture' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
+            'received_date' => 'nullable|date',
+            'warranty_expires' => 'nullable|date', // For non-consumable
         ]);
 
         // Handle picture upload
@@ -213,15 +213,15 @@ class InventoriesController extends Controller
             if ((int) $item->type === 0) {
                 InventoryConsumable::create([
                     'item_id' => $item->id,
-                    'receive_date' => now(),
+                    'received_date' => $request->received_date,
                     'created_by' => Auth::id(),
                     'updated_by' => Auth::id(),
                 ]);
             } else {
                 InventoryNonConsumable::create([
                     'item_id' => $item->id,
+                    'received_date' => $request->received_date,
                     'warranty_expires' => $request->warranty_expires,
-                    'receive_date' => now(),
                     'created_by' => Auth::id(),
                     'updated_by' => Auth::id(),
                 ]);
@@ -269,7 +269,7 @@ class InventoriesController extends Controller
     public function update(Request $request, string $id)
     {
         $validated = $request->validate([
-            'status' => 'required|integer|in:0,1',
+            'received_date' => 'nullable|date',
             'warranty_expires' => 'nullable|date',
         ]);
 
@@ -282,15 +282,15 @@ class InventoriesController extends Controller
             $isNonConsumable = true;
         }
 
-        // ✅ Update Item status (because status is from items table)
+        // Update Item status (because status is from items table)
         $inventory->item->update([
-            'status' => $validated['status'],
             'updated_by' => Auth::id(),
         ]);
 
-        // ✅ If Non-Consumable, update warranty
+        // If Non-Consumable, update warranty
         if ($isNonConsumable) {
             $inventory->update([
+                'received_date' => $validated['received_date'] ?? null,
                 'warranty_expires' => $validated['warranty_expires'] ?? null,
                 'updated_by' => Auth::id(),
             ]);

@@ -134,37 +134,27 @@ $(function () {
         });
     });
 
-    // $(function () {
-    //     function performSearch() {
-    //         let query = $('#item-search').val();
-    //         let type = $('#type-filter').val();          // dropdown for type
-    //         let status = $('#status-filter').val(); // dropdown for status
-    //         let category = $('#categories-filter').val(); // dropdown for category
 
-    //         $.ajax({
-    //             url: window.liveSearchUrl, // e.g., "/items/live-search"
-    //             type: 'GET',
-    //             data: {
-    //                 query: query,
-    //                 type: type,
-    //                 status: status,
-    //                 category: category
-    //             },
-    //             success: function (response) {
-    //                 $('#items-table-body').html(response);
-    //             },
-    //             error: function (xhr) {
-    //                 console.error(xhr.responseText);
-    //             }
-    //         });
-    //     }
+    $(function () {
+        function performSearch() {
+            $.ajax({
+                url: window.liveSearchUrl,
+                type: 'GET',
+                data: {
+                    query: $('#viewItem-search').val(),
+                    status: $('#status-filter').val(),
+                    item_id: window.currentItemId // Only current general item
+                },
+                success: function (response) {
+                    $('#viewItems-table-body').html(response);
+                },
+                error: function (xhr) {
+                    console.error(xhr.responseText);
+                }
+            });
+        }
 
-    //     // Trigger search while typing
-    //     $('#item-search').on('keyup', function () {
-    //         performSearch();
-    //     });
-
-    //     // Trigger search when any dropdown changes
-    //     $('#type-filter, #status-filter, #categories-filter').on('change', performSearch);
-    // });
+        $('#viewItem-search').on('keyup', performSearch);
+        $('#status-filter').on('change', performSearch);
+    });
 })

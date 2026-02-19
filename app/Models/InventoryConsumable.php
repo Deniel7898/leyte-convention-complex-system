@@ -28,8 +28,8 @@ class InventoryConsumable extends Model
         return $this->belongsTo(QR_Code::class);
     }
 
-    // public function distribution()
-    // {
-    //     return $this->hasOne(\App\Models\Distribution::class, 'inventory_consumable_id');
-    // }
+    public function distribution()
+    {
+        return $this->hasOne(ItemDistribution::class, 'inventory_consumable_id');
+    }
 }

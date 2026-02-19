@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Auth;
 
 class ViewItemController extends Controller
 {
+    /**
+     * Helper: Get all inventories (Consumable + Non-Consumable)
+     */
     private function getInventories($itemId)
     {
         $consumables = InventoryConsumable::with(['item', 'qr_code'])
@@ -40,20 +43,117 @@ class ViewItemController extends Controller
     }
 
     /**
+     * Live Search for Inventory
+     */
+    public function liveSearch(Request $request)
+    {
+        $searchTerm = $request->input('query', '');
+        $statusFilter = $request->input('status', null);
+        $itemId = $request->input('item_id');
+
+        $inventories = $this->getInventories($itemId);
+
+        // Apply text search
+        if ($searchTerm != '') {
+            $searchLower = strtolower($searchTerm);
+
+            $inventories = $inventories->filter(function ($inventory) use ($searchTerm, $searchLower) {
+
+                if (!$inventory->item) return false;
+
+                $match = false;
+
+                // Search item name
+                if (stripos($inventory->item->name, $searchTerm) !== false) {
+                    $match = true;
+                }
+
+                // Search received date
+                if (
+                    !empty($inventory->received_date) &&
+                    stripos($inventory->received_date, $searchTerm) !== false
+                ) {
+                    $match = true;
+                }
+
+                // Search warranty date
+                if (
+                    !empty($inventory->warranty_expires) &&
+                    stripos($inventory->warranty_expires, $searchTerm) !== false
+                ) {
+                    $match = true;
+                }
+
+                // Type keywords
+                if (in_array($searchLower, ['consumable', 'con']) && $inventory->item->type == 0) {
+                    $match = true;
+                }
+                if (in_array($searchLower, ['non-consumable', 'non', 'non consumable']) && $inventory->item->type == 1) {
+                    $match = true;
+                }
+
+                // Status keywords
+                if (in_array($searchLower, ['available', 'avail']) && $inventory->item->status == 1) {
+                    $match = true;
+                }
+                if (in_array($searchLower, ['not available', 'not-available', 'not']) && $inventory->item->status == 0) {
+                    $match = true;
+                }
+
+                // Search in unit name
+                if (
+                    $inventory->item->unit &&
+                    stripos($inventory->item->unit->name, $searchTerm) !== false
+                ) {
+                    $match = true;
+                }
+
+                // Search in category name
+                if (
+                    $inventory->item->category &&
+                    stripos($inventory->item->category->name, $searchTerm) !== false
+                ) {
+                    $match = true;
+                }
+
+                return $match;
+            });
+        }
+
+        // Apply status filter
+        if ($statusFilter && strtolower($statusFilter) != 'all') {
+            $inventories = $inventories->filter(function ($inventory) use ($statusFilter) {
+                if (strtolower($statusFilter) === 'available') return $inventory->item->status == 1;
+                if (strtolower($statusFilter) === 'not available') return $inventory->item->status == 0;
+                return true;
+            });
+        }
+
+        // Reset keys after filtering
+        $viewItems = $inventories->values();
+
+        return view('inventory.viewItem.table', compact('viewItems'));
+    }
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+       //
+    }
+
+    /**
      * Show the form for creating a new inventory
      */
-    public function create($itemId = null)
+    public function create($item = null)
     {
         $categories = Category::all();
         $units = Units::all();
         $items = Item::all();
 
-        // Always set selectedItem
-        if ($itemId) {
-            $selectedItem = Item::findOrFail($itemId);
-        } else {
-            $selectedItem = $items->first(); // default item for Add
-        }
+        // Use the passed item ID or fallback
+        $selectedItem = $item ? Item::findOrFail($item) : $items->first();
 
         return view('inventory.viewItem.form', compact('items', 'selectedItem', 'categories', 'units'));
     }
@@ -131,7 +231,7 @@ class ViewItemController extends Controller
         $units = Units::all();
 
         $item = $inventory; // Use $item for the form action
-        $selectedItem = $inventory->item; // For dropdown defaults
+        $selectedItem = $inventory->item; // For Item input Read only
 
         return view('inventory.viewItem.form', compact('items', 'item', 'selectedItem', 'categories', 'units'));
     }

@@ -17,32 +17,27 @@
         <!-- Item Name -->
         <div class="mb-3">
             <label for="item-name" class="form-label">Item Name</label>
-            <input type="text"
-                class="form-control"
-                id="item-name"
-                name="name"
-                value="{{ isset($item) ? $item->name : '' }}"
-                required>
+            <input type="text" class="form-control" id="item-name" name="name" value="{{ isset($item) ? $item->name : '' }}" required>
         </div>
 
         <div class="row">
             <!-- Type -->
+            @if(!isset($item))
             <div class="col-md-6 mb-3">
-                @if(!isset($item))
                 <label for="item-type" class="form-label">Type</label>
                 <select class="form-select" id="item-type" name="type" required>
                     <option value="">Select type</option>
                     <option value="0" {{ (isset($item) && $item->type == 0) ? 'selected' : '' }}>Consumable</option>
                     <option value="1" {{ (isset($item) && $item->type == 1) ? 'selected' : '' }}>Non-Consumable</option>
                 </select>
-                @else
-                <input type="hidden" name="type" value="{{ $item->type }}">
-                @endif
             </div>
+            @else
+            <input type="hidden" name="type" value="{{ $item->type }}">
+            @endif
 
             <!-- Quantity -->
+            @if(!isset($item))
             <div class="col-md-6 mb-3">
-                @if(!isset($item))
                 <label for="item-quantity" class="form-label">Quantity</label>
                 <input type="number"
                     class="form-control"
@@ -50,10 +45,10 @@
                     name="quantity"
                     min="1"
                     required>
-                @else
-                <input type="hidden" name="quantity" value="{{ $item->quantity }}">
-                @endif
             </div>
+            @else
+            <input type="hidden" name="quantity" value="{{ $item->quantity }}">
+            @endif
         </div>
 
         <div class="row">
@@ -97,6 +92,15 @@
                 </select>
             </div>
 
+            <!-- Received Date -->
+            <div class="col-md-6 mb-3">
+                <label for="received-date" class="form-label">Received Date</label>
+                <input type="date" class="form-control" id="received-date" name="received_date"
+                    value="{{ isset($inventory) ? $inventory->received_date : date('Y-m-d') }}">
+            </div>
+        </div>
+
+        <div class="row">
             <!-- Warranty Expires -->
             <div class="col-md-6 mb-3 non-consumable-fields" style="{{ isset($item) && $item->type == 1 ? '' : 'display:none;' }}">
                 <label for="warranty-expires" class="form-label">Warranty Expires</label>
@@ -104,7 +108,7 @@
                     class="form-control"
                     id="warranty-expires"
                     name="warranty_expires"
-                    value="{{ isset($non_consumable) ? $non_consumable->warranty_expires : '' }}">
+                    value="{{ isset($inventory) ? $inventory->warranty_expires : '' }}">
             </div>
         </div>
 

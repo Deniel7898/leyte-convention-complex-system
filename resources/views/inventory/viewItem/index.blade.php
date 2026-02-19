@@ -32,7 +32,7 @@
         </div>
 
         <div class="col-auto">
-            <div class="col-auto add-viewItem" data-url="{{route('viewItem.create')}}">
+            <div class="col-auto add-viewItem" data-url="{{ route('viewItem.create', ['item' => $viewItem->id]) }}">
                 <button class="btn px-4 text-white" style="background-color: hsl(237, 34%, 30%);" onmouseover="this.style.backgroundColor='hsl(237, 34%, 40%)'" onmouseout="this.style.backgroundColor='hsl(237, 34%, 30%)'">
                     + Add Item
                 </button>
@@ -68,7 +68,7 @@
                             <th>{{ __('Actions') }}</th>
                         </tr>
                     </thead>
-                    <tbody id="viewItems_table">
+                    <tbody id="viewItems-table-body">
                         {!!$viewItems_table!!}
                     </tbody>
                 </table>
@@ -77,6 +77,7 @@
         </div>
     </div>
 </div>
+
 <!-- Modal -->
 <div class="modal fade" id="viewItems_modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -86,22 +87,14 @@
     </div>
 </div>
 
-<!-- View Modal -->
-<div class="modal fade" id="items_modal_view" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content modal-view">
-            <!-- Your modal header, body, footer here -->
-        </div>
-    </div>
-</div>
-
 <!-- Loading Spinner -->
 <div id="loading-spinner">
     <div class="spinner"></div>
 </div>
 
-<!-- <script>
-    window.liveSearchUrl = "{{ route('items.liveSearch') }}";
-</script> -->
+<script>
+    window.liveSearchUrl = @json(route('viewItem.liveSearch'));
+    window.currentItemId = @json($viewItem->id);
+</script>
 
 @endsection
