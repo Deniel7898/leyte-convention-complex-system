@@ -125,6 +125,10 @@
 }
 /*CSS of actions for view delete and add to be a line*/
 /* Whole actions cell */
+/* ============================= */
+/* ACTIONS COLUMN STYLING */
+/* ============================= */
+
 .actions-wrapper {
     display: flex;
     flex-direction: column;
@@ -137,7 +141,7 @@
     align-items: center;
     justify-content: center;
     gap: 12px;
-    min-height: 32px; /* keeps height consistent */
+    min-height: 32px;
 }
 
 .icon-btn {
@@ -154,14 +158,26 @@
     transition: all 0.2s ease;
 }
 
-/* Color Styles */
-.icon-btn.success { color: #28a745; }
-.icon-btn.primary { color: #0d6efd; }
-.icon-btn.danger  { color: #dc3545; }
+/* Button Colors */
+.icon-btn.success {
+    color: #28a745;
+}
 
-/* Hover effect */
+.icon-btn.primary {
+    color: #0d6efd;
+}
+
+.icon-btn.secondary {
+    color: #6c757d;
+}
+
+.icon-btn.danger {
+    color: #dc3545;
+}
+
+/* Hover Effect */
 .icon-btn:hover {
-    background: rgba(0,0,0,0.05);
+    background: rgba(0, 0, 0, 0.05);
     transform: scale(1.1);
 }
 
@@ -170,5 +186,23 @@
     color: #6c757d;
 }
 
+.icon-btn i {
+    color: inherit;
+}
 
+.icon-btn.success i {
+    color: #28a745 !important;
+}
+
+.icon-btn.primary i {
+    color: #0d6efd !important;
+}
+
+.icon-btn.secondary i {
+    color: #6c757d !important;
+}
+
+.icon-btn.danger i {
+    color: #dc3545 !important;
+}
 
