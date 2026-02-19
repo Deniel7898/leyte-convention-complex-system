@@ -44,6 +44,11 @@ Route::post('qr_codes/{qr_code}/mark-used',
     [App\Http\Controllers\QR_CodeController::class, 'markUsed']
 )->name('qr_codes.markUsed')->middleware('auth');
 
+Route::get('qr_codes/{id}/print',
+    [App\Http\Controllers\QR_CodeController::class, 'printLabel']
+)->name('qr_codes.print')->middleware('auth');
+
+
 Route::get('/purchase_request/print_approved', 
     [Purchase_RequestsController::class, 'printApproved']
 )->name('purchase_request.printApproved');
