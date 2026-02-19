@@ -13,57 +13,43 @@
     </div>
 
     <div class="modal-body">
-
-        <!-- inventory Name -->
-        <div class="mb-3">
-            @if(!isset($inventory))
-            <label for="inventory-name" class="form-label">Inventory Name</label>
-            <input type="text"
-                class="form-control"
-                id="inventory-name"
-                name="name"
-                value="{{ isset($inventory) ? $inventory->name : '' }}"
-                required>
-            @else
-            <input type="hidden" name="name" value="{{ $inventory->name }}">
-            @endif
-        </div>
-
         <div class="row">
-            <!-- Type -->
+            <!-- Item Name -->
             <div class="col-md-6 mb-3">
-                @if(!isset($inventory))
+                <label for="inventory-name" class="form-label">Item Name</label>
+                <input type="text" class="form-control" id="inventory-name" name="name" value="{{ isset($inventory) ? $inventory->item->name : '' }}"
+                    {{ isset($inventory) ? 'readonly' : '' }} required>
+            </div>
+
+            <!-- Type -->
+            @if(!isset($inventory))
+            <div class="col-md-6 mb-3">
                 <label for="inventory-type" class="form-label">Type</label>
                 <select class="form-select" id="inventory-type" name="type" required>
                     <option value="">Select type</option>
                     <option value="0" {{ (isset($inventory) && $inventory->item->type == 0) ? 'selected' : '' }}>Consumable</option>
                     <option value="1" {{ (isset($inventory) && $inventory->item->type == 1) ? 'selected' : '' }}>Non-Consumable</option>
                 </select>
-                @else
-                <input type="hidden" name="type" value="{{ $inventory->type }}">
-                @endif
             </div>
-
-            <!-- Quantity -->
-            <div class="col-md-6 mb-3">
-                @if(!isset($inventory))
-                <label for="inventory-quantity" class="form-label">Quantity</label>
-                <input type="number"
-                    class="form-control"
-                    id="inventory-quantity"
-                    name="quantity"
-                    min="1"
-                    required>
-                @else
-                <input type="hidden" name="quantity" value="{{ $inventory->quantity }}">
-                @endif
-            </div>
+            @else
+            <input type="hidden" name="type" value="{{ $inventory->type }}">
+            @endif
         </div>
 
         <div class="row">
-            <!-- Unit -->
+            <!-- Quantity -->
+            @if(!isset($inventory))
             <div class="col-md-6 mb-3">
-                @if(!isset($inventory))
+                <label for="inventory-quantity" class="form-label">Quantity</label>
+                <input type="number" class="form-control" id="inventory-quantity" name="quantity" min="1" required>
+            </div>
+            @else
+            <input type="hidden" name="quantity" value="{{ $inventory->quantity }}">
+            @endif
+
+            <!-- Unit -->
+            @if(!isset($inventory))
+            <div class="col-md-6 mb-3">
                 <label for="inventory-unit" class="form-label">Unit</label>
                 <select class="form-select" id="inventory-unit" name="unit_id" required>
                     <option value="">Select Unit</option>
@@ -74,14 +60,16 @@
                     </option>
                     @endforeach
                 </select>
-                @else
-                <input type="hidden" name="unit" value="{{ $inventory->unit }}">
-                @endif
             </div>
+            @else
+            <input type="hidden" name="unit" value="{{ $inventory->unit }}">
+            @endif
+        </div>
 
+        <div class="row">
             <!-- Category -->
+            @if(!isset($inventory))
             <div class="col-md-6 mb-3">
-                @if(!isset($inventory))
                 <label for="inventory-category" class="form-label">Category</label>
                 <select class="form-select" id="inventory-category" name="category_id" required>
                     <option value="">Select category</option>
@@ -92,14 +80,13 @@
                     </option>
                     @endforeach
                 </select>
-                @else
-                <input type="hidden" name="category" value="{{ $inventory->category }}">
-                @endif
             </div>
-        </div>
+            @else
+            <input type="hidden" name="category" value="{{ $inventory->category }}">
+            @endif
 
-        <div class="row">
             <!-- Status -->
+            @if(!isset($inventory))
             <div class="col-md-6 mb-3">
                 <label for="inventory-status" class="form-label">Status</label>
                 <select class="form-select" id="inventory-status" name="status" required>
@@ -112,16 +99,24 @@
                     </option>
                 </select>
             </div>
+            @else
+            <input type="hidden" name="status" value="{{ $inventory->status }}">
+            @endif
+        </div>
+
+        <div class="row">
+            <!-- Received Date -->
+            <div class="col-md-6 mb-3">
+                <label for="received-date" class="form-label">Received Date</label>
+                <input type="date" class="form-control" id="received-date" name="received_date"
+                    value="{{ isset($inventory) ? $inventory->received_date : date('Y-m-d') }}">
+            </div>
 
             <!-- Warranty Expires -->
             <div class="col-md-6 mb-3 non-consumable-fields"
                 style="{{ isset($inventory) && ($inventory->item->type ?? 0) == 1 ? '' : 'display:none;' }}">
                 <label for="warranty-expires" class="form-label">Warranty Expires</label>
-                <input type="date"
-                    class="form-control"
-                    id="warranty-expires"
-                    name="warranty_expires"
-                    value="{{ $inventory->warranty_expires ?? '' }}">
+                <input type="date" class="form-control" id="warranty-expires" name="warranty_expires" value="{{ $inventory->warranty_expires ?? '' }}">
             </div>
         </div>
 
@@ -129,11 +124,7 @@
         <div class="mb-3">
             @if(!isset($inventory))
             <label for="inventory-description" class="form-label">Description</label>
-            <textarea class="form-control"
-                id="inventory-description"
-                name="description"
-                rows="2"
-                style="resize: none; overflow-y: auto; max-height: 80px;">{{ isset($inventory) ? $inventory->description : '' }}</textarea>
+            <textarea class="form-control" id="inventory-description" name="description" rows="2" style="resize: none; overflow-y: auto; max-height: 80px;">{{ isset($inventory) ? $inventory->description : '' }}</textarea>
             @else
             <input type="hidden" name="description" value="{{ $inventory->description }}">
             @endif
@@ -147,21 +138,14 @@
                 id="picture-dropzone"
                 style="cursor: pointer; min-height: 150px; display: flex; align-inventory: center; justify-content: center;">
 
-                <input type="file"
-                    id="inventory-picture"
-                    name="picture"
-                    accept="image/*"
-                    onchange="previewPicture(event)"
-                    style="display:none;">
+                <input type="file" id="inventory-picture" name="picture" accept="image/*" onchange="previewPicture(event)" style="display:none;">
 
                 <img id="picture-preview"
                     src="{{ isset($inventory) && $inventory->picture ? asset('storage/' . $inventory->picture) : '' }}"
-                    class="img-fluid rounded"
-                    style="max-height: 120px; {{ isset($inventory) && $inventory->picture ? '' : 'display:none;' }}">
+                    class="img-fluid rounded" style="max-height: 120px; {{ isset($inventory) && $inventory->picture ? '' : 'display:none;' }}">
 
                 <div id="picture-placeholder"
-                    class="text-muted"
-                    style="{{ isset($inventory) && $inventory->picture ? 'display:none;' : '' }}">
+                    class="text-muted" style="{{ isset($inventory) && $inventory->picture ? 'display:none;' : '' }}">
                     Click or drag to upload picture
                 </div>
             </div>

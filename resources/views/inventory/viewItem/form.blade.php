@@ -12,19 +12,14 @@
 
     <div class="modal-body">
         <!-- Item Name -->
-        <!-- Item Name -->
         <div class="mb-3">
-            <label for="item-item" class="col-form-label">Item:</label>
-            <select class="form-control" id="item-item" name="item_id" required>
-                <option value="">Select Item</option>
-                @foreach ($items as $itm)
-                <option value="{{ $itm->id }}"
-                    @selected(isset($selectedItem) && $selectedItem->id == $itm->id)>
-                    {{ $itm->name }}
-                </option>
-                @endforeach
-            </select>
+            <label for="general-item" class="col-form-label">Item:</label>
+            <input type="text" class="form-control" id="general-item"
+                value="{{ $selectedItem->name }}" readonly>
         </div>
+
+        <!-- Hidden input to submit the item ID -->
+        <input type="hidden" name="item_id" value="{{ $selectedItem->id }}">
 
         <!-- Receive Date (for both consumable & non-consumable) -->
         <div class="mb-3" id="receive-date">

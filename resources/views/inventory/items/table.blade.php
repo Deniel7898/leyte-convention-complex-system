@@ -22,11 +22,11 @@
                     {{ $item->category->name ?? '--' }}
                 </p>
             </td>
-            <td>
-                @if($item->status == 1)
-                    <span class="badge bg-success text-white">Available</span>
-                @else
+           <td>
+                @if($item->remaining == 0 || $item->status == 0)
                     <span class="badge bg-danger text-white">Not Available</span>
+                @else
+                    <span class="badge bg-success text-white">Available</span>
                 @endif
             </td>
             <td><p>{{ $item->description ?? '--' }}</p></td>

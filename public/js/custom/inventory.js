@@ -134,7 +134,6 @@ $(function () {
     });
 
     $(function () {
-
         function performSearch() {
             let query = $('#inventory-search').val();
             let type = $('#type-filter').val();          // dropdown for type
@@ -166,6 +165,5 @@ $(function () {
 
         // Trigger search when any dropdown changes
         $('#type-filter, #status-filter, #categories-filter').on('change', performSearch);
-
     });
 })

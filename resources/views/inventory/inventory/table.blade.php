@@ -21,13 +21,7 @@
                     {{ $inventory->item->category->name ?? '--' }}
                 </p>
             </td>
-            <td>
-                @if(($inventory->item?->status ?? 0) == 1)
-                    <span class="badge bg-success text-white">Available</span>
-                @else
-                    <span class="badge bg-danger text-white">Not Available</span>
-                @endif
-            </td>
+            <td><p>{{ $inventory->distribution->status ?? 'Available' }}</p></td>
             <td><p>{{ $inventory->qr_code->code ?? '--' }}</p></td>
             <td><p>{{ $inventory->warranty_expires ?? '--' }}</p></td>
             <td>
