@@ -2,6 +2,9 @@
 
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ItemsController;
+use App\Http\Controllers\InventoriesController;
+use App\Http\Controllers\ViewItemController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Purchase_RequestsController;
 
@@ -36,6 +39,22 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+// Live search route for AJAX
+Route::get('/items/live-search', [ItemsController::class, 'liveSearch'])->name('items.liveSearch');
+Route::get('/inventory/live-search', [InventoriesController::class, 'liveSearch'])->name('inventory.liveSearch');
+Route::get('/viewItem/live-search', [ViewItemController::class, 'liveSearch'])->name('viewItem.liveSearch');
+
+//inventory routes
+Route::resource('items', App\Http\Controllers\ItemsController::class)->middleware('auth'); // includes all CRUD routes for items
+Route::resource('inventory', App\Http\Controllers\InventoriesController::class)->middleware('auth'); // includes all CRUD routes for items
+
+//view items routes
+Route::resource('viewItem', App\Http\Controllers\ViewItemController::class)->middleware('auth'); // includes all CRUD routes for view items
+Route::get('/viewItem/create/{item?}', [ViewItemController::class, 'create'])->name('viewItem.create'); //for the add modal show
+Route::get('/viewItem/edit/{item?}', [ViewItemController::class, 'edit'])->name('viewItem.edit'); //for the add modal show
+Route::delete('/viewItem/{inventory}', [ViewItemController::class, 'destroy'])->name('viewItem.destroy');
+
 Route::resource('categories', App\Http\Controllers\CategoriesController::class)->middleware('auth'); // includes all CRUD routes for categories
 Route::resource('units', App\Http\Controllers\UnitsController::class)->middleware('auth'); // includes all CRUD routes for units
 Route::resource('qr_codes', controller: App\Http\Controllers\QR_CodeController::class)->middleware('auth'); // includes all CRUD routes for QR codes

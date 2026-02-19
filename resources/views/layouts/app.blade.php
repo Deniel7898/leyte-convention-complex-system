@@ -17,17 +17,6 @@
     <link rel="stylesheet" href="{{ asset('css/materialdesignicons.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/main.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}" />
-    <link rel="stylesheet" href="{{ asset('css/custom/custom_modal.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/custom/icon.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/custom/qr_codes.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/custom/action_icon.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/custom/purchase_request.css') }}">
-
-
-    <!-- Bootstrap Icons CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-
-
 
     <link rel="stylesheet" href="{{ asset('css/custom/'.request()->segment(1).'.css') }}" />
 </head>
