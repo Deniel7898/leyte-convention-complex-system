@@ -51,6 +51,6 @@ Route::get('/purchase_request/print_approved',
 Route::post('purchase_request/{id}/status/{status}',
     [App\Http\Controllers\Purchase_RequestsController::class, 'updateStatus'])
     ->name('purchase_request.updateStatus');
-
+                
 Route::resource('purchase_request', App\Http\Controllers\Purchase_RequestsController::class)
     ->middleware('auth');
