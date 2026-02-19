@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\Auth;
 
 class Purchase_RequestsController extends Controller
 {
-        public function printApproved()
+    // ✅ PRINT ALL APPROVED
+    public function printApproved()
     {
         $approvedRequests = Purchase_Request::with(['creator', 'items'])
             ->where('status', 'approved')
@@ -17,7 +18,6 @@ class Purchase_RequestsController extends Controller
 
         return view('purchase_request.print_all', compact('approvedRequests'));
     }
-
 
     public function index(Request $request)
     {
@@ -28,20 +28,19 @@ class Purchase_RequestsController extends Controller
 
             $query->where(function ($q) use ($search) {
                 $q->where('id', 'like', "%{$search}%")
-                ->orWhere('request_date', 'like', "%{$search}%")
-                ->orWhere('status', 'like', "%{$search}%")
-                ->orWhereHas('creator', function ($q2) use ($search) {
-                    $q2->where('name', 'like', "%{$search}%");
-                });
+                  ->orWhere('request_date', 'like', "%{$search}%")
+                  ->orWhere('status', 'like', "%{$search}%")
+                  ->orWhereHas('creator', function ($q2) use ($search) {
+                      $q2->where('name', 'like', "%{$search}%");
+                  });
             });
         }
 
         $requests = $query->orderBy('id', 'asc')
-                        ->paginate(10);
+                          ->paginate(10);
 
         return view('purchase_request.index', compact('requests'));
     }
-
 
     public function create()
     {
