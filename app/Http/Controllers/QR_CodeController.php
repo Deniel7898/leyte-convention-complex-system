@@ -105,4 +105,15 @@ class QR_CodeController extends Controller
             'html' => $view
         ]);
     }
+
+        /**
+     * Print QR Label
+     */
+public function printLabel($id)
+{
+    $qr = QR_Code::findOrFail($id);
+
+    return view('reference.qr_code.print_label', compact('qr'));
+}
+
 }
