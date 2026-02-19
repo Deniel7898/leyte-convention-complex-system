@@ -25,17 +25,6 @@
                 <span class="badge-status status-{{ $purchaseRequest->status }}">
                     {{ ucfirst($purchaseRequest->status) }}
                 </span>
-
-                {{-- PRINT BUTTON (Only if Approved) --}}
-                @if($purchaseRequest->status === 'approved')
-                    <div style="margin-top:10px;">
-                        <a href="{{ route('purchase_request.print', $purchaseRequest->id) }}"
-                           target="_blank"
-                           class="btn-modern btn-primary-modern">
-                            Print
-                        </a>
-                    </div>
-                @endif
             </div>
 
         </div>
@@ -50,12 +39,18 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($purchaseRequest->items as $item)
+                @forelse($purchaseRequest->items as $item)
                     <tr>
                         <td>{{ $item->description }}</td>
                         <td>{{ $item->quantity }}</td>
                     </tr>
-                @endforeach
+                @empty
+                    <tr>
+                        <td colspan="2" style="text-align:center;">
+                            No items found.
+                        </td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
 
