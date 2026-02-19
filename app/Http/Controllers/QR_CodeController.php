@@ -15,7 +15,10 @@ class QR_CodeController extends Controller
      */
     public function index()
     {
-        $qrCodes = QR_Code::latest()->paginate(10);
+        $qrCodes = QR_Code::with([
+        'creator'
+        ])->latest()->paginate(10);
+
         return view('reference.qr_code.index', compact('qrCodes'));
     }
 
@@ -31,8 +34,8 @@ class QR_CodeController extends Controller
         $code = $request->code ?? 'LCC-' . strtoupper(Str::random(8));
 
         QR_Code::create([
-            'code' => $code,
-            'status' => QR_Code::STATUS_ACTIVE,
+            'code'       => $code,
+            'status'     => QR_Code::STATUS_ACTIVE,
             'created_by' => Auth::id(),
         ]);
 
@@ -63,24 +66,43 @@ class QR_CodeController extends Controller
             return back()->with('error', 'QR Code is already used.');
         }
 
-        $qr->markAsUsed();
+        $qr->markAsUsed(); // already updates updated_by
 
         return redirect()->route('qr_codes.index')
             ->with('success', 'QR marked as used.');
     }
 
+    /**
+     * Delete QR Code
+     */
     public function destroy($id)
-{
-    $qr = QR_Code::findOrFail($id);
-    $qr->delete();
+    {
+        $qr = QR_Code::with([
+            'inventoryConsumable',
+            'inventoryNonConsumable'
+        ])->findOrFail($id);
 
-    $qrCodes = QR_Code::latest()->paginate(10);
-    $view = view('reference.qr_code.table', compact('qrCodes'))->render();
+        // 🚫 Prevent deleting if assigned to inventory
+        if ($qr->inventoryConsumable || $qr->inventoryNonConsumable) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete QR. It is already assigned to inventory.'
+            ]);
+        }
 
-    return response()->json([
-        'success' => true,
-        'html' => $view
-    ]);
-}
+        $qr->delete();
 
+        $qrCodes = QR_Code::with([
+            'creator',
+            'inventoryConsumable.item',
+            'inventoryNonConsumable.item'
+        ])->latest()->paginate(10);
+
+        $view = view('reference.qr_code.table', compact('qrCodes'))->render();
+
+        return response()->json([
+            'success' => true,
+            'html' => $view
+        ]);
+    }
 }
