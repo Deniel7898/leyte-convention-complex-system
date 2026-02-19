@@ -5,21 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Category extends Model
+class ItemDistribution extends Model
 {
+    protected $table = 'item_distributions';
+
     use SoftDeletes;
-    
-    protected $table = 'categories';
 
     protected $fillable = [
-        'name',
+        'item_id',
+        'type',
         'description',
+        'status',
         'created_by',
         'updated_by',
     ];
-
-    public function item()
-    {
-        return $this->hasMany(Item::class);
-    }
 }

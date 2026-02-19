@@ -1,20 +1,19 @@
 $(function () {
-
     //add button click
-    $(document).on('click', '.add-item', function () {
+    $(document).on('click', '.add-inventory', function () {
         $('#loading-spinner').addClass('active');
 
         // When opening modal for add
-        $('#items_modal').data('action', 'add');
+        $('#inventories_modal').data('action', 'add');
 
         url = $(this).data('url');
         $.ajax({
             url: url,
             type: 'GET',
             success: function (response) {
-                $('#items_modal .modal-content').html(response);
+                $('#inventories_modal .modal-content').html(response);
                 $('#loading-spinner').removeClass('active'); // hide
-                $('#items_modal').modal('show');
+                $('#inventories_modal').modal('show');
             }
         })
     })
@@ -24,16 +23,16 @@ $(function () {
         $('#loading-spinner').addClass('active');
 
         // When opening modal for update
-        $('#items_modal').data('action', 'update');
+        $('#inventories_modal').data('action', 'update');
 
         url = $(this).data('url');
         $.ajax({
             url: url,
             type: 'GET',
             success: function (response) {
-                $('#items_modal .modal-content').html(response);
+                $('#inventories_modal .modal-content').html(response);
                 $('#loading-spinner').removeClass('active'); // hide
-                $('#items_modal').modal('show');
+                $('#inventories_modal').modal('show');
             }
         })
     })
@@ -61,7 +60,7 @@ $(function () {
                     _method: 'DELETE'
                 })
                     .done(function (response) {
-                        $('#items_table tbody').html(response.html);
+                        $('#inventories_table tbody').html(response.html);
 
                         Swal.fire({
                             title: "Deleted!",
@@ -101,11 +100,11 @@ $(function () {
             processData: false,
             contentType: false,
             success: function (response) {
-                $('#items_table tbody').html(response.html);
+                $('#inventories_table tbody').html(response.html);
 
                 // Close modal only if update
-                if ($('#items_modal').data('action') === 'update') {
-                    $('#items_modal').modal('hide');
+                if ($('#inventories_modal').data('action') === 'update') {
+                    $('#inventories_modal').modal('hide');
                 }
 
                 // Reset all fields
@@ -136,13 +135,13 @@ $(function () {
 
     $(function () {
         function performSearch() {
-            let query = $('#item-search').val();
+            let query = $('#inventory-search').val();
             let type = $('#type-filter').val();          // dropdown for type
             let status = $('#status-filter').val(); // dropdown for status
             let category = $('#categories-filter').val(); // dropdown for category
 
             $.ajax({
-                url: window.liveSearchUrl, // e.g., "/items/live-search"
+                url: window.liveSearchUrl,
                 type: 'GET',
                 data: {
                     query: query,
@@ -151,7 +150,7 @@ $(function () {
                     category: category
                 },
                 success: function (response) {
-                    $('#items-table-body').html(response);
+                    $('#inventory-table-body').html(response);
                 },
                 error: function (xhr) {
                     console.error(xhr.responseText);
@@ -160,7 +159,7 @@ $(function () {
         }
 
         // Trigger search while typing
-        $('#item-search').on('keyup', function () {
+        $('#inventory-search').on('keyup', function () {
             performSearch();
         });
 
