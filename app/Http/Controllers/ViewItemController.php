@@ -12,9 +12,6 @@ use Illuminate\Support\Facades\Auth;
 
 class ViewItemController extends Controller
 {
-    /**
-     * Helper: Get inventories for a specific item
-     */
     private function getInventories($itemId)
     {
         $consumables = InventoryConsumable::with(['item', 'qr_code'])
@@ -23,6 +20,7 @@ class ViewItemController extends Controller
             ->map(function ($c) {
                 $c->inventory_type = 'Consumable';
                 $c->warranty_expires = '--';
+
                 return $c;
             });
 
@@ -32,11 +30,12 @@ class ViewItemController extends Controller
             ->map(function ($n) {
                 $n->inventory_type = 'Non-Consumable';
                 $n->warranty_expires = $n->warranty_expires ?? '--';
+
                 return $n;
             });
 
         return $consumables->merge($nonConsumables)
-            ->sortByDesc('receive_date')
+            ->sortByDesc('received_date')
             ->values();
     }
 
@@ -49,7 +48,12 @@ class ViewItemController extends Controller
         $units = Units::all();
         $items = Item::all();
 
-        $selectedItem = $itemId ? Item::find($itemId) : $items->first();
+        // Always set selectedItem
+        if ($itemId) {
+            $selectedItem = Item::findOrFail($itemId);
+        } else {
+            $selectedItem = $items->first(); // default item for Add
+        }
 
         return view('inventory.viewItem.form', compact('items', 'selectedItem', 'categories', 'units'));
     }
@@ -62,7 +66,7 @@ class ViewItemController extends Controller
         $request->validate([
             'item_id' => 'required|exists:items,id',
             'type' => 'required|in:0,1',
-            'status' => 'required|in:0,1',
+            'received_date' => 'required|date',
             'warranty_expires' => 'nullable|date',
         ]);
 
@@ -74,17 +78,15 @@ class ViewItemController extends Controller
         if ($item->type == 0) {
             InventoryConsumable::create([
                 'item_id' => $item->id,
-                'status' => $request->status,
-                'receive_date' => now(),
+                'received_date' => $request->received_date,
                 'created_by' => Auth::id(),
                 'updated_by' => Auth::id(),
             ]);
         } else {
             InventoryNonConsumable::create([
                 'item_id' => $item->id,
-                'status' => $request->status,
+                'received_date' => $request->received_date,
                 'warranty_expires' => $request->warranty_expires,
-                'receive_date' => now(),
                 'created_by' => Auth::id(),
                 'updated_by' => Auth::id(),
             ]);
@@ -141,6 +143,7 @@ class ViewItemController extends Controller
     {
         $request->validate([
             'item_id' => 'required|exists:items,id',
+            'received_date' => 'required|date',
             'warranty_expires' => 'nullable|date',
         ]);
 
@@ -157,6 +160,7 @@ class ViewItemController extends Controller
 
         // Update common fields
         $inventory->item_id = $request->item_id;
+        $inventory->received_date = $request->received_date;
         $inventory->updated_by = Auth::id();
 
         // Save the changes
@@ -167,7 +171,7 @@ class ViewItemController extends Controller
 
         return response()->json([
             'html' => view('inventory.viewItem.table', compact('viewItems'))->render(),
-            'message' => 'Inventory item updated successfully',
+            'message' => 'Item updated successfully',
         ]);
     }
 
@@ -177,6 +181,7 @@ class ViewItemController extends Controller
      */
     public function destroy($id)
     {
+        // Try to find the inventory (non-consumable first)
         $inventory = InventoryNonConsumable::find($id);
 
         if ($inventory) {
@@ -188,6 +193,13 @@ class ViewItemController extends Controller
             $inventory->delete();
         }
 
+        // Decrement item quantity safely
+        $item = Item::find($itemId);
+        if ($item && $item->quantity > 0) {
+            $item->decrement('quantity'); // minus 1
+        }
+
+        // Get updated inventories
         $viewItems = $this->getInventories($itemId);
 
         return response()->json([

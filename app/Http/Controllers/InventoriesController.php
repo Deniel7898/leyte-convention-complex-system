@@ -315,11 +315,19 @@ class InventoriesController extends Controller
         $inventoryNonConsumable = InventoryNonConsumable::find($id);
 
         if ($inventoryConsumable) {
+            $itemId = $inventoryConsumable->item_id;
             $inventoryConsumable->delete();
         } elseif ($inventoryNonConsumable) {
+            $itemId = $inventoryNonConsumable->item_id;
             $inventoryNonConsumable->delete();
         } else {
             return response()->json(['error' => 'Inventory not found'], 404);
+        }
+
+        // Decrement item quantity safely
+        $item = Item::find($itemId);
+        if ($item && $item->quantity > 0) {
+            $item->decrement('quantity');
         }
 
         // Get all inventories (consumables + non-consumables)

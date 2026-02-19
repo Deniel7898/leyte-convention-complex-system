@@ -5,7 +5,7 @@ $(function () {
         $('#loading-spinner').addClass('active');
 
         // When opening modal for add
-        $('#viewItems_modal').data('action', 'add');
+        $('#viewItems_modal').data('action', 'update');
 
         url = $(this).data('url');
         $.ajax({

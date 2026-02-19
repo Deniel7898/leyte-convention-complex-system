@@ -173,7 +173,7 @@
 
     <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="submit" class="btn text-white" style=" background-color: rgb(43, 45, 87);">Save inventory</button>
+        <button type="submit" class="btn text-white" style=" background-color: rgb(43, 45, 87);">Save Item</button>
     </div>
 </form>
 

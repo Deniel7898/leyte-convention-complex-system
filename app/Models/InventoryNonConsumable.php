@@ -12,7 +12,7 @@ class InventoryNonConsumable extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'receive_date',
+        'received_date',
         'item_id',
         'warranty_expires',
         'created_by',
@@ -28,4 +28,9 @@ class InventoryNonConsumable extends Model
     {
         return $this->belongsTo(QR_Code::class);
     }
+
+    // public function distribution()
+    // {
+    //     return $this->hasOne(\App\Models\Distribution::class, 'inventory_non_consumable_id');
+    // }
 }
