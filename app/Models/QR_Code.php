@@ -9,7 +9,7 @@ class QR_Code extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'qr_codes'; // 👈 ADD THIS
+    protected $table = 'qr_codes';
 
     protected $fillable = [
         'code',
@@ -19,7 +19,6 @@ class QR_Code extends Model
         'used_at',
         'expired_at',
     ];
-
 
     protected $casts = [
         'used_at' => 'datetime',
@@ -36,25 +35,54 @@ class QR_Code extends Model
     |--------------------------------------------------------------------------
     */
 
+    // Inventory - Consumable
+    /*
     public function inventoryConsumable()
     {
-        return $this->hasOne(InventoryConsumable::class);
+        return $this->hasOne(InventoryConsumable::class, 'qr_code_id');
     }
 
+    // Inventory - Non Consumable
     public function inventoryNonConsumable()
     {
-        return $this->hasOne(InventoryNonConsumable::class);
+        return $this->hasOne(InventoryNonConsumable::class, 'qr_code_id');
     }
 
+    */
+
+    // Creator
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    // Updater
     public function updater()
     {
         return $this->belongsTo(User::class, 'updated_by');
     }
+
+    
+    /*
+    |--------------------------------------------------------------------------
+    | Smart Accessor: Get Related Item
+    |--------------------------------------------------------------------------
+    */
+
+    /*
+    public function getItemAttribute()
+    {
+        if ($this->inventoryConsumable && $this->inventoryConsumable->item) {
+            return $this->inventoryConsumable->item;
+        }
+
+        if ($this->inventoryNonConsumable && $this->inventoryNonConsumable->item) {
+            return $this->inventoryNonConsumable->item;
+        }
+
+        return null;
+    }
+    */
 
     /*
     |--------------------------------------------------------------------------
@@ -67,6 +95,7 @@ class QR_Code extends Model
         $this->update([
             'status' => self::STATUS_USED,
             'used_at' => now(),
+            'updated_by' => auth()->id(),
         ]);
     }
 
@@ -75,6 +104,7 @@ class QR_Code extends Model
         $this->update([
             'status' => self::STATUS_EXPIRED,
             'expired_at' => now(),
+            'updated_by' => auth()->id(),
         ]);
     }
 
