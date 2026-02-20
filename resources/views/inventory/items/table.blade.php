@@ -11,6 +11,7 @@
                 @endif
             </td>
             <td><p>{{ $item->quantity ?? '--' }}</p></td>
+            <!-- <td><p>{{ $item->already_distributed ?? '--' }}</p></td> -->
             <td><p>{{ $item->remaining ?? '--' }}</p></td>
             <td><p>{{ $item->unit->name ?? '--' }}</p></td>
             <td>
@@ -31,15 +32,15 @@
             </td>
             <td><p>{{ $item->description ?? '--' }}</p></td>
            <td class="text-center">
-    @if($item->picture && file_exists(storage_path('app/public/' . $item->picture)))
-        <img src="{{ asset('storage/' . $item->picture) }}" 
-             alt="Item Image"
-             class="img-thumbnail"
-             style="width:70px; height:70px; object-fit:cover;">
-    @else
-        <span class="text-muted">--</span>
-    @endif
-</td>
+                @if($item->picture && file_exists(storage_path('app/public/' . $item->picture)))
+                    <img src="{{ asset('storage/' . $item->picture) }}" 
+                        alt="Item Image"
+                        class="img-thumbnail"
+                        style="width:70px; height:70px; object-fit:cover;">
+                @else
+                    <span class="text-muted">--</span>
+                @endif
+            </td>
             <td>
                 <a href="{{ route('viewItem.show', $item->id) }}" class="btn btn-warning">
                     <i class="lni lni-eye"></i>

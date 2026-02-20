@@ -77,6 +77,7 @@
                             <th>{{ __('Name') }}</th>
                             <th>{{ __('Type') }}</th>
                             <th>{{ __('Quantity') }}</th>
+                            <!-- <th>{{ __('Already Distributed') }}</th> -->
                             <th>{{ __('Remaining') }}</th>
                             <th>{{ __('Unit') }}</th>
                             <th>{{ __('Category') }}</th>

@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Item;
+use App\Models\InventoryConsumable;
+use App\Models\InventoryNonConsumable;
+use App\Models\ItemDistribution;
 
 class ItemDistributionsController extends Controller
 {
@@ -11,15 +15,28 @@ class ItemDistributionsController extends Controller
      */
     public function index()
     {
-        //
+        $itemDistributions = ItemDistribution::all();
+        $itemDistributions_table = view('item_distributions.table', compact('itemDistributions'))->render();
+        return view('item_distributions.index', compact('itemDistributions_table'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        //
+        $items = Item::with(['unit', 'inventoryConsumables', 'inventoryNonConsumables'])->get();
+
+        // Optionally pre-select an item if passed via query
+        $selectedItem = null;
+        if ($request->has('item_id')) {
+            $selectedItem = $items->find($request->item_id);
+        }
+
+        // Default to first item if no selection
+        $selectedItem = $selectedItem ?? $items->first();
+
+        return view('item_distributions.form', compact('items', 'selectedItem'));
     }
 
     /**

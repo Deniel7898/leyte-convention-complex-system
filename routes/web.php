@@ -55,6 +55,9 @@ Route::get('/viewItem/create/{item?}', [ViewItemController::class, 'create'])->n
 Route::get('/viewItem/edit/{item?}', [ViewItemController::class, 'edit'])->name('viewItem.edit'); //for the add modal show
 Route::delete('/viewItem/{inventory}', [ViewItemController::class, 'destroy'])->name('viewItem.destroy');
 
+//items distribution routes
+Route::resource('item_distributions', App\Http\Controllers\ItemDistributionsController::class)->middleware('auth'); // includes all CRUD routes for items
+
 Route::resource('categories', App\Http\Controllers\CategoriesController::class)->middleware('auth'); // includes all CRUD routes for categories
 Route::resource('units', App\Http\Controllers\UnitsController::class)->middleware('auth'); // includes all CRUD routes for units
 Route::resource('qr_codes', controller: App\Http\Controllers\QR_CodeController::class)->middleware('auth'); // includes all CRUD routes for QR codes
