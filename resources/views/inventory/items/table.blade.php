@@ -30,7 +30,16 @@
                 @endif
             </td>
             <td><p>{{ $item->description ?? '--' }}</p></td>
-            <td><p>{{ $item->picture ?? '--' }}</p></td>
+           <td class="text-center">
+    @if($item->picture && file_exists(storage_path('app/public/' . $item->picture)))
+        <img src="{{ asset('storage/' . $item->picture) }}" 
+             alt="Item Image"
+             class="img-thumbnail"
+             style="width:70px; height:70px; object-fit:cover;">
+    @else
+        <span class="text-muted">--</span>
+    @endif
+</td>
             <td>
                 <a href="{{ route('viewItem.show', $item->id) }}" class="btn btn-warning">
                     <i class="lni lni-eye"></i>
