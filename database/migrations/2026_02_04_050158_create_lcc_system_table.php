@@ -11,18 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // QR Codes
         Schema::create('qr_codes', function (Blueprint $table) {
-        $table->id();
-        $table->string('code')->unique();
-        $table->enum('status', ['active', 'used', 'expired'])->default('active');
-        $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
-        $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
-        $table->timestamp('used_at')->nullable();       // ✅ Add this
-        $table->timestamp('expired_at')->nullable();    // ✅ Optional
-        $table->timestamps();
-        $table->softDeletes();
-    });
-        
+            $table->id();
+            $table->string('code')->unique();
+            $table->enum('status', ['active', 'used', 'expired'])->default('active');
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamp('used_at')->nullable();
+            $table->timestamp('expired_at')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+        });
+
+        // Categories
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -33,6 +35,7 @@ return new class extends Migration
             $table->softDeletes();
         });
 
+        // Units
         Schema::create('units', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -43,25 +46,27 @@ return new class extends Migration
             $table->softDeletes();
         });
 
+        // Items
         Schema::create('items', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->tinyInteger('type')->default(0);
+            $table->tinyInteger('type')->default(0); // 0 = consumable, 1 = non-consumable
             $table->text('description')->nullable();
-            $table->boolean('status');
-            $table->string('quantity');
+            $table->boolean('status')->default(1);
+            $table->string('quantity')->default('1');
             $table->string('picture')->nullable();
             $table->foreignId('category_id')->nullable()->constrained('categories')->onDelete('set null');
             $table->foreignId('unit_id')->nullable()->constrained('units')->onDelete('set null');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
-            $table->softDeletes();  
+            $table->softDeletes();
         });
 
+        // Inventory Consumable
         Schema::create('inventory_consumable', function (Blueprint $table) {
-            $table->id();
-            $table->date('receive_date')->nullable();
+            $table->uuid('id')->primary();
+            $table->date('received_date')->nullable();
             $table->foreignId('item_id')->nullable()->constrained('items')->onDelete('set null');
             $table->foreignId('qr_code_id')->nullable()->constrained('qr_codes')->onDelete('set null');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
@@ -70,10 +75,11 @@ return new class extends Migration
             $table->softDeletes();
         });
 
+        // Inventory Non-Consumable
         Schema::create('inventory_non_consumable', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
+            $table->date('received_date')->nullable();
             $table->date('warranty_expires')->nullable();
-            $table->date('receive_date')->nullable();
             $table->foreignId('item_id')->nullable()->constrained('items')->onDelete('set null');
             $table->foreignId('qr_code_id')->nullable()->constrained('qr_codes')->onDelete('set null');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
@@ -82,24 +88,26 @@ return new class extends Migration
             $table->softDeletes();
         });
 
+        // Item Distributions
         Schema::create('item_distributions', function (Blueprint $table) {
             $table->id();
-            $table->enum('type', ['distribution', 'borrow'])->default('distribution');
+            $table->tinyInteger('type')->default(0);
             $table->text('description')->nullable();
             $table->string('quantity');
             $table->date('distribution_date')->nullable();
             $table->date('due_date')->nullable();
             $table->date('returned_date')->nullable();
-            $table->enum('status', ['pending', 'distributed', 'borrowed', 'returned', 'received'])->default('distributed');
+            $table->enum('status', ['pending', 'distributed', 'partial', 'borrowed', 'returned', 'received'])->default('distributed');
             $table->text('remarks')->nullable();
-            $table->foreignId('inventory_consumable_id')->nullable()->constrained('inventory_consumable')->onDelete('set null');
-            $table->foreignId('inventory_non_consumable_id')->nullable()->constrained('inventory_non_consumable')->onDelete('set null');
+            $table->foreignUuid('inventory_consumable_id')->nullable()->constrained('inventory_consumable')->onDelete('set null');
+            $table->foreignUuid('inventory_non_consumable_id')->nullable()->constrained('inventory_non_consumable')->onDelete('set null');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
             $table->softDeletes();
         });
 
+        // Service Records
         Schema::create('service_records', function (Blueprint $table) {
             $table->id();
             $table->text('description')->nullable();
@@ -109,13 +117,14 @@ return new class extends Migration
             $table->text('encharge_person')->nullable();
             $table->string('picture')->nullable();
             $table->text('remarks')->nullable();
-            $table->foreignId('inventory_non_consumable_id')->nullable()->constrained('inventory_non_consumable')->onDelete('set null');
+            $table->foreignUuid('inventory_non_consumable_id')->nullable()->constrained('inventory_non_consumable')->onDelete('set null');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
             $table->softDeletes();
         });
 
+        // Purchase Request
         Schema::create('purchase_request', function (Blueprint $table) {
             $table->id();
             $table->date('request_date')->nullable();
@@ -126,6 +135,7 @@ return new class extends Migration
             $table->softDeletes();
         });
 
+        // Items-Purchase Request pivot
         Schema::create('items_purchase_request', function (Blueprint $table) {
             $table->id();
             $table->text('description')->nullable();
@@ -140,10 +150,7 @@ return new class extends Migration
     }
 
     /**
-     * Need to drop tables in reverse order of creation to avoid foreign key constraint issues
-     * Child tables must be dropped before parent tables that they reference
-     * cause if we try to drop a parent table first, the database will throw an error due to existing 
-     * foreign key constraints from child tables.
+     * Drop tables in reverse order to avoid FK issues.
      */
     public function down(): void
     {
@@ -157,6 +164,5 @@ return new class extends Migration
         Schema::dropIfExists('units');
         Schema::dropIfExists('categories');
         Schema::dropIfExists('qr_codes');
-
     }
 };

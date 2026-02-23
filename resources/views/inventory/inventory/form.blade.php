@@ -90,7 +90,6 @@
             <div class="col-md-6 mb-3">
                 <label for="inventory-status" class="form-label">Status</label>
                 <select class="form-select" id="inventory-status" name="status" required>
-                    <option value="">Select Status</option>
                     <option value="1" {{ (isset($inventory) && $inventory->item->status == 1) ? 'selected' : '' }}>
                         Available
                     </option>
