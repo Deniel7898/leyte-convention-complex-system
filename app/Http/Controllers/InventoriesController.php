@@ -9,6 +9,7 @@ use App\Models\Item;
 use App\Models\InventoryConsumable;
 use App\Models\InventoryNonConsumable;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class InventoriesController extends Controller
 {
@@ -92,31 +93,53 @@ class InventoriesController extends Controller
         }
 
         // Apply type filter
-        if ($typeFilter && strtolower($typeFilter) != 'all') {
+        if (!empty($typeFilter) && strtolower($typeFilter) !== 'all type') {
             $inventories = $inventories->filter(function ($inventory) use ($typeFilter) {
-                if (strtolower($typeFilter) === 'consumable') return $inventory->item->type == 0;
-                if (in_array(strtolower($typeFilter), ['non-consumable', 'non'])) return $inventory->item->type == 1;
+
+                if (!$inventory->item) return false;
+
+                if (strtolower($typeFilter) === 'consumable') {
+                    return $inventory->item->type == 0;
+                }
+
+                if (strtolower($typeFilter) === 'non-consumable') {
+                    return $inventory->item->type == 1;
+                }
+
                 return true;
             });
         }
 
         // Apply status filter
-        if ($statusFilter && strtolower($statusFilter) != 'all') {
+        if (!empty($statusFilter) && strtolower($statusFilter) !== 'all status') {
             $inventories = $inventories->filter(function ($inventory) use ($statusFilter) {
-                if (strtolower($statusFilter) === 'available') return $inventory->item->status == 1;
-                if (strtolower($statusFilter) === 'not available') return $inventory->item->status == 0;
+
+                if (!$inventory->item) return false;
+
+                if (strtolower($statusFilter) === 'available') {
+                    return $inventory->item->status == 1;
+                }
+
+                if (strtolower($statusFilter) === 'not available') {
+                    return $inventory->item->status == 0;
+                }
+
                 return true;
             });
         }
 
         // Apply category filter
-        if ($categoryFilter && strtolower($categoryFilter) != 'all') {
+        if (!empty($categoryFilter) && strtolower($categoryFilter) !== 'all') {
             $inventories = $inventories->filter(function ($inventory) use ($categoryFilter) {
-                return $inventory->item->category && $inventory->item->category->id == $categoryFilter;
+
+                if (!$inventory->item || !$inventory->item->category) {
+                    return false;
+                }
+
+                return $inventory->item->category->id == $categoryFilter;
             });
         }
 
-        // Reset keys after filtering
         $inventories = $inventories->values();
 
         return view('inventory.inventory.table', compact('inventories'));
@@ -133,6 +156,8 @@ class InventoriesController extends Controller
                 $c->inventory_type = 'Consumable';
                 $c->warranty_expires = '--';
                 $c->distribution_status = $c->distribution->status ?? 'Available';
+                $c->item_name = $c->item->name ?? '--';
+                $c->qr_code_value = $c->qr_code->code ?? '--';
                 return $c;
             });
 
@@ -142,13 +167,15 @@ class InventoriesController extends Controller
                 $n->inventory_type = 'Non-Consumable';
                 $n->warranty_expires = $n->warranty_expires ?? '--';
                 $n->distribution_status = $n->distribution->status ?? 'Available';
+                $n->item_name = $n->item->name ?? '--';
+                $n->qr_code_value = $n->qr_code->code ?? '--';
                 return $n;
             });
 
-        return $consumables->merge($nonConsumables)
+        return $consumables->concat($nonConsumables)
             ->sortByDesc('received_date')
             ->values();
-    }       
+    }
 
     /**
      * Display a listing of the resource.
@@ -212,6 +239,7 @@ class InventoriesController extends Controller
         for ($i = 0; $i < $item->quantity; $i++) {
             if ((int) $item->type === 0) {
                 InventoryConsumable::create([
+                    'id' => Str::uuid(),
                     'item_id' => $item->id,
                     'received_date' => $request->received_date,
                     'created_by' => Auth::id(),
@@ -219,6 +247,7 @@ class InventoriesController extends Controller
                 ]);
             } else {
                 InventoryNonConsumable::create([
+                    'id' => Str::uuid(),
                     'item_id' => $item->id,
                     'received_date' => $request->received_date,
                     'warranty_expires' => $request->warranty_expires,
@@ -247,20 +276,23 @@ class InventoriesController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Show the form for editing the specified inventory.
      */
     public function edit($id)
     {
         $categories = Category::all();
         $units = Units::all();
 
-        try {
-            $inventory = InventoryConsumable::with('item')->findOrFail($id);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        // Try to find the inventory in consumable or non-consumable tables
+        $inventory = InventoryConsumable::with('item')->find($id);
+        $inventoryType = 'consumable';
+
+        if (!$inventory) {
             $inventory = InventoryNonConsumable::with('item')->findOrFail($id);
+            $inventoryType = 'non-consumable';
         }
 
-        return view('inventory.inventory.form', compact('inventory', 'categories', 'units'));
+        return view('inventory.inventory.form', compact('inventory', 'categories', 'units', 'inventoryType'));
     }
 
     /**
@@ -273,7 +305,7 @@ class InventoriesController extends Controller
             'warranty_expires' => 'nullable|date',
         ]);
 
-        // Try to find in consumables first
+        // Try consumable first
         try {
             $inventory = InventoryConsumable::with('item')->findOrFail($id);
             $isNonConsumable = false;
@@ -282,21 +314,24 @@ class InventoriesController extends Controller
             $isNonConsumable = true;
         }
 
-        // Update Item status (because status is from items table)
+        // Always update received_date for both
+        $updateData = [
+            'received_date' => $validated['received_date'] ?? null,
+            'updated_by' => Auth::id(),
+        ];
+
+        // Add warranty only if non-consumable
+        if ($isNonConsumable) {
+            $updateData['warranty_expires'] = $validated['warranty_expires'] ?? null;
+        }
+
+        $inventory->update($updateData);
+
+        // Update item updated_by
         $inventory->item->update([
             'updated_by' => Auth::id(),
         ]);
 
-        // If Non-Consumable, update warranty
-        if ($isNonConsumable) {
-            $inventory->update([
-                'received_date' => $validated['received_date'] ?? null,
-                'warranty_expires' => $validated['warranty_expires'] ?? null,
-                'updated_by' => Auth::id(),
-            ]);
-        }
-
-        // Get all inventories (consumables + non-consumables)
         $inventories = $this->getInventories();
 
         return response()->json([
