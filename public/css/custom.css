@@ -18,3 +18,122 @@
     background: #4a6cf7;
     color: #fff;
 }
+/* ===============================
+   LOGIN PAGE - LCC STYLE
+================================= */
+
+/* Full page center */
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f4f6f9;
+}
+
+/* Card */
+.auth-card {
+    background: #ffffff;
+    padding: 40px 35px;
+    width: 420px;
+    max-width: 95%;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+/* Province Logo */
+.auth-logo {
+    margin-bottom: 15px;
+}
+
+.auth-logo img {
+    width: 130px;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+}
+
+/* Title */
+.auth-title {
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.auth-subtitle {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 25px;
+}
+
+/* Form */
+.form-group {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    margin-top: 6px;
+    outline: none;
+    transition: 0.3s;
+}
+
+.form-group input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+/* Button */
+.login-btn {
+    width: 100%;
+    padding: 12px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.login-btn:hover {
+    background: #1e40af;
+}
+
+/* Register */
+.register-text {
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.register-text a {
+    color: #2563eb;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+/* Demo box */
+.demo-box {
+    margin-top: 20px;
+    padding: 10px;
+    background: #f3f4f6;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #374151;
+}
+
+/* Error */
+.error {
+    color: red;
+    font-size: 12px;
+}

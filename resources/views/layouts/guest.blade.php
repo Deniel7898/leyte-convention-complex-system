@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="{{ asset('css/fullcalendar.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/morris.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/main.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 <body>
 <div class="min-vh-100 d-flex justify-content-center align-items-center">
