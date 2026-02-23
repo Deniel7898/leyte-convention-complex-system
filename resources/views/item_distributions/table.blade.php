@@ -2,7 +2,7 @@
     @foreach($itemDistributions as $itemDistribution)
         <tr class="text-center">
             <td><p>{{ $loop->iteration }}</p></td>
-            <td><p>{{ $itemDistribution->item->name ?? '--' }}</p></td>
+            <td><p>{{ $itemDistribution->item->item->name ?? '--' }}</p></td>
             <td><p>{{ $itemDistribution->distribution_date ?? '--' }}</p></td>
             <td>
                 <p>
@@ -25,7 +25,7 @@
             <td>
                 <a href="" class="btn btn-warning"><i class="lni lni-eye"></i></a>
                 <button class="btn btn-primary edit" data-url=""><i class="lni lni-pencil"></i></button>
-                <button class="btn btn-danger delete" data-url=""><i class="lni lni-trash-can"></i></button>
+                <button class="btn btn-danger delete" data-url="{{ route('item_distributions.destroy', $itemDistribution->id) }}"><i class="lni lni-trash-can"></i></button>
             </td>
         </tr>
     @endforeach

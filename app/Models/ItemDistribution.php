@@ -26,7 +26,7 @@ class ItemDistribution extends Model
         'created_by',
         'updated_by',
     ];
-    
+
     public function inventory_consumable()
     {
         return $this->belongsTo(InventoryConsumable::class, 'inventory_consumable_id');
@@ -39,8 +39,20 @@ class ItemDistribution extends Model
 
     public function item()
     {
-        return $this->inventory_non_consumable
-            ? $this->inventory_non_consumable->item()
-            : ($this->inventory_consumable ? $this->inventory_consumable->item() : null);
+        if ($this->inventory_consumable_id) {
+            return $this->belongsTo(InventoryConsumable::class, 'inventory_consumable_id')
+                ->withDefault(function ($consumable) {
+                    $consumable->item = null;
+                });
+        }
+
+        if ($this->inventory_non_consumable_id) {
+            return $this->belongsTo(InventoryNonConsumable::class, 'inventory_non_consumable_id')
+                ->withDefault(function ($nonConsumable) {
+                    $nonConsumable->item = null;
+                });
+        }
+
+        return $this->belongsTo(Item::class, 'id')->withDefault();
     }
 }

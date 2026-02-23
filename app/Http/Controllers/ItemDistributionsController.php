@@ -28,14 +28,11 @@ class ItemDistributionsController extends Controller
     {
         $items = Item::with(['unit', 'inventoryConsumables', 'inventoryNonConsumables'])->get();
 
-        // Optionally pre-select an item if passed via query
+        // Only pre-select if item_id is passed via request
         $selectedItem = null;
         if ($request->has('item_id')) {
             $selectedItem = $items->find($request->item_id);
         }
-
-        // Default to first item if no selection
-        $selectedItem = $selectedItem ?? $items->first();
 
         return view('item_distributions.form', compact('items', 'selectedItem'));
     }
@@ -48,7 +45,7 @@ class ItemDistributionsController extends Controller
         $request->validate([
             'type' => 'required|in:0,1',
             'inventory_ids' => 'required|array|min:1',
-            'inventory_ids.*' => 'integer',
+            'inventory_ids.*' => 'string',
             'status' => 'required|string|max:255', // use the form value
             'description' => 'nullable|string',
             'remarks' => 'nullable|string',
@@ -138,6 +135,24 @@ class ItemDistributionsController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        // Find the distribution
+        $itemDistribution = ItemDistribution::find($id);
+
+        if (!$itemDistribution) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Item Distribution not found.',
+            ], 404);
+        }
+
+        // Delete the distribution
+        $itemDistribution->delete();
+
+        $itemDistributions = ItemDistribution::all();
+
+        return response()->json([
+            'html' => view('item_distributions.table', compact('itemDistributions'))->render(),
+            'message' => 'Item Distribution deleted successfully.',
+        ]);
     }
 }
