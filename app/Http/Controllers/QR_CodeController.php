@@ -75,28 +75,15 @@ class QR_CodeController extends Controller
     /**
      * Delete QR Code
      */
-    public function destroy($id)
+        public function destroy($id)
     {
-        $qr = QR_Code::with([
-            'inventoryConsumable',
-            'inventoryNonConsumable'
-        ])->findOrFail($id);
-
-        // 🚫 Prevent deleting if assigned to inventory
-        if ($qr->inventoryConsumable || $qr->inventoryNonConsumable) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Cannot delete QR. It is already assigned to inventory.'
-            ]);
-        }
+        $qr = QR_Code::findOrFail($id);
 
         $qr->delete();
 
-        $qrCodes = QR_Code::with([
-            'creator',
-            'inventoryConsumable.item',
-            'inventoryNonConsumable.item'
-        ])->latest()->paginate(10);
+        $qrCodes = QR_Code::with('creator')
+            ->latest()
+            ->paginate(10);
 
         $view = view('reference.qr_code.table', compact('qrCodes'))->render();
 
