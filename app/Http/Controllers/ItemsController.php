@@ -9,6 +9,7 @@ use App\Models\Units;
 use App\Models\InventoryConsumable;
 use App\Models\InventoryNonConsumable;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class ItemsController extends Controller
 {
@@ -201,6 +202,7 @@ class ItemsController extends Controller
         for ($i = 0; $i < $item->quantity; $i++) {
             if ($item->type == 0) {
                 InventoryConsumable::create([
+                    'id' => Str::uuid(), 
                     'item_id' => $item->id,
                     'received_date' => $request->received_date,
                     'created_by' => Auth::id(),
@@ -208,6 +210,7 @@ class ItemsController extends Controller
                 ]);
             } else {
                 InventoryNonConsumable::create([
+                    'id' => Str::uuid(), 
                     'item_id' => $item->id,
                     'received_date' => $request->received_date,
                     'warranty_expires' => $request->warranty_expires,

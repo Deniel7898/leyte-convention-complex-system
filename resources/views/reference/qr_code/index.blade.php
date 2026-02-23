@@ -1,6 +1,23 @@
 @extends('layouts.app')
 
+@section('page_title', 'Reference Data')
+
 @section('content')
+
+<!-- ========== title-wrapper start ========== -->
+<div class="title-wrapper pt-30">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <div class="title mb-30">
+                <h2>{{ __('QR Codes') }}</h2>
+            </div>
+        </div>
+        <!-- end col -->
+    </div>
+    <!-- end row -->
+</div>
+<!-- ========== title-wrapper end ========== -->
+
 <div class="container">
     <div class="card-custom">
 
@@ -17,17 +34,17 @@
 
         {{-- Success Message --}}
         @if(session(key: 'success'))
-            <div id="success-alert" class="alert-success-custom">
+        <div id="success-alert" class="alert-success-custom">
             {{ session('success') }}
-            </div>
+        </div>
         @endif
 
 
         {{-- Error Message --}}
         @if(session('error'))
-            <div class="alert-danger-custom">
-                {{ session('error') }}
-            </div>
+        <div class="alert-danger-custom">
+            {{ session('error') }}
+        </div>
         @endif
 
         {{-- ✅ Wrap Table --}}
