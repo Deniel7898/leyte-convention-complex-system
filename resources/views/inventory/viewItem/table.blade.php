@@ -21,7 +21,7 @@
                 {{ $viewItem->item->category->name ?? '--' }}
             </p>
         </td>
-        <td><p>{{ $viewItem->distribution_status ?? 'Available' }}</p></td>
+        <td><p>{{ $viewItem->distribution->status ?? 'Available' }}</p></td>
         <td><p>{{ $viewItem->qr_code->code ?? '--' }}</p></td>
         <td>{{ $viewItem->warranty_expires ?? '--' }}</td>
         <td>{{ $viewItem->item->description ?? '--' }}</td>

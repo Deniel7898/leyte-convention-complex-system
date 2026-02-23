@@ -19,6 +19,52 @@ $(function () {
         })
     })
 
+    //delete button click
+    $(document).on('click', '.delete', function () {
+        let url = $(this).data('url');
+
+        //Sweet ALert
+        Swal.fire({
+            title: "Are you sure?",
+            text: "This action cannot be undone!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#6c757d",
+            confirmButtonText: "Yes, delete",
+            width: '400px',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#loading-spinner').addClass('active');
+
+                $.post(url, {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    _method: 'DELETE'
+                })
+                    .done(function (response) {
+                        $('#itemDistributions_table tbody').html(response.html);
+
+                        Swal.fire({
+                            title: "Deleted!",
+                            text: "The record has been removed.",
+                            icon: "success",
+                            timer: 1000,
+                            showConfirmButton: false,
+                            width: '400px',
+                            padding: '0.8rem'
+                        });
+                    })
+                    .fail(function (xhr) {
+                        Swal.fire("Error!", "Something went wrong.", "error");
+                        console.log(xhr.responseText);
+                    })
+                    .always(function () {
+                        $('#loading-spinner').removeClass('active');
+                    });
+            }
+        });
+    });
+
     //form submit
     $(document).on('submit', 'form', function (e) {
         e.preventDefault();
