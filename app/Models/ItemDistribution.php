@@ -16,7 +16,7 @@ class ItemDistribution extends Model
         'type',
         'description',
         'quantity',
-        'destribution_date',
+        'distribution_date',
         'due_date',
         'returned_date',
         'status',

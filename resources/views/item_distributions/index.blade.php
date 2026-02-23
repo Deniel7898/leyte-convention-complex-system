@@ -51,11 +51,12 @@
                         <tr class="text-center">
                             <th>{{ __('#') }}</th>
                             <th>{{ __('Item') }}</th>
-                            <th>{{ __('Type') }}</th>
-                            <th>{{ __('Quantity') }}</th>
                             <th>{{ __('Distribution Date') }}</th>
-                            <th>{{ __('Description') }}</th>
+                            <th>{{ __('Type') }}</th>
+                            <th>{{ __('QR Code') }}</th>
+                            <th>{{ __('Quantity') }}</th>
                             <th>{{ __('Status') }}</th>
+                            <th>{{ __('Description') }}</th>
                             <th>{{ __('Due Date') }}</th>
                             <th>{{ __('Returned Date') }}</th>
                             <th>{{ __('Remarks') }}</th>

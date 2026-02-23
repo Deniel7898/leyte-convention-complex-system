@@ -7,6 +7,7 @@ use App\Models\Item;
 use App\Models\InventoryConsumable;
 use App\Models\InventoryNonConsumable;
 use App\Models\ItemDistribution;
+use Illuminate\Support\Facades\DB;
 
 class ItemDistributionsController extends Controller
 {
@@ -44,7 +45,68 @@ class ItemDistributionsController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'type' => 'required|in:0,1',
+            'inventory_ids' => 'required|array|min:1',
+            'inventory_ids.*' => 'integer',
+            'status' => 'required|string|max:255', // use the form value
+            'description' => 'nullable|string',
+            'remarks' => 'nullable|string',
+            'distribution_date' => 'nullable|date',
+            'due_date' => 'nullable|date',
+        ]);
+
+        DB::transaction(function () use ($request) {
+
+            foreach ($request->inventory_ids as $inventoryId) {
+
+                // Check if it's a consumable
+                $consumable = InventoryConsumable::find($inventoryId);
+                if ($consumable) {
+                    ItemDistribution::create([
+                        'type' => $request->type,
+                        'description' => $request->description,
+                        'remarks' => $request->remarks,
+                        'quantity' => 1,
+                        'distribution_date' => $request->distribution_date ?? now(),
+                        'due_date' => $request->due_date,
+                        'status' => $request->status,                 // <-- from form
+                        'inventory_consumable_id' => $consumable->id,
+                        'created_by' => auth()->id(),                // <-- auth helper
+                        'updated_by' => auth()->id(),
+                    ]);
+                    continue; // skip to next inventory ID
+                }
+
+                // Otherwise, non-consumable
+                $nonConsumable = InventoryNonConsumable::find($inventoryId);
+                if ($nonConsumable) {
+                    ItemDistribution::create([
+                        'type' => $request->type,
+                        'description' => $request->description,
+                        'remarks' => $request->remarks,
+                        'quantity' => 1,
+                        'distribution_date' => $request->distribution_date ?? now(),
+                        'due_date' => $request->due_date,
+                        'status' => $request->status,                // <-- from form
+                        'inventory_non_consumable_id' => $nonConsumable->id,
+                        'created_by' => auth()->id(),
+                        'updated_by' => auth()->id(),
+                    ]);
+                }
+            }
+        });
+
+        // Get all distributions with inventory -> item
+        $itemDistributions = ItemDistribution::with([
+            'inventory_consumable.item',
+            'inventory_non_consumable.item',
+        ])->latest()->get();
+
+        return response()->json([
+            'html' => view('item_distributions.table', compact('itemDistributions'))->render(),
+            'message' => 'New Distirbution added successfully',
+        ]);
     }
 
     /**

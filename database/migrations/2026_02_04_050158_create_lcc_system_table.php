@@ -12,17 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('qr_codes', function (Blueprint $table) {
-        $table->id();
-        $table->string('code')->unique();
-        $table->enum('status', ['active', 'used', 'expired'])->default('active');
-        $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
-        $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
-        $table->timestamp('used_at')->nullable();       // ✅ Add this
-        $table->timestamp('expired_at')->nullable();    // ✅ Optional
-        $table->timestamps();
-        $table->softDeletes();
-    });
-        
+            $table->id();
+            $table->string('code')->unique();
+            $table->enum('status', ['active', 'used', 'expired'])->default('active');
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamp('used_at')->nullable();      
+            $table->timestamp('expired_at')->nullable();    
+            $table->timestamps();
+            $table->softDeletes();
+        });
+
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -56,12 +56,12 @@ return new class extends Migration
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
-            $table->softDeletes();  
+            $table->softDeletes();
         });
 
         Schema::create('inventory_consumable', function (Blueprint $table) {
             $table->id();
-            $table->date('receive_date')->nullable();
+            $table->date('received_date')->nullable();
             $table->foreignId('item_id')->nullable()->constrained('items')->onDelete('set null');
             $table->foreignId('qr_code_id')->nullable()->constrained('qr_codes')->onDelete('set null');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
@@ -73,7 +73,7 @@ return new class extends Migration
         Schema::create('inventory_non_consumable', function (Blueprint $table) {
             $table->id();
             $table->date('warranty_expires')->nullable();
-            $table->date('receive_date')->nullable();
+            $table->date('received_date')->nullable();
             $table->foreignId('item_id')->nullable()->constrained('items')->onDelete('set null');
             $table->foreignId('qr_code_id')->nullable()->constrained('qr_codes')->onDelete('set null');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
@@ -84,13 +84,13 @@ return new class extends Migration
 
         Schema::create('item_distributions', function (Blueprint $table) {
             $table->id();
-            $table->enum('type', ['distribution', 'borrow'])->default('distribution');
+            $table->tinyInteger('type')->default(0);
             $table->text('description')->nullable();
             $table->string('quantity');
             $table->date('distribution_date')->nullable();
             $table->date('due_date')->nullable();
             $table->date('returned_date')->nullable();
-            $table->enum('status', ['pending', 'distributed', 'borrowed', 'returned', 'received'])->default('distributed');
+            $table->enum('status', ['pending', 'distributed', 'borrowed', 'partial', 'returned', 'received'])->default('distributed');
             $table->text('remarks')->nullable();
             $table->foreignId('inventory_consumable_id')->nullable()->constrained('inventory_consumable')->onDelete('set null');
             $table->foreignId('inventory_non_consumable_id')->nullable()->constrained('inventory_non_consumable')->onDelete('set null');
@@ -157,6 +157,5 @@ return new class extends Migration
         Schema::dropIfExists('units');
         Schema::dropIfExists('categories');
         Schema::dropIfExists('qr_codes');
-
     }
 };
