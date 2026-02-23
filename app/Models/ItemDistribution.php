@@ -26,7 +26,7 @@ class ItemDistribution extends Model
         'created_by',
         'updated_by',
     ];
-
+    
     public function inventory_consumable()
     {
         return $this->belongsTo(InventoryConsumable::class, 'inventory_consumable_id');
