@@ -22,7 +22,7 @@ class ItemDistribution extends Model
         'status',
         'remarks',
         'inventory_consumable_id',
-        'inventory_non_consumable',
+        'inventory_non_consumable_id',
         'created_by',
         'updated_by',
     ];

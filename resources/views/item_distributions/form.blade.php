@@ -2,7 +2,7 @@
         @csrf
 
         <div class="modal-header" style="background-color: rgb(43, 45, 87);">
-            <h5 class="modal-title text-white">New Distribution</h5>
+            <h5 class="modal-title text-white">{{ isset($itemDistribution) ? 'Edit Distribution' : 'New Distribution' }}</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
 
@@ -12,8 +12,13 @@
                 <!-- Select Item -->
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Select Item</label>
-                    <select name="item_id" id="itemSelect" class="form-select" required>
-                        <option value="" selected>-- Select Item --</option>
+                    <select
+                        id="itemSelect"
+                        class="form-select"
+                        {{ isset($itemDistribution) ? 'disabled' : 'required' }}
+                        name="{{ isset($itemDistribution) ? '' : 'item_id' }}">
+
+                        <option value="">-- Select Item --</option>
 
                         @foreach($items as $item)
                         <option value="{{ $item->id }}"
@@ -57,12 +62,23 @@
                     <label for="distribution-status" class="form-label">Status</label>
                     <select class="form-select" id="distribution-status" name="status" required>
                         <option value="" disabled selected>Select status</option>
-                        <option value="pending" {{ (isset($itemDistribution) && $itemDistribution->status == 'pending') ? 'selected' : '' }}>Pending</option>
-                        <option value="distributed" {{ (isset($itemDistribution) && $itemDistribution->status == 'distributed') ? 'selected' : '' }}>Distributed</option>
-                        <option value="partial" {{ (isset($itemDistribution) && $itemDistribution->status == 'partial') ? 'selected' : '' }}>Partial</option>
-                        <option value="borrowed" {{ (isset($itemDistribution) && $itemDistribution->status == 'borrowed') ? 'selected' : '' }}>Borrowed</option>
-                        <option value="returned" {{ (isset($itemDistribution) && $itemDistribution->status == 'returned') ? 'selected' : '' }}>Returned</option>
-                        <option value="received" {{ (isset($itemDistribution) && $itemDistribution->status == 'received') ? 'selected' : '' }}>Received</option>
+
+                        @if(!isset($itemDistribution))
+                        <!-- Adding a new distribution  -->
+                        <option value="distributed">Distributed</option>
+                        <option value="borrowed">Borrowed</option>
+                        <option value="partial">Partial</option>
+                        <option value="pending">Pending</option>
+                        @else
+                        <!-- Editing an existing distribution -->
+
+                        <option value="distributed" {{ $itemDistribution->status == 'distributed' ? 'selected' : '' }}>Distributed</option>
+                        <option value="borrowed" {{ $itemDistribution->status == 'borrowed' ? 'selected' : '' }}>Borrowed</option>
+                        <option value="partial" {{ $itemDistribution->status == 'partial' ? 'selected' : '' }}>Partial</option>
+                        <option value="pending" {{ $itemDistribution->status == 'pending' ? 'selected' : '' }}>Pending</option>
+                        <option value="returned" {{ $itemDistribution->status == 'returned' ? 'selected' : '' }}>Returned</option>
+                        <option value="received" {{ $itemDistribution->status == 'received' ? 'selected' : '' }}>Received</option>
+                        @endif
                     </select>
                 </div>
             </div>
