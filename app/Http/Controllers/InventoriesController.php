@@ -150,7 +150,7 @@ class InventoriesController extends Controller
      */
     private function getInventories()
     {
-        $consumables = InventoryConsumable::with(['item', 'qr_code', 'distribution'])
+        $consumables = InventoryConsumable::with(['item', 'qr_code', 'itemDistributions'])
             ->get()
             ->map(function ($c) {
                 $c->inventory_type = 'Consumable';
@@ -161,7 +161,7 @@ class InventoriesController extends Controller
                 return $c;
             });
 
-        $nonConsumables = InventoryNonConsumable::with(['item', 'qr_code', 'distribution'])
+        $nonConsumables = InventoryNonConsumable::with(['item', 'qr_code', 'itemDistributions'])
             ->get()
             ->map(function ($n) {
                 $n->inventory_type = 'Non-Consumable';

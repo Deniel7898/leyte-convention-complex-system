@@ -19,6 +19,25 @@ $(function () {
         })
     })
 
+    //edit button click
+    $(document).on('click', '.edit', function () {
+        $('#loading-spinner').addClass('active');
+
+        // When opening modal for update
+        $('#itemDistributions_modal').data('action', 'update');
+
+        url = $(this).data('url');
+        $.ajax({
+            url: url,
+            type: 'GET',
+            success: function (response) {
+                $('#itemDistributions_modal .modal-content').html(response);
+                $('#loading-spinner').removeClass('active'); // hide
+                $('#itemDistributions_modal').modal('show');
+            }
+        })
+    })
+
     //delete button click
     $(document).on('click', '.delete', function () {
         let url = $(this).data('url');
@@ -82,22 +101,16 @@ $(function () {
             processData: false,
             contentType: false,
             success: function (response) {
+
                 $('#itemDistributions_table tbody').html(response.html);
 
-                // Close modal only if update
-                if ($('#itemDistribution_modal').data('action') === 'update') {
-                    $('#itemDistribution_modal').modal('hide');
-                }
+                $('#itemDistributions_modal').modal('hide');
 
-                // Reset all fields
-                form.find('input[type="text"], input[type="number"], textarea, input[type="date"]').val('');
-                form.find('select').prop('selectedIndex', 0);
-                form.find('input[type="file"]').val(null);
-                $('#picture-preview').attr('src', '').hide();
+                //Reset form fields
+                form[0].reset();
 
                 $('#loading-spinner').removeClass('active');
 
-                // SweetAlert
                 Swal.fire({
                     icon: 'success',
                     title: 'Success!',

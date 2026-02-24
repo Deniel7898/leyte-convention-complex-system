@@ -32,13 +32,19 @@ class Item extends Model
         return $this->belongsTo(Units::class);
     }
 
-     public function inventoryConsumables()
+    public function inventoryConsumables()
     {
-        return $this->hasMany(InventoryConsumable::class, 'item_id');
+        return $this->hasMany(InventoryConsumable::class, 'item_id')
+            ->whereDoesntHave('itemDistributions', function ($query) {
+                $query->whereIn('status', ['distributed', 'borrowed', 'partial', 'pending']);
+            });
     }
 
     public function inventoryNonConsumables()
     {
-        return $this->hasMany(InventoryNonConsumable::class, 'item_id');
+        return $this->hasMany(InventoryNonConsumable::class, 'item_id')
+            ->whereDoesntHave('itemDistributions', function ($query) {
+                $query->whereIn('status', ['distributed', 'borrowed', 'partial', 'pending']);
+            });
     }
 }
