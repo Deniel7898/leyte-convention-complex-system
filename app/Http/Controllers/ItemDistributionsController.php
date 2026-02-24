@@ -3,6 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Item;
+use App\Models\InventoryConsumable;
+use App\Models\InventoryNonConsumable;
+use App\Models\ItemDistribution;
+use Illuminate\Support\Facades\DB;
 
 class ItemDistributionsController extends Controller
 {
@@ -11,15 +16,25 @@ class ItemDistributionsController extends Controller
      */
     public function index()
     {
-        //
+        $itemDistributions = ItemDistribution::all();
+        $itemDistributions_table = view('item_distributions.table', compact('itemDistributions'))->render();
+        return view('item_distributions.index', compact('itemDistributions_table'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        //
+        $items = Item::with(['unit', 'inventoryConsumables', 'inventoryNonConsumables'])->get();
+
+        // Only pre-select if item_id is passed via request
+        $selectedItem = null;
+        if ($request->has('item_id')) {
+            $selectedItem = $items->find($request->item_id);
+        }
+
+        return view('item_distributions.form', compact('items', 'selectedItem'));
     }
 
     /**
@@ -27,7 +42,68 @@ class ItemDistributionsController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'type' => 'required|in:0,1',
+            'inventory_ids' => 'required|array|min:1',
+            'inventory_ids.*' => 'string',
+            'status' => 'required|string|max:255', // use the form value
+            'description' => 'nullable|string',
+            'remarks' => 'nullable|string',
+            'distribution_date' => 'nullable|date',
+            'due_date' => 'nullable|date',
+        ]);
+
+        DB::transaction(function () use ($request) {
+
+            foreach ($request->inventory_ids as $inventoryId) {
+
+                // Check if it's a consumable
+                $consumable = InventoryConsumable::find($inventoryId);
+                if ($consumable) {
+                    ItemDistribution::create([
+                        'type' => $request->type,
+                        'description' => $request->description,
+                        'remarks' => $request->remarks,
+                        'quantity' => 1,
+                        'distribution_date' => $request->distribution_date ?? now(),
+                        'due_date' => $request->due_date,
+                        'status' => $request->status,                 // <-- from form
+                        'inventory_consumable_id' => $consumable->id,
+                        'created_by' => auth()->id(),                // <-- auth helper
+                        'updated_by' => auth()->id(),
+                    ]);
+                    continue; // skip to next inventory ID
+                }
+
+                // Otherwise, non-consumable
+                $nonConsumable = InventoryNonConsumable::find($inventoryId);
+                if ($nonConsumable) {
+                    ItemDistribution::create([
+                        'type' => $request->type,
+                        'description' => $request->description,
+                        'remarks' => $request->remarks,
+                        'quantity' => 1,
+                        'distribution_date' => $request->distribution_date ?? now(),
+                        'due_date' => $request->due_date,
+                        'status' => $request->status,                // <-- from form
+                        'inventory_non_consumable_id' => $nonConsumable->id,
+                        'created_by' => auth()->id(),
+                        'updated_by' => auth()->id(),
+                    ]);
+                }
+            }
+        });
+
+        // Get all distributions with inventory -> item
+        $itemDistributions = ItemDistribution::with([
+            'inventory_consumable.item',
+            'inventory_non_consumable.item',
+        ])->latest()->get();
+
+        return response()->json([
+            'html' => view('item_distributions.table', compact('itemDistributions'))->render(),
+            'message' => 'New Distirbution added successfully',
+        ]);
     }
 
     /**
@@ -43,15 +119,104 @@ class ItemDistributionsController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $itemDistribution = ItemDistribution::with([
+            'inventory_consumable',
+            'inventory_non_consumable'
+        ])->findOrFail($id);
+
+        $items = Item::with(['unit', 'inventoryConsumables', 'inventoryNonConsumables'])->get();
+
+        // Set the selected item based on the distribution
+        $selectedItem = $itemDistribution->inventory_consumable
+            ? $itemDistribution->inventory_consumable->item
+            : ($itemDistribution->inventory_non_consumable
+                ? $itemDistribution->inventory_non_consumable->item
+                : null);
+
+        return view('item_distributions.form', compact('items', 'selectedItem', 'itemDistribution'));
     }
 
     /**
      * Update the specified resource in storage.
      */
+    /**
+     * Update the specified resource in storage.
+     */
     public function update(Request $request, string $id)
     {
-        //
+        $request->validate([
+            'type' => 'required|in:0,1',
+            'inventory_ids' => 'required|array|min:1',
+            'inventory_ids.*' => 'string',
+            'status' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'remarks' => 'nullable|string',
+            'distribution_date' => 'nullable|date',
+            'due_date' => 'nullable|date',
+        ]);
+
+        DB::transaction(function () use ($request, $id) {
+
+            // Delete previous distributions for this inventory IDs
+            // Optional: you can skip this if you want to update in place
+            ItemDistribution::whereIn('id', [$id])->delete();
+
+            // Loop through the new inventory IDs to update/create distributions
+            foreach ($request->inventory_ids as $inventoryId) {
+
+                // Check if it's a consumable
+                $consumable = InventoryConsumable::find($inventoryId);
+                if ($consumable) {
+                    ItemDistribution::updateOrCreate(
+                        ['id' => $id], // Update the current distribution
+                        [
+                            'type' => $request->type,
+                            'description' => $request->description,
+                            'remarks' => $request->remarks,
+                            'quantity' => 1,
+                            'distribution_date' => $request->distribution_date ?? now(),
+                            'due_date' => $request->due_date,
+                            'status' => $request->status,
+                            'inventory_consumable_id' => $consumable->id,
+                            'created_by' => auth()->id(),
+                            'updated_by' => auth()->id(),
+                        ]
+                    );
+                    continue;
+                }
+
+                // Otherwise, non-consumable
+                $nonConsumable = InventoryNonConsumable::find($inventoryId);
+                if ($nonConsumable) {
+                    ItemDistribution::updateOrCreate(
+                        ['id' => $id],
+                        [
+                            'type' => $request->type,
+                            'description' => $request->description,
+                            'remarks' => $request->remarks,
+                            'quantity' => 1,
+                            'distribution_date' => $request->distribution_date ?? now(),
+                            'due_date' => $request->due_date,
+                            'status' => $request->status,
+                            'inventory_non_consumable_id' => $nonConsumable->id,
+                            'created_by' => auth()->id(),
+                            'updated_by' => auth()->id(),
+                        ]
+                    );
+                }
+            }
+        });
+
+        // Return updated table with all distributions
+        $itemDistributions = ItemDistribution::with([
+            'inventory_consumable.item',
+            'inventory_non_consumable.item',
+        ])->latest()->get();
+
+        return response()->json([
+            'html' => view('item_distributions.table', compact('itemDistributions'))->render(),
+            'message' => 'Distribution updated successfully',
+        ]);
     }
 
     /**
@@ -59,6 +224,24 @@ class ItemDistributionsController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        // Find the distribution
+        $itemDistribution = ItemDistribution::find($id);
+
+        if (!$itemDistribution) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Item Distribution not found.',
+            ], 404);
+        }
+
+        // Delete the distribution
+        $itemDistribution->delete();
+
+        $itemDistributions = ItemDistribution::all();
+
+        return response()->json([
+            'html' => view('item_distributions.table', compact('itemDistributions'))->render(),
+            'message' => 'Item Distribution deleted successfully.',
+        ]);
     }
 }

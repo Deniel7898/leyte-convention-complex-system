@@ -126,25 +126,42 @@ class ItemsController extends Controller
      */
     private function getItems()
     {
-        return Item::with(['unit', 'category'])->get()->map(function ($item) {
+        return Item::with(['unit', 'category', 'inventoryConsumables.itemDistributions', 'inventoryNonConsumables.itemDistributions'])
+            ->get()
+            ->map(function ($item) {
 
-            $remaining = $item->type == 0
-                ? InventoryConsumable::where('item_id', $item->id)->count()
-                : InventoryNonConsumable::where('item_id', $item->id)->count();
+                // Count only available inventory (units that are NOT distributed/borrowed/pending)
+                if ($item->type == 0) {
+                    $remaining = $item->inventoryConsumables
+                        ->filter(function ($inv) {
+                            return $inv->itemDistributions
+                                ->whereIn('status', ['distributed', 'borrowed', 'pending'])
+                                ->isEmpty();
+                        })
+                        ->count();
+                } else {
+                    $remaining = $item->inventoryNonConsumables
+                        ->filter(function ($inv) {
+                            return $inv->itemDistributions
+                                ->whereIn('status', ['distributed', 'borrowed', 'pending'])
+                                ->isEmpty();
+                        })
+                        ->count();
+                }
 
-            return (object)[
-                'id' => $item->id,
-                'name' => $item->name,
-                'type' => $item->type,
-                'status' => $item->status,
-                'quantity' => $item->quantity,
-                'remaining' => $remaining,
-                'unit' => $item->unit ?? null,
-                'category' => $item->category ?? null,
-                'description' => $item->description ?? '--',
-                'picture' => $item->picture,
-            ];
-        });
+                return (object)[
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'type' => $item->type,
+                    'status' => $item->status ?? null,
+                    'quantity' => $item->quantity,
+                    'remaining' => $remaining,
+                    'unit' => $item->unit ?? null,
+                    'category' => $item->category ?? null,
+                    'description' => $item->description ?? '--',
+                    'picture' => $item->picture ?? null,
+                ];
+            });
     }
 
     /**
@@ -202,7 +219,7 @@ class ItemsController extends Controller
         for ($i = 0; $i < $item->quantity; $i++) {
             if ($item->type == 0) {
                 InventoryConsumable::create([
-                    'id' => Str::uuid(), 
+                    'id' => Str::uuid(),
                     'item_id' => $item->id,
                     'received_date' => $request->received_date,
                     'created_by' => Auth::id(),
@@ -210,7 +227,7 @@ class ItemsController extends Controller
                 ]);
             } else {
                 InventoryNonConsumable::create([
-                    'id' => Str::uuid(), 
+                    'id' => Str::uuid(),
                     'item_id' => $item->id,
                     'received_date' => $request->received_date,
                     'warranty_expires' => $request->warranty_expires,

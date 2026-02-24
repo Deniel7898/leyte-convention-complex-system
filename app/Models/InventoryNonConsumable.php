@@ -32,8 +32,8 @@ class InventoryNonConsumable extends Model
         return $this->belongsTo(QR_Code::class);
     }
 
-    public function distribution()
+    public function itemDistributions()
     {
-        return $this->hasOne(ItemDistribution::class, 'inventory_non_consumable_id');
+        return $this->hasMany(ItemDistribution::class, 'inventory_non_consumable_id');
     }
 }
