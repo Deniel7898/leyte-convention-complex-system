@@ -21,7 +21,7 @@
                     {{ $inventory->item->category->name ?? '--' }}
                 </p>
             </td>
-            <td><p>{{ $inventory->distribution->status ?? 'Available' }}</p></td>
+            <td><p>{{ $inventory->itemDistributions->last()?->status ? ucfirst($inventory->itemDistributions->last()->status) : 'Available' }}</p></td>
             <td><p>{{ $inventory->qr_code->code ?? '--' }}</p></td>
             <td><p>{{ $inventory->warranty_expires ?? '--' }}</p></td>
             <td>
