@@ -22,12 +22,17 @@
 
                         @foreach($items as $item)
                         <option value="{{ $item->id }}"
-                            {{ isset($selectedItem) && $selectedItem->id == $item->id ? 'selected' : '' }}
                             data-type="{{ $item->type }}"
                             data-unit="{{ $item->unit->name ?? 'N/A' }}"
                             data-quantity="{{ $item->quantity }}"
-                            data-consumables='@json($item->inventoryConsumables)'
-                            data-nonconsumables='@json($item->inventoryNonConsumables)'>
+                            data-consumables='@json($item->inventoryConsumables->map(fn($c) => [
+        "id" => $c->id,
+        "qrCode" => optional($c->qrCode)->code
+    ]))'
+                            data-nonconsumables='@json($item->inventoryNonConsumables->map(fn($nc) => [
+        "id" => $nc->id,
+        "qrCode" => optional($nc->qrCode)->code
+    ]))'>
                             {{ $item->name }}
                         </option>
                         @endforeach
@@ -187,7 +192,7 @@
                 tr.innerHTML = `
             <td>${index + 1}</td>
             <td>${selected.text}</td>
-            <td>${unit.qr_code ?? 'N/A'}</td>
+            <td>${unit.qrCode ?? 'N/A'}</td>
             <td>
                 <input type="checkbox" class="unitCheckbox" name="inventory_ids[]" value="${unit.id}">
             </td>
