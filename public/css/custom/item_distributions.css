@@ -35,3 +35,11 @@
     transform: rotate(360deg);
   }
 }
+
+/* Custom Table */
+#itemDistributions_table tr th,
+#itemDistributions-table-body tr td {
+  /* top/bottom | left/right */
+  padding: 1rem 1.4rem;
+
+}

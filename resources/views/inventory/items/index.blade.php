@@ -58,9 +58,9 @@
         </div>
     </div>
 
-    <div class="text-muted small mt-2">
+    <!-- <div class="text-muted small mt-2">
         Showing 8 of 8 items
-    </div>
+    </div> -->
 </div>
 
 <div class="card shadow-sm border-0 rounded-4 card-styles mt-3">
