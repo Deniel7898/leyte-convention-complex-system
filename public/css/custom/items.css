@@ -77,3 +77,11 @@
   background-color: rgb(43, 45, 87);
   color: #fff;
 }
+
+/* Custom Table */
+#items_table tr th,
+#items-table-body tr td {
+  /* top/bottom | left/right */
+  padding: 1rem 1.5rem;
+
+}

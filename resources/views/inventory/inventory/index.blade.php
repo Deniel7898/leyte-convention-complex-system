@@ -56,44 +56,37 @@
         </div>
     </div>
 
-    <div class="text-muted small mt-2">
+    <!-- <div class="text-muted small mt-2">
         Showing 8 of 8 items
-    </div>
+    </div> -->
 </div>
 
-<div class="card-styles mt-3">
-    <div class="card-style-3 mb-30">
-        <div class="card-content">
-            <div class="d-flex justify-content-between align-items-center">
-
-            </div>
-            <div class="table-responsive">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h6 class="fw-800">{{ __('Inventory List') }}</h6>
-                </div>
-                <table class="table" id="inventories_table">
-                    <thead>
-                        <tr class="text-center">
-                            <th>{{ __('#') }}</th>
-                            <th>{{ __('Item') }}</th>
-                            <th>{{ __('Recieved Date') }}</th>
-                            <th>{{ __('Type') }}</th>
-                            <th>{{ __('Unit') }}</th>
-                            <th>{{ __('Category') }}</th>
-                            <th>{{ __('Status') }}</th>
-                            <th>{{ __('QR Code') }}</th>
-                            <th>{{ __('Warranty Expires') }}</th>
-                            <th>{{ __('Actions') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody id="inventory-table-body">
-                        {!!$inventories_table!!}
-                    </tbody>
-                </table>
-            </div>
+<div class="card shadow-sm border-0 rounded-4 card-styles mt-3">
+    <div class="card-body p-0">
+        <div class="table-responsive rounded-4">
+            <table class="table align-middle table-hover" id="inventories_table">
+                <thead class="bg-light">
+                    <tr class="text-uppercase text-muted small">
+                        <th>{{ __('#') }}</th>
+                        <th>{{ __('Item') }}</th>
+                        <th>{{ __('Received Date') }}</th>
+                        <th>{{ __('Type') }}</th>
+                        <th>{{ __('Unit') }}</th>
+                        <th>{{ __('Category') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('QR Code') }}</th>
+                        <th>{{ __('Warranty Expires') }}</th>
+                        <th class="text-center">{{ __('Actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-table-body" class="text-muted small">
+                    {!! $inventories_table !!}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
+
 <!-- Modal -->
 <div class="modal modal-large fade index 02" id="inventories_modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">

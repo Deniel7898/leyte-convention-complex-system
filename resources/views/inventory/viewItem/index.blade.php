@@ -45,35 +45,29 @@
     </div>
 </div>
 
-<div class="card-styles mt-3">
-    <div class="card-style-3 mb-30">
-        <div class="card-content">
-            <div class="table-responsive">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h6 class="fw-800">{{ __('View Item') }}</h6>
-                </div>
-                <table class="table" id="viewItems_table">
-                    <thead>
-                        <tr class="text-center">
-                            <th>{{ __('#') }}</th>
-                            <th>{{ __('Name') }}</th>
-                            <th>{{ __('Recieved Date') }}</th>
-                            <th>{{ __('Type') }}</th>
-                            <th>{{ __('Unit') }}</th>
-                            <th>{{ __('Category') }}</th>
-                            <th>{{ __('Status') }}</th>
-                            <th>{{ __('QR Code') }}</th>
-                            <th>{{ __('Warranty Expires') }}</th>
-                            <th>{{ __('Description') }}</th>
-                            <th>{{ __('Actions') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody id="viewItems-table-body">
-                        {!!$viewItems_table!!}
-                    </tbody>
-                </table>
-
-            </div>
+<div class="card shadow-sm border-0 rounded-4 card-styles mt-3">
+    <div class="card-body p-0">
+        <div class="table-responsive rounded-4">
+            <table class="table align-middle table-hover" id="viewItems_table">
+                <thead class="bg-light">
+                    <tr class="text-uppercase text-muted small">
+                        <th>{{ __('#') }}</th>
+                        <th>{{ __('Name') }}</th>
+                        <th>{{ __('Recieved Date') }}</th>
+                        <th>{{ __('Type') }}</th>
+                        <th>{{ __('Unit') }}</th>
+                        <th>{{ __('Category') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('QR Code') }}</th>
+                        <th>{{ __('Warranty Expires') }}</th>
+                        <th>{{ __('Description') }}</th>
+                        <th class="text-center">{{ __('Actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody id="viewItems-table-body" class="text-muted small">
+                    {!!$viewItems_table!!}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

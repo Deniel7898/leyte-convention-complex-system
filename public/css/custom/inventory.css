@@ -77,3 +77,12 @@
   background-color: rgb(43, 45, 87);
   color: #fff;
 }
+
+
+/* Custom Table */
+#inventories_table tr th,
+#inventory-table-body tr td {
+  /* top/bottom | left/right */
+  padding: 1rem 1.5rem;
+
+}
