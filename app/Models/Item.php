@@ -32,6 +32,11 @@ class Item extends Model
         return $this->belongsTo(Units::class);
     }
 
+    public function qrCode()
+    {
+        return $this->hasOne(QR_Code::class, 'inventory_non_consumable_id');
+    }
+
     public function inventoryConsumables()
     {
         return $this->hasMany(InventoryConsumable::class, 'item_id')

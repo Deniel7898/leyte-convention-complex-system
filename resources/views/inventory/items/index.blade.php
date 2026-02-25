@@ -23,7 +23,6 @@
             </div>
         </div>
 
-
         <div class="col-auto" style="min-width: 140px;">
             <select id="type-filter" class="form-select">
                 <option>All Type</option>

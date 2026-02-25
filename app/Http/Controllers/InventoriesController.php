@@ -8,6 +8,7 @@ use App\Models\Units;
 use App\Models\Item;
 use App\Models\InventoryConsumable;
 use App\Models\InventoryNonConsumable;
+use App\Models\QR_Code;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
@@ -150,7 +151,7 @@ class InventoriesController extends Controller
      */
     private function getInventories()
     {
-        $consumables = InventoryConsumable::with(['item', 'qr_code', 'itemDistributions'])
+        $consumables = InventoryConsumable::with(['item', 'qrCode', 'itemDistributions'])
             ->get()
             ->map(function ($c) {
                 $c->inventory_type = 'Consumable';
@@ -161,7 +162,7 @@ class InventoriesController extends Controller
                 return $c;
             });
 
-        $nonConsumables = InventoryNonConsumable::with(['item', 'qr_code', 'itemDistributions'])
+        $nonConsumables = InventoryNonConsumable::with(['item', 'qrCode', 'itemDistributions'])
             ->get()
             ->map(function ($n) {
                 $n->inventory_type = 'Non-Consumable';
@@ -235,22 +236,60 @@ class InventoriesController extends Controller
         // Save the new item and get it in a variable
         $item = Item::create($validated);
 
+        // Current date for today
+        $datetime = date('Ymd'); // e.g., 20260225
+        $prefix = strtoupper(substr($item->name, 0, 1));
+
+        // Get the last QR code **for today** (sequence will reset each day)
+        $lastQrToday = QR_Code::where('code', 'like', "LCC-{$prefix}{$datetime}-%")
+            ->orderByDesc('code')
+            ->first();
+
+        $lastSequence = 0;
+
+        if ($lastQrToday) {
+            $parts = explode('-', $lastQrToday->code);
+            $lastSequence = (int) end($parts);
+        }
+
         // Loop only for the quantity of the newly added item
         for ($i = 0; $i < $item->quantity; $i++) {
-            if ((int) $item->type === 0) {
-                InventoryConsumable::create([
+
+            $lastSequence++;
+            $sequence = str_pad($lastSequence, 3, '0', STR_PAD_LEFT);
+
+            $qrCodeValue = 'LCC-' . $prefix . $datetime . '-' . $sequence;
+
+            if ($item->type == 0) {
+                $consumable = InventoryConsumable::create([
                     'id' => Str::uuid(),
                     'item_id' => $item->id,
                     'received_date' => $request->received_date,
                     'created_by' => Auth::id(),
                     'updated_by' => Auth::id(),
                 ]);
+
+                QR_Code::create([
+                    'code' => $qrCodeValue,
+                    'inventory_consumable_id' => $consumable->id,
+                    'status' => QR_Code::STATUS_USED,
+                    'created_by' => Auth::id(),
+                    'updated_by' => Auth::id(),
+                ]);
             } else {
-                InventoryNonConsumable::create([
+                $nonConsumable = InventoryNonConsumable::create([
                     'id' => Str::uuid(),
                     'item_id' => $item->id,
                     'received_date' => $request->received_date,
                     'warranty_expires' => $request->warranty_expires,
+                    'created_by' => Auth::id(),
+                    'updated_by' => Auth::id(),
+                ]);
+
+                QR_Code::create([
+                    'code' => $qrCodeValue,
+                    'inventory_non_consumable_id' => $nonConsumable->id,
+                    'status' => QR_Code::STATUS_USED,
                     'created_by' => Auth::id(),
                     'updated_by' => Auth::id(),
                 ]);

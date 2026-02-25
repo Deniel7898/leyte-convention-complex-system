@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Units;
 use App\Models\InventoryConsumable;
 use App\Models\InventoryNonConsumable;
+use App\Models\QR_Code;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
@@ -215,22 +216,60 @@ class ItemsController extends Controller
 
         $item = Item::create($validated);
 
-        // Create inventory records
+        // Current date for today
+        $datetime = date('Ymd'); // e.g., 20260225
+        $prefix = strtoupper(substr($item->name, 0, 1));
+
+        // Get the last QR code **for today** (sequence will reset each day)
+        $lastQrToday = QR_Code::where('code', 'like', "LCC-{$prefix}{$datetime}-%")
+            ->orderByDesc('code')
+            ->first();
+
+        $lastSequence = 0;
+
+        if ($lastQrToday) {
+            $parts = explode('-', $lastQrToday->code);
+            $lastSequence = (int) end($parts);
+        }
+
+        // Loop only for the quantity of the newly added item
         for ($i = 0; $i < $item->quantity; $i++) {
+
+            $lastSequence++;
+            $sequence = str_pad($lastSequence, 3, '0', STR_PAD_LEFT);
+
+            $qrCodeValue = 'LCC-' . $prefix . $datetime . '-' . $sequence;
+
             if ($item->type == 0) {
-                InventoryConsumable::create([
+                $consumable = InventoryConsumable::create([
                     'id' => Str::uuid(),
                     'item_id' => $item->id,
                     'received_date' => $request->received_date,
                     'created_by' => Auth::id(),
                     'updated_by' => Auth::id(),
                 ]);
+
+                QR_Code::create([
+                    'code' => $qrCodeValue,
+                    'inventory_consumable_id' => $consumable->id,
+                    'status' => QR_Code::STATUS_USED,
+                    'created_by' => Auth::id(),
+                    'updated_by' => Auth::id(),
+                ]);
             } else {
-                InventoryNonConsumable::create([
+                $nonConsumable = InventoryNonConsumable::create([
                     'id' => Str::uuid(),
                     'item_id' => $item->id,
                     'received_date' => $request->received_date,
                     'warranty_expires' => $request->warranty_expires,
+                    'created_by' => Auth::id(),
+                    'updated_by' => Auth::id(),
+                ]);
+
+                QR_Code::create([
+                    'code' => $qrCodeValue,
+                    'inventory_non_consumable_id' => $nonConsumable->id,
+                    'status' => QR_Code::STATUS_USED,
                     'created_by' => Auth::id(),
                     'updated_by' => Auth::id(),
                 ]);

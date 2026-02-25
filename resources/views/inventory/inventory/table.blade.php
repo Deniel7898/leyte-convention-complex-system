@@ -45,7 +45,7 @@
              {{ ucfirst($status) }}
          </span>
      </td>
-     <td>{{ $inventory->qr_code->code ?? '--' }}</td>
+   <td>{{ $inventory->qrCode->code ?? '--' }}</td>
      <td>
          {{ $inventory->warranty_expires && $inventory->warranty_expires != '--'
             ? \Carbon\Carbon::parse($inventory->warranty_expires)->format('M d, Y')
