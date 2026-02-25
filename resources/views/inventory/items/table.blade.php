@@ -1,47 +1,79 @@
 @if($items->count() > 0)
-    @foreach($items as $item)
-        <tr class="text-center">
-            <td><p>{{ $loop->iteration }}</p></td>
-            <td><p>{{ $item->name ?? '--' }}</p></td>
-            <td>
-                @if($item->type == 0)
-                    <span class="badge bg-danger text-white">Consumable</span>
-                @else
-                    <span class="badge bg-success text-white">Non-Consumable</span>
-                @endif
-            </td>
-            <td><p>{{ $item->quantity ?? '--' }}</p></td>
-            <td><p>{{ $item->remaining ?? '--' }}</p></td>
-            <td><p>{{ $item->unit->name ?? '--' }}</p></td>
-            <td>
-                <p>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-tag" viewBox="0 0 16 16">
-                        <path d="M6 4.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m-1 0a.5.5 0 1 0-1 0 .5.5 0 0 0 1 0"/>
-                        <path d="M2 1h4.586a1 1 0 0 1 .707.293l7 7a1 1 0 0 1 0 1.414l-4.586 4.586a1 1 0 0 1-1.414 0l-7-7A1 1 0 0 1 1 6.586V2a1 1 0 0 1 1-1m0 5.586 7 7L13.586 9l-7-7H2z"/>
-                    </svg>
-                    {{ $item->category->name ?? '--' }}
-                </p>
-            </td>
-           <td>
-                @if($item->remaining == 0 || $item->status == 0)
-                    <span class="badge bg-danger text-white">Not Available</span>
-                @else
-                    <span class="badge bg-success text-white">Available</span>
-                @endif
-            </td>
-            <td><p>{{ $item->description ?? '--' }}</p></td>
-            <td><p>{{ $item->picture ?? '--' }}</p></td>
-            <td>
-                <a href="{{ route('viewItem.show', $item->id) }}" class="btn btn-warning">
-                    <i class="lni lni-eye"></i>
-                </a>
-                <button class="btn btn-primary edit" data-url="{{route('items.edit', ['item' => $item->id])}}"><i class="lni lni-pencil"></i></button>
-                <button class="btn btn-danger delete" data-url="{{route('items.destroy', ['item' => $item->id])}}"><i class="lni lni-trash-can"></i></button>
-            </td>
-        </tr>
-    @endforeach
+@foreach($items as $item)
+<tr class="text-start">
+    <td>
+        <p>{{ $loop->iteration }}</p>
+    </td>
+    <td>
+        <p>{{ $item->name ?? '--' }}</p>
+    </td>
+    <td>
+        @if($item->type == 0)
+        <span class="badge bg-success-subtle text-success">Consumable</span>
+        @else
+        <span class="badge bg-primary-subtle text-primary">Non-Consumable</span>
+        @endif
+    </td>
+    <td>
+        <p>{{ $item->quantity ?? '--' }}</p>
+    </td>
+    <td>
+        <p>{{ $item->remaining ?? '--' }}</p>
+    </td>
+    <td>
+        <p>{{ $item->unit->name ?? '--' }}</p>
+    </td>
+    <td>
+        <p>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-tag" viewBox="0 0 16 16">
+                <path d="M6 4.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m-1 0a.5.5 0 1 0-1 0 .5.5 0 0 0 1 0" />
+                <path d="M2 1h4.586a1 1 0 0 1 .707.293l7 7a1 1 0 0 1 0 1.414l-4.586 4.586a1 1 0 0 1-1.414 0l-7-7A1 1 0 0 1 1 6.586V2a1 1 0 0 1 1-1m0 5.586 7 7L13.586 9l-7-7H2z" />
+            </svg>
+            {{ $item->category->name ?? '--' }}
+        </p>
+    </td>
+    <td>
+        @if($item->remaining == 0 || $item->status == 0)
+        <span class="badge bg-danger-subtle text-danger">Not Available</span>
+        @else
+        <span class="badge bg-success-subtle text-success">Available</span>
+        @endif
+    </td>
+    <td>
+        <p>{{ $item->description ?? '--' }}</p>
+    </td>
+    <td>
+        <p>{{ $item->picture ?? '--' }}</p>
+    </td>
+    <td class="text-center">
+        <a href="{{ route('viewItem.show', $item->id) }}"
+            title="View Item"
+            class="btn p-0 border-0 bg-transparent text-primary me-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye w-4 h-4">
+                <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+        </a>
+        <button type="button" title="Edit Item" class="btn p-0 border-0 bg-transparent text-gray me-2 edit" data-url="{{route('items.edit', ['item' => $item->id])}}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-pen w-4 h-4">
+                <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"></path>
+            </svg>
+        </button>
+        <button type="button" title="Delete Item" class="btn p-0 border-0 bg-transparent text-danger delete" data-url="{{route('items.destroy', ['item' => $item->id])}}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2 lucide-trash-2 w-4 h-4">
+                <path d="M3 6h18"></path>
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                <line x1="10" x2="10" y1="11" y2="17"></line>
+                <line x1="14" x2="14" y1="11" y2="17"></line>
+            </svg>
+        </button>
+    </td>
+</tr>
+@endforeach
 @else
-    <tr>
-        <td colspan="12" class="text-center text-muted text-danger">{{ __('No Items found.') }}</td>
-    </tr>
+<tr>
+    <td colspan="12" class="text-center text-muted text-danger">{{ __('No Items found.') }}</td>
+</tr>
 @endif
