@@ -19,7 +19,16 @@ class QR_CodeController extends Controller
         'creator'
         ])->latest()->paginate(10);
 
-        return view('reference.qr_code.index', compact('qrCodes'));
+        $qrCodes_table = view('reference.qr_code.table', compact('qrCodes'))->render();
+        return view('reference.qr_code.index', compact('qrCodes_table'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        return view('reference.qr_code.form');
     }
 
     /**

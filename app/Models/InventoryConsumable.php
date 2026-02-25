@@ -8,11 +8,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class InventoryConsumable extends Model
 {
-    use HasUuids;
+    use HasUuids, SoftDeletes;
 
     protected $table = 'inventory_consumable';
-
-    use SoftDeletes;
 
     protected $fillable = [
         'received_date',
@@ -26,13 +24,24 @@ class InventoryConsumable extends Model
         return $this->belongsTo(Item::class);
     }
 
-    public function qr_code()
+    public function qrCode()
     {
-        return $this->belongsTo(QR_Code::class);
+        return $this->hasOne(QR_Code::class, 'inventory_consumable_id');
     }
 
     public function itemDistributions()
     {
         return $this->hasMany(ItemDistribution::class, 'inventory_consumable_id');
+    }
+
+    protected static function booted()
+    {
+        static::deleting(function ($inventory) {
+            $inventory->qrCode?->delete(); // soft-delete QR code
+        });
+
+        static::restoring(function ($inventory) {
+            $inventory->qrCode()->withTrashed()->first()?->restore();
+        });
     }
 }

@@ -47,4 +47,22 @@ class Item extends Model
                 $query->whereIn('status', ['distributed', 'borrowed', 'partial', 'pending']);
             });
     }
+
+    protected static function booted()
+    {
+        // Soft-delete cascading
+        static::deleting(function ($item) {
+            // Delete consumables
+            $item->inventoryConsumables->each->delete();
+
+            // Delete non-consumables
+            $item->inventoryNonConsumables->each->delete();
+        });
+
+        // Optional: restore inventories when item is restored
+        static::restoring(function ($item) {
+            $item->inventoryConsumables()->withTrashed()->get()->each->restore();
+            $item->inventoryNonConsumables()->withTrashed()->get()->each->restore();
+        });
+    }
 }

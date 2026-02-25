@@ -1,208 +1,45 @@
-/* PAGE */
-.content-wrapper {
-    padding: 30px;
+#loading-spinner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.7);
+  z-index: 9999;
+  display: none;
+  /* Hidden by default */
 }
 
-/* HEADER */
-.page-header h4 {
-    font-weight: 600;
-    margin-bottom: 20px;
+/* When shown (e.g., via JS), it becomes flex */
+#loading-spinner.active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* CARD */
-.card-custom {
-    background: #fff;
-    border-radius: 10px;
-    padding: 25px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.04);
+.spinner {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid hsl(237, 34%, 25%);
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
 }
 
-/* CARD HEADER */
-.card-header-custom {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
-/* ADD BUTTON */
-.btn-add {
-    background: #4e73df;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
-    transition: 0.2s;
-}
+/* Custom Table */
+#qrCodes_table tr th,
+#qrCodes-table-body tr td {
+  /* top/bottom | left/right */
+  padding: 1rem 1.5rem;
 
-.btn-add:hover {
-    background: #2e59d9;
-    transform: scale(1.05);
 }
-
-/* TABLE */
-.table-custom {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.table-custom th {
-    text-align: left;
-    padding: 12px;
-    font-weight: 600;
-    border-bottom: 1px solid #e3e6f0;
-}
-
-.table-custom td {
-    padding: 12px;
-    border-bottom: 1px solid #f1f1f1;
-}
-
-.table-custom tbody tr:hover {
-    background: #f8f9fc;
-}
-
-/* STATUS BADGES */
-.badge-active {
-    background: #d4edda;
-    color: #155724;
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-}
-
-.badge-used {
-    background: #f8d7da;
-    color: #721c24;
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-}
-
-.badge-expired {
-    background: #fff3cd;
-    color: #856404;
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-}
-
-/* ACTION BUTTONS */
-.actions a,
-.actions button {
-    margin-right: 10px;
-    border: none;
-    background: none;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.action-view {
-    color: #36b9cc;
-}
-
-.action-warning {
-    color: #f6c23e;
-}
-
-/* ALERTS */
-.alert-success-custom {
-    background: #d4edda;
-    color: #155724;
-    padding: 10px;
-    border-radius: 6px;
-    margin-bottom: 15px;
-}
-
-.alert-danger-custom {
-    background: #f8d7da;
-    color: #721c24;
-    padding: 10px;
-    border-radius: 6px;
-    margin-bottom: 15px;
-}
-/*CSS of actions for view delete and add to be a line*/
-/* Whole actions cell */
-/* ============================= */
-/* ACTIONS COLUMN STYLING */
-/* ============================= */
-
-.actions-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-}
-
-.actions-icons {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    min-height: 32px;
-}
-
-.icon-btn {
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    font-size: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-}
-
-/* Button Colors */
-.icon-btn.success {
-    color: #28a745;
-}
-
-.icon-btn.primary {
-    color: #0d6efd;
-}
-
-.icon-btn.secondary {
-    color: #6c757d;
-}
-
-.icon-btn.danger {
-    color: #dc3545;
-}
-
-/* Hover Effect */
-.icon-btn:hover {
-    background: rgba(0, 0, 0, 0.05);
-    transform: scale(1.1);
-}
-
-.generated-text {
-    font-size: 13px;
-    color: #6c757d;
-}
-
-.icon-btn i {
-    color: inherit;
-}
-
-.icon-btn.success i {
-    color: #28a745 !important;
-}
-
-.icon-btn.primary i {
-    color: #0d6efd !important;
-}
-
-.icon-btn.secondary i {
-    color: #6c757d !important;
-}
-
-.icon-btn.danger i {
-    color: #dc3545 !important;
-}
-

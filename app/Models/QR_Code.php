@@ -16,110 +16,24 @@ class QR_Code extends Model
         'status',
         'created_by',
         'updated_by',
-        'used_at',
         'expired_at',
+        'inventory_consumable_id',
+        'inventory_non_consumable_id',
     ];
 
-    protected $casts = [
-        'used_at' => 'datetime',
-        'expired_at' => 'datetime',
-    ];
-
-    const STATUS_ACTIVE  = 'active';
-    const STATUS_USED    = 'used';
-    const STATUS_EXPIRED = 'expired';
-
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
-
-    // Inventory - Consumable
-    /*
+    /**
+     * The consumable inventory this QR code belongs to.
+     */
     public function inventoryConsumable()
     {
-        return $this->hasOne(InventoryConsumable::class, 'qr_code_id');
+        return $this->belongsTo(InventoryConsumable::class, 'inventory_consumable_id');
     }
 
-    // Inventory - Non Consumable
+    /**
+     * The non-consumable inventory this QR code belongs to.
+     */
     public function inventoryNonConsumable()
     {
-        return $this->hasOne(InventoryNonConsumable::class, 'qr_code_id');
-    }
-
-    */
-
-    // Creator
-    public function creator()
-    {
-        return $this->belongsTo(User::class, 'created_by');
-    }
-
-    // Updater
-    public function updater()
-    {
-        return $this->belongsTo(User::class, 'updated_by');
-    }
-
-    
-    /*
-    |--------------------------------------------------------------------------
-    | Smart Accessor: Get Related Item
-    |--------------------------------------------------------------------------
-    */
-
-    /*
-    public function getItemAttribute()
-    {
-        if ($this->inventoryConsumable && $this->inventoryConsumable->item) {
-            return $this->inventoryConsumable->item;
-        }
-
-        if ($this->inventoryNonConsumable && $this->inventoryNonConsumable->item) {
-            return $this->inventoryNonConsumable->item;
-        }
-
-        return null;
-    }
-    */
-
-    /*
-    |--------------------------------------------------------------------------
-    | Status Methods
-    |--------------------------------------------------------------------------
-    */
-
-    public function markAsUsed()
-    {
-        $this->update([
-            'status' => self::STATUS_USED,
-            'used_at' => now(),
-            'updated_by' => auth()->id(),
-        ]);
-    }
-
-    public function markAsExpired()
-    {
-        $this->update([
-            'status' => self::STATUS_EXPIRED,
-            'expired_at' => now(),
-            'updated_by' => auth()->id(),
-        ]);
-    }
-
-    public function isActive()
-    {
-        return $this->status === self::STATUS_ACTIVE;
-    }
-
-    public function isUsed()
-    {
-        return $this->status === self::STATUS_USED;
-    }
-
-    public function isExpired()
-    {
-        return $this->status === self::STATUS_EXPIRED;
+        return $this->belongsTo(InventoryNonConsumable::class, 'inventory_non_consumable_id');
     }
 }

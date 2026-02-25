@@ -1,110 +1,136 @@
-$(document).ready(function () {
+$(function () {
 
-    /* ===============================
-       FADE SESSION SUCCESS (Add Button)
-    =============================== */
+    //add button click
+    $(document).on('click', '.add-qrCode', function () {
+        $('#loading-spinner').addClass('active');
 
-    let sessionAlert = $('#success-alert');
+        // When opening modal for add
+        $('#qrCodes_modal').data('action', 'add');
 
-    if (sessionAlert.length) {
-
-        sessionAlert.hide().fadeIn(400); // fade in first
-
-        setTimeout(function () {
-            sessionAlert.fadeOut(500, function () {
-                $(this).remove();
-            });
-        }, 3000);
-    }
-
-
-    /* ===============================
-       AUTO FADE SUCCESS MESSAGE (AJAX)
-    =============================== */
-
-    function showSuccessMessage(message) {
-
-        $('#success-alert').remove();
-
-        let alertHtml = `
-            <div id="success-alert" class="alert-success-custom" style="display:none;">
-                ${message}
-            </div>
-        `;
-
-        $('.card-custom').prepend(alertHtml);
-
-        $('#success-alert').fadeIn(400); // fade in
-
-        setTimeout(function () {
-            $('#success-alert').fadeOut(500, function () {
-                $(this).remove();
-            });
-        }, 3000);
-    }
-
-
-    /* ===============================
-       DELETE QR
-    =============================== */
-
-    $(document).on('click', '.delete-qr', function () {
-
-        let url = $(this).data('url');
-
-        Swal.fire({
-            title: "Delete QR Code?",
-            text: "This cannot be undone.",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#6c757d",
-            confirmButtonText: "Yes, delete",
-            width: '400px'
-        }).then((result) => {
-
-            if (result.isConfirmed) {
-
-                $.ajax({
-                    url: url,
-                    type: 'POST',
-                    data: {
-                        _token: $('meta[name="csrf-token"]').attr('content'),
-                        _method: 'DELETE'
-                    },
-                    dataType: 'json'
-                })
-                .done(function (response) {
-
-                    if (response.success) {
-
-                        $('#qr_table').html(response.html);
-
-                        showSuccessMessage("QR Code removed successfully.");
-
-                    } else {
-
-                        Swal.fire({
-                            icon: "error",
-                            title: "Cannot Delete",
-                            text: response.message,
-                        });
-
-                    }
-
-                })
-                .fail(function () {
-                    Swal.fire({
-                        icon: "error",
-                        title: "Error!",
-                        text: "Something went wrong.",
-                    });
-                });
-
+        url = $(this).data('url');
+        $.ajax({
+            url: url,
+            type: 'GET',
+            success: function (response) {
+                $('#qrCodes_modal .modal-content').html(response);
+                $('#loading-spinner').removeClass('active'); // hide
+                $('#qrCodes_modal').modal('show');
             }
+        })
+    })
 
+    // //edit button click
+    // $(document).on('click', '.edit', function () {
+    //     $('#loading-spinner').addClass('active');
+
+    //     // When opening modal for update
+    //     $('#items_modal').data('action', 'update');
+
+    //     url = $(this).data('url');
+    //     $.ajax({
+    //         url: url,
+    //         type: 'GET',
+    //         success: function (response) {
+    //             $('#items_modal .modal-content').html(response);
+    //             $('#loading-spinner').removeClass('active'); // hide
+    //             $('#items_modal').modal('show');
+    //         }
+    //     })
+    // })
+
+    // //delete button click
+    // $(document).on('click', '.delete', function () {
+    //     let url = $(this).data('url');
+
+    //     //Sweet ALert
+    //     Swal.fire({
+    //         title: "Are you sure?",
+    //         text: "This action cannot be undone!",
+    //         icon: "warning",
+    //         showCancelButton: true,
+    //         confirmButtonColor: "#d33",
+    //         cancelButtonColor: "#6c757d",
+    //         confirmButtonText: "Yes, delete",
+    //         width: '400px',
+    //     }).then((result) => {
+    //         if (result.isConfirmed) {
+    //             $('#loading-spinner').addClass('active');
+
+    //             $.post(url, {
+    //                 _token: $('meta[name="csrf-token"]').attr('content'),
+    //                 _method: 'DELETE'
+    //             })
+    //                 .done(function (response) {
+    //                     $('#items_table tbody').html(response.html);
+
+    //                     Swal.fire({
+    //                         title: "Deleted!",
+    //                         text: "The record has been removed.",
+    //                         icon: "success",
+    //                         timer: 1000,
+    //                         showConfirmButton: false,
+    //                         width: '400px',
+    //                         padding: '0.8rem'
+    //                     });
+    //                 })
+    //                 .fail(function (xhr) {
+    //                     Swal.fire("Error!", "Something went wrong.", "error");
+    //                     console.log(xhr.responseText);
+    //                 })
+    //                 .always(function () {
+    //                     $('#loading-spinner').removeClass('active');
+    //                 });
+    //         }
+    //     });
+    // });
+
+    //form submit
+    $(document).on('submit', 'form', function (e) {
+        e.preventDefault();
+        $('#loading-spinner').addClass('active');
+
+        var form = $(this);
+        var url = form.attr('action');
+        var method = form.attr('method');
+        var data = new FormData(this);
+
+        $.ajax({
+            url: url,
+            type: method,
+            data: data,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                $('#items_table tbody').html(response.html);
+
+                // Close modal only if update
+                if ($('#items_modal').data('action') === 'update') {
+                    $('#items_modal').modal('hide');
+                }
+
+                // Reset all fields
+                form.find('input[type="text"], input[type="number"], textarea, input[type="date"]').val('');
+                form.find('select').prop('selectedIndex', 0);
+                form.find('input[type="file"]').val(null);
+                $('#picture-preview').attr('src', '').hide();
+
+                $('#loading-spinner').removeClass('active');
+
+                // SweetAlert
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: response.message,
+                    showConfirmButton: false,
+                    timer: 1500,
+                    width: '400px',
+                    padding: '0.8rem'
+                });
+            },
+            error: function (xhr) {
+                console.log(xhr.responseJSON);
+                $('#loading-spinner').removeClass('active');
+            }
         });
-
     });
-
-});
+})
