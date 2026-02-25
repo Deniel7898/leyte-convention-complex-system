@@ -1,3 +1,4 @@
+@if($units->count() > 0)
 @foreach($units as $unit)
 <tr>
     <td><p>{{ $loop->iteration }}</p></td>
@@ -22,3 +23,8 @@
     </td>
 </tr>
 @endforeach
+@else
+<tr>
+    <td colspan="12" class="text-center text-muted text-danger">{{ __('No Units found.') }}</td>
+</tr>
+@endif

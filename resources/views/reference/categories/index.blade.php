@@ -48,7 +48,6 @@
     </div>
 </div>
 
-
 <!-- Modal -->
 <div class="modal fade" id="categories_modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -57,6 +56,7 @@
         </div>
     </div>
 </div>
+
 <!-- Loading Spinner -->
 <div id="loading-spinner">
     <div class="spinner"></div>

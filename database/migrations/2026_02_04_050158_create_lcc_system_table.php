@@ -11,19 +11,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // QR Codes
-        Schema::create('qr_codes', function (Blueprint $table) {
-            $table->id();
-            $table->string('code')->unique();
-            $table->enum('status', ['active', 'used', 'expired'])->default('active');
-            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->timestamp('used_at')->nullable();
-            $table->timestamp('expired_at')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
-        });
-
         // Categories
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
@@ -67,8 +54,7 @@ return new class extends Migration
         Schema::create('inventory_consumable', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->date('received_date')->nullable();
-            $table->foreignId('item_id')->nullable()->constrained('items')->onDelete('set null');
-            $table->foreignId('qr_code_id')->nullable()->constrained('qr_codes')->onDelete('set null');
+            $table->foreignId('item_id')->nullable()->constrained('items')->onDelete('cascade');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
@@ -80,8 +66,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->date('received_date')->nullable();
             $table->date('warranty_expires')->nullable();
-            $table->foreignId('item_id')->nullable()->constrained('items')->onDelete('set null');
-            $table->foreignId('qr_code_id')->nullable()->constrained('qr_codes')->onDelete('set null');
+            $table->foreignId('item_id')->nullable()->constrained('items')->onDelete('cascade');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
@@ -147,6 +132,20 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
+
+        // QR Codes
+        Schema::create('qr_codes', function (Blueprint $table) {
+            $table->id();
+            $table->foreignUuid('inventory_consumable_id')->nullable()->constrained('inventory_consumable')->onDelete('cascade');
+            $table->foreignUuid('inventory_non_consumable_id')->nullable()->constrained('inventory_non_consumable')->onDelete('cascade');
+            $table->string('code')->unique();
+            $table->enum('status', ['active', 'used', 'expired'])->default('active');
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamp('expired_at')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+        });
     }
 
     /**
@@ -154,15 +153,15 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('items_purchase_request');
+        Schema::dropIfExists('qr_codes');
         Schema::dropIfExists('item_distributions');
         Schema::dropIfExists('service_records');
         Schema::dropIfExists('inventory_non_consumable');
         Schema::dropIfExists('inventory_consumable');
-        Schema::dropIfExists('items');
+        Schema::dropIfExists('items_purchase_request');
         Schema::dropIfExists('purchase_request');
+        Schema::dropIfExists('items');
         Schema::dropIfExists('units');
         Schema::dropIfExists('categories');
-        Schema::dropIfExists('qr_codes');
     }
 };

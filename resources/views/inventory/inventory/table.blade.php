@@ -78,8 +78,6 @@
  @endforeach
  @else
  <tr>
-     <td colspan="10" class="text-start text-danger">
-         {{ __('No Items found.') }}
-     </td>
+     <td colspan="12" class="text-center text-muted text-danger">{{ __('No Items found.') }}</td>
  </tr>
  @endif
