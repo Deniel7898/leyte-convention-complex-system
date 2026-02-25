@@ -15,6 +15,12 @@
         @endif
     </td>
     <td>
+        <p>{{ $itemDistribution->item->item->unit->name ?? '--' }}</p>
+    </td>
+    <td>
+        <p>{{ $itemDistribution->item->item->category->name ?? '--' }}</p>
+    </td>
+    <td>
         <p>{{ $itemDistribution->distribution_date ?? '--' }}</p>
     </td>
     <td>

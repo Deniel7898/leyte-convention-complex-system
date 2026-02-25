@@ -28,7 +28,25 @@
         </p>
     </td>
     <td>
-        <p>{{ $viewItem->itemDistributions->last()?->status ? ucfirst($viewItem->itemDistributions->last()->status) : 'Available' }}</p>
+        @php
+        $status = $viewItem->itemDistributions->last()?->status ?? 'available';
+
+        $statusClasses = [
+        'distributed' => 'bg-primary-subtle text-primary',
+        'borrowed' => 'bg-warning-subtle text-warning',
+        'partial' => 'bg-warning-subtle text-warning',
+        'returned' => 'bg-info-subtle text-info',
+        'received' => 'bg-success-subtle text-success',
+        'pending' => 'bg-secondary-subtle text-secondary',
+        'available' => 'bg-success-subtle text-success',
+        ];
+
+        $class = $statusClasses[strtolower($status)] ?? 'bg-secondary-subtle text-secondary';
+        @endphp
+
+        <span class="badge {{ $class }}">
+            {{ ucfirst($status) }}
+        </span>
     </td>
     <td>
         <p>{{ $viewItem->qr_code->code ?? '--' }}</p>

@@ -48,8 +48,10 @@
                         <th>{{ __('#') }}</th>
                         <th>{{ __('Item') }}</th>
                         <th>{{ __('Item Type') }}</th>
+                        <th>{{ __('Unit') }}</th>
+                        <th>{{ __('Category') }}</th>
                         <th>{{ __('Dist. Date') }}</th>
-                        <th>{{ __('Type') }}</th>
+                        <th>{{ __('Dist. Type') }}</th>
                         <th>{{ __('QR Code') }}</th>
                         <th>{{ __('Qty') }}</th>
                         <th>{{ __('Status') }}</th>

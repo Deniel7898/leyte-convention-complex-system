@@ -13,10 +13,25 @@
     <div class="modal-body">
         <!-- Item Name -->
         <div class="mb-3">
-            <label for="general-item" class="col-form-label">Item:</label>
+            <label for="general-item" class="form-label">Item</label>
             <input type="text" class="form-control" id="general-item"
                 value="{{ $selectedItem->name }}" readonly>
         </div>
+
+        <!-- Quantity -->
+        @if(!isset($item))
+        <div class="mb-3">
+            <label for="item-quantity" class="form-label">Quantity</label>
+            <input type="number"
+                class="form-control"
+                id="item-quantity"
+                name="quantity"
+                min="1"
+                required>
+        </div>
+        @else
+        <input type="hidden" name="quantity" value="{{ $item->quantity }}">
+        @endif
 
         <!-- Hidden input to submit the item ID -->
         <input type="hidden" name="item_id" value="{{ $selectedItem->id }}">
@@ -35,7 +50,6 @@
         <input type="hidden" id="item-type" name="type" value="{{ $selectedItem->type ?? '' }}">
         <input type="hidden" name="unit_id" value="{{ $selectedItem->unit_id ?? '' }}">
         <input type="hidden" name="category_id" value="{{ $selectedItem->category_id ?? '' }}">
-        <input type="hidden" name="quantity" value="1">
         <input type="hidden" name="description" value="{{ $selectedItem->description ?? '' }}">
         <input type="hidden" name="status" value="{{ $selectedItem->status ?? '' }}">
 
