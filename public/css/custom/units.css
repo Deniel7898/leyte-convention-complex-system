@@ -35,3 +35,11 @@
     transform: rotate(360deg);
   }
 }
+
+/* Custom Table */
+#units_table tr th,
+#units-table-body tr td {
+  /* top/bottom | left/right */
+  padding: 1rem 1.5rem;
+
+}

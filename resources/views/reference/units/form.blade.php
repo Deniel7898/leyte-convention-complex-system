@@ -1,12 +1,14 @@
-<form action = "{{ isset($unit) ? route('units.update', $unit->id) : route('units.store') }}" method="POST">
-    <div class="modal-header">
-        <h1 class="modal-title fs-5" id="exampleModalLabel">{{ isset($unit) ? 'Edit' : 'Add' }} unit</h1>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<form action="{{ isset($unit) ? route('units.update', $unit->id) : route('units.store') }}" method="POST">
+
+    <div class="modal-header" style=" background-color: rgb(43, 45, 87);">
+        <h5 class="modal-title text-white">{{ isset($unit) ? 'Edit' : 'Add' }} Unit</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
     </div>
+
     <div class="modal-body">
         @csrf
         @if(isset($unit))
-            @method('PUT')
+        @method('PUT')
         @endif
         <div class="mb-3">
             <label for="unit-name" class="col-form-label">Name:</label>
@@ -19,6 +21,6 @@
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="submit" class="btn btn-primary">Save changes</button>
+        <button type="submit" class="btn text-white" style=" background-color: rgb(43, 45, 87);">Save changes</button>
     </div>
 </form>

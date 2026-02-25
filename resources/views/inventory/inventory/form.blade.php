@@ -8,7 +8,7 @@
     @endif
 
     <div class="modal-header" style=" background-color: rgb(43, 45, 87);">
-        <h5 class="modal-title text-white">{{ isset($inventory) ? 'Edit inventory' : 'Add inventory' }}</h5>
+        <h5 class="modal-title text-white">{{ isset($inventory) ? 'Edit' : 'Add' }} Inventory</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
     </div>
 

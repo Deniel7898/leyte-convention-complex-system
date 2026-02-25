@@ -34,44 +34,40 @@
         </div>
     </div>
 
-    <div class="text-muted small mt-2">
+    <!-- <div class="text-muted small mt-2">
         Showing 8 of 8 items
-    </div>
+    </div> -->
 </div>
 
-<div class="card-styles mt-4">
-    <div class="card-style-3 mb-30">
-        <div class="card-content">
-            <div class="table-responsive">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h6 class="fw-800">{{ __('Distribution List') }}</h6>
-                </div>
-                <table class="table" id="itemDistributions_table">
-                    <thead>
-                        <tr class="text-center">
-                            <th>{{ __('#') }}</th>
-                            <th>{{ __('Item') }}</th>
-                            <th>{{ __('Distribution Date') }}</th>
-                            <th>{{ __('Type') }}</th>
-                            <th>{{ __('QR Code') }}</th>
-                            <th>{{ __('Quantity') }}</th>
-                            <th>{{ __('Status') }}</th>
-                            <th>{{ __('Description') }}</th>
-                            <th>{{ __('Due Date') }}</th>
-                            <th>{{ __('Returned Date') }}</th>
-                            <th>{{ __('Remarks') }}</th>
-                            <th>{{ __('Actions') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody id="itemDistributions-table-body">
-                        {!!$itemDistributions_table!!}
-                    </tbody>
-                </table>
-
-            </div>
+<div class="card shadow-sm border-0 rounded-4 card-styles mt-3">
+    <div class="card-body p-0">
+        <div class="table-responsive rounded-4">
+            <table class="table align-middle table-hover" id="itemDistributions_table">
+                <thead class="bg-light">
+                    <tr class="text-uppercase text-muted small">
+                        <th>{{ __('#') }}</th>
+                        <th>{{ __('Item') }}</th>
+                        <th>{{ __('Item Type') }}</th>
+                        <th>{{ __('Dist. Date') }}</th>
+                        <th>{{ __('Type') }}</th>
+                        <th>{{ __('QR Code') }}</th>
+                        <th>{{ __('Qty') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Description') }}</th>
+                        <th>{{ __('Due Date') }}</th>
+                        <!-- <th>{{ __('Returned Date') }}</th> -->
+                        <th>{{ __('Remarks') }}</th>
+                        <th class="text-center">{{ __('Actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody id="itemDistributions-table-body" class="text-muted small">
+                    {!!$itemDistributions_table!!}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
+
 <!-- Modal -->
 <div class="modal fade" id="itemDistributions_modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
