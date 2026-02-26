@@ -5,14 +5,14 @@
 @section('content')
 
 <!-- ========== title-wrapper start ========== -->
-<div class="title-wrapper pt-30">
+<div class="title-wrapper pt-15 mb-1">
     <div class="row align-items-center">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex justify-content-between align-items-center">
                 <!-- Left: Page Title -->
                 <div class="title">
                     <div>
-                        <h2>QR Codes List</h2>
+                        <h4>QR Codes List</h4>
                         <p class="text-muted mb-0 text-sm">View all QR codes generated for inventory items.</p>
                     </div>
                 </div>

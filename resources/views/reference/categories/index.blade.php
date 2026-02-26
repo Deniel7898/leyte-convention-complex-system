@@ -4,14 +4,14 @@
 
 @section('content')
 <!-- ========== title-wrapper start ========== -->
-<div class="title-wrapper pt-30">
+<div class="title-wrapper mb-1 pt-10">
     <div class="row align-items-center">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex justify-content-between align-items-center">
                 <!-- Left: Page Title -->
-                <div class="title">
+                <div class="title mt-20">
                     <div>
-                        <h2>Categories List</h2>
+                        <h4>Categories List</h4>
                         <p class="text-muted mb-0 text-sm">This is the reference data used for inventory and items.</p>
                     </div>
                 </div>
@@ -28,7 +28,7 @@
 </div>
 <!-- ========== title-wrapper end ========== -->
 
-<div class="card shadow-sm border-0 rounded-4 card-styles mt-2">
+<div class="card shadow-sm border-0 rounded-4 card-styles">
     <div class="card-body p-0">
         <div class="table-responsive rounded-4">
             <table class="table align-middle table-hover" id="categories_table">
