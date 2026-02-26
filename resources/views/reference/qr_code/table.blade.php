@@ -19,7 +19,13 @@
             {{ $qrCode->code ?? '--' }}
         </span>
     </td>
-    <td>{{ $qrCode->picture ?? '--' }}</td>
+    <td style="padding:0; margin:0; vertical-align:top; text-align:center">
+        @if($qrCode->qr_picture)
+        <img src="{{ asset('storage/' . $qrCode->qr_picture) }}" alt="{{ $qrCode->item->item->name }} QR Code" width="60">
+        @else
+        --
+        @endif
+    </td>
     <td>
         @php
         // Use the QR code status if it exists, otherwise default to 'available'
