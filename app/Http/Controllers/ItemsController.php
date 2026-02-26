@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use BaconQrCode\Writer;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
-use BaconQrCode\Renderer\Image\SvgImageBackEnd; // already imported
+use BaconQrCode\Renderer\Image\SvgImageBackEnd; 
 
 class ItemsController extends Controller
 {
