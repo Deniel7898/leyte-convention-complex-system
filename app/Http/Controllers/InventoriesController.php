@@ -12,6 +12,12 @@ use App\Models\QR_Code;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Facades\Storage;
+use BaconQrCode\Writer;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd; // already imported
 
 class InventoriesController extends Controller
 {
@@ -260,29 +266,35 @@ class InventoriesController extends Controller
         // Save the new item and get it in a variable
         $item = Item::create($validated);
 
-        // Current date for today
-        $datetime = date('Ymd'); // e.g., 20260225
+        $datetime = date('Ymd');
         $prefix = strtoupper(substr($item->name, 0, 1));
 
-        // Get the last QR code **for today** (sequence will reset each day)
         $lastQrToday = QR_Code::where('code', 'like', "LCC-{$prefix}{$datetime}-%")
             ->orderByDesc('code')
             ->first();
 
         $lastSequence = 0;
-
         if ($lastQrToday) {
             $parts = explode('-', $lastQrToday->code);
             $lastSequence = (int) end($parts);
         }
 
-        // Loop only for the quantity of the newly added item
+        // Loop once per quantity
         for ($i = 0; $i < $item->quantity; $i++) {
-
             $lastSequence++;
             $sequence = str_pad($lastSequence, 3, '0', STR_PAD_LEFT);
-
             $qrCodeValue = 'LCC-' . $prefix . $datetime . '-' . $sequence;
+            $qrImageName = $qrCodeValue . '.svg'; // .svg now
+            $qrImagePath = 'qrcodes/' . $qrImageName;
+
+            // Use Svg backend for QR generation
+            $renderer = new ImageRenderer(
+                new RendererStyle(200), // QR size
+                new SvgImageBackEnd()
+            );
+            $writer = new Writer($renderer);
+
+            Storage::disk('public')->put($qrImagePath, $writer->writeString($qrCodeValue));
 
             if ($item->type == 0) {
                 $consumable = InventoryConsumable::create([
@@ -295,6 +307,7 @@ class InventoriesController extends Controller
 
                 QR_Code::create([
                     'code' => $qrCodeValue,
+                    'qr_picture' => $qrImagePath,
                     'inventory_consumable_id' => $consumable->id,
                     'status' => QR_Code::STATUS_USED,
                     'created_by' => Auth::id(),
@@ -312,6 +325,7 @@ class InventoriesController extends Controller
 
                 QR_Code::create([
                     'code' => $qrCodeValue,
+                    'qr_picture' => $qrImagePath,
                     'inventory_non_consumable_id' => $nonConsumable->id,
                     'status' => QR_Code::STATUS_USED,
                     'created_by' => Auth::id(),
