@@ -10,6 +10,7 @@ use App\Models\InventoryNonConsumable;
 use App\Models\InventoryConsumable;
 use App\Models\QR_Code;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class ViewItemController extends Controller
 {
@@ -40,19 +41,27 @@ class ViewItemController extends Controller
                 }
 
                 // Search received date
-                if (
-                    !empty($inventory->received_date) &&
-                    stripos($inventory->received_date, $searchTerm) !== false
-                ) {
-                    $match = true;
+                if (!empty($inventory->received_date) && $inventory->received_date != '--') {
+                    try {
+                        $formattedReceived = Carbon::parse($inventory->received_date)->format('M d, Y');
+                        if (stripos($formattedReceived, $searchTerm) !== false) {
+                            $match = true;
+                        }
+                    } catch (\Exception $e) {
+                        // Ignore invalid dates
+                    }
                 }
 
                 // Search warranty date
-                if (
-                    !empty($inventory->warranty_expires) &&
-                    stripos($inventory->warranty_expires, $searchTerm) !== false
-                ) {
-                    $match = true;
+                if (!empty($inventory->warranty_expires) && $inventory->warranty_expires != '--') {
+                    try {
+                        $formattedWarranty = Carbon::parse($inventory->warranty_expires)->format('M d, Y');
+                        if (stripos($formattedWarranty, $searchTerm) !== false) {
+                            $match = true;
+                        }
+                    } catch (\Exception $e) {
+                        // Ignore invalid dates
+                    }
                 }
 
                 // Type keywords
@@ -90,6 +99,11 @@ class ViewItemController extends Controller
                     $inventory->item->category &&
                     stripos($inventory->item->category->name, $searchTerm) !== false
                 ) {
+                    $match = true;
+                }
+
+                // Search in QR code
+                if (!empty($inventory->qrCode->code) && stripos($inventory->qrCode->code, $searchTerm) !== false) {
                     $match = true;
                 }
 

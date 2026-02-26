@@ -45,19 +45,21 @@
              {{ ucfirst($status) }}
          </span>
      </td>
-   <td>{{ $inventory->qrCode->code ?? '--' }}</td>
+     <td>{{ $inventory->qrCode->code ?? '--' }}</td>
      <td>
          {{ $inventory->warranty_expires && $inventory->warranty_expires != '--'
             ? \Carbon\Carbon::parse($inventory->warranty_expires)->format('M d, Y')
                 : '--' }}
      </td>
      <td class="text-center">
-         <button type="button" title="View Item" class="btn p-0 border-0 bg-transparent text-primary me-2">
+         <a href="{{ route('viewItem.show', $inventory->item->id) }}"
+             title="View Item"
+             class="btn p-0 border-0 bg-transparent text-primary me-2">
              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye w-4 h-4">
                  <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
                  <circle cx="12" cy="12" r="3"></circle>
              </svg>
-         </button>
+         </a>
          <button type="button" title="Edit Item" class="btn p-0 border-0 bg-transparent text-gray me-2 edit" data-url="{{ route('inventory.edit', ['inventory' => $inventory->id]) }}">
              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-pen w-4 h-4">
                  <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
