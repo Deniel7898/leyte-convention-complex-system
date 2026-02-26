@@ -7,7 +7,8 @@ use App\Http\Controllers\InventoriesController;
 use App\Http\Controllers\ViewItemController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Purchase_RequestsController;
-
+use App\Http\Controllers\QR_CodeController;
+use App\Models\QR_Code;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,6 +45,7 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 Route::get('/items/live-search', [ItemsController::class, 'liveSearch'])->name('items.liveSearch');
 Route::get('/inventory/live-search', [InventoriesController::class, 'liveSearch'])->name('inventory.liveSearch');
 Route::get('/viewItem/live-search', [ViewItemController::class, 'liveSearch'])->name('viewItem.liveSearch');
+Route::get('/qr_codes/live-search', [QR_CodeController::class, 'liveSearch'])->name('qr_codes.liveSearch');
 
 //inventory routes
 Route::resource('items', App\Http\Controllers\ItemsController::class)->middleware('auth'); // includes all CRUD routes for items
