@@ -58,17 +58,20 @@ Route::delete('/viewItem/{inventory}', [ViewItemController::class, 'destroy'])->
 //item distributions routes
 Route::resource('item_distributions', App\Http\Controllers\ItemDistributionsController::class)->middleware('auth'); // includes all CRUD routes for item distributions
 
+//item service records routes
+Route::resource('service_records', App\Http\Controllers\Service_RecordsController::class)->middleware('auth'); // includes all CRUD routes for item distributions
+
 Route::resource('categories', App\Http\Controllers\CategoriesController::class)->middleware('auth'); // includes all CRUD routes for categories
 Route::resource('units', App\Http\Controllers\UnitsController::class)->middleware('auth'); // includes all CRUD routes for units
-Route::resource('qr_codes', controller: App\Http\Controllers\QR_CodeController::class)->middleware('auth'); // includes all CRUD routes for QR codes
+Route::resource('qr_codes', App\Http\Controllers\QR_CodeController::class)->middleware('auth'); // includes all CRUD routes for QR codes
 
-Route::post('qr_codes/{qr_code}/mark-used',
-    [App\Http\Controllers\QR_CodeController::class, 'markUsed']
-)->name('qr_codes.markUsed')->middleware('auth');
+// Route::post('qr_codes/{qr_code}/mark-used',
+//     [App\Http\Controllers\QR_CodeController::class, 'markUsed']
+// )->name('qr_codes.markUsed')->middleware('auth');
 
-Route::get('qr_codes/{id}/print',
-    [App\Http\Controllers\QR_CodeController::class, 'printLabel']
-)->name('qr_codes.print')->middleware('auth');
+// Route::get('qr_codes/{id}/print',
+//     [App\Http\Controllers\QR_CodeController::class, 'printLabel']
+// )->name('qr_codes.print')->middleware('auth');
 
 
 Route::get('/purchase_request/print_approved', 

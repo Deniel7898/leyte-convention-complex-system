@@ -98,15 +98,6 @@
     </div>
 </div>
 
-<!-- View Modal -->
-<div class="modal fade" id="items_modal_view" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content modal-view">
-            <!-- Your modal header, body, footer here -->
-        </div>
-    </div>
-</div>
-
 <!-- Loading Spinner -->
 <div id="loading-spinner">
     <div class="spinner"></div>

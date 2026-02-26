@@ -330,7 +330,6 @@ class ItemsController extends Controller
             'category_id' => 'required|integer',
             'quantity' => 'required|integer',
             'unit_id' => 'required|integer',
-            'status' => 'required|integer|in:0,1',
             'description' => 'nullable|string',
             'picture' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
             // 'warranty_expires' => 'nullable|date', // validate date format

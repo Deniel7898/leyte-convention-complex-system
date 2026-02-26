@@ -119,7 +119,7 @@
         <!-- Description (Styled Like Normal Input But Scrollable) -->
         <div class="mb-3">
             @if(!isset($inventory))
-            <label for="inventory-description" class="form-label">Description</label>
+            <label for="inventory-description" class="form-label">Description: (optional)</label>
             <textarea class="form-control" id="inventory-description" name="description" rows="2" style="resize: none; overflow-y: auto; max-height: 80px;">{{ isset($inventory) ? $inventory->description : '' }}</textarea>
             @else
             <input type="hidden" name="description" value="{{ $inventory->description }}">
