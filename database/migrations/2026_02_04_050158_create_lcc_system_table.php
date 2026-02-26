@@ -39,7 +39,6 @@ return new class extends Migration
             $table->string('name');
             $table->tinyInteger('type')->default(0); // 0 = consumable, 1 = non-consumable
             $table->text('description')->nullable();
-            $table->boolean('status')->default(1);
             $table->string('quantity')->default('1');
             $table->string('picture')->nullable();
             $table->foreignId('category_id')->nullable()->constrained('categories')->onDelete('set null');
