@@ -5,7 +5,7 @@ use App\Models\Units;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class unitsController extends Controller
+class UnitsController extends Controller
 {
     /**
      * Display a listing of the resource.

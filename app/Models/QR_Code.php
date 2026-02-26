@@ -13,6 +13,7 @@ class QR_Code extends Model
 
     protected $fillable = [
         'code',
+        'qr_picture',
         'status',
         'created_by',
         'updated_by',
