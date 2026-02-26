@@ -80,10 +80,11 @@ class ItemsController extends Controller
                 }
 
                 // status mapping keywords
-                if (in_array($searchLower, ['available', 'avail']) && $item->status == 1) {
+                if (in_array($searchLower, ['available', 'avail']) && $item->remaining > 0) {
                     $match = true;
                 }
-                if (in_array($searchLower, ['not-available', 'not available', 'not']) && $item->status == 0) {
+
+                if (in_array($searchLower, ['not-available', 'not available', 'not']) && $item->remaining == 0) {
                     $match = true;
                 }
 
@@ -101,12 +102,14 @@ class ItemsController extends Controller
         }
 
         // Apply status filter (dropdown)
-        if ($statusFilter && strtolower($statusFilter) != 'all') {
-            $items = $items->filter(function ($item) use ($statusFilter) {
-                if (strtolower($statusFilter) === 'available') return $item->status == 1;
-                if (strtolower($statusFilter) === 'not available') return $item->status == 0;
-                return true;
-            });
+        if (!empty($statusFilter) && strtolower($statusFilter) !== 'all status') {
+
+            $wantAvailable = strtolower($statusFilter) === 'available';
+
+            $items = $items->filter(
+                fn($item) =>
+                $wantAvailable ? $item->remaining > 0 : $item->remaining == 0
+            );
         }
 
         // Apply category filter (dropdown)
@@ -127,11 +130,16 @@ class ItemsController extends Controller
      */
     private function getItems()
     {
-        return Item::with(['unit', 'category', 'inventoryConsumables.itemDistributions', 'inventoryNonConsumables.itemDistributions'])
+        return Item::with([
+            'unit',
+            'category',
+            'inventoryConsumables.itemDistributions',
+            'inventoryNonConsumables.itemDistributions'
+        ])
             ->get()
             ->map(function ($item) {
 
-                // Count only available inventory (units that are NOT distributed/borrowed/pending)
+                // Count only available inventory
                 if ($item->type == 0) {
                     $remaining = $item->inventoryConsumables
                         ->filter(function ($inv) {
@@ -150,13 +158,15 @@ class ItemsController extends Controller
                         ->count();
                 }
 
+                $isAvailable = $remaining > 0;
+
                 return (object)[
                     'id' => $item->id,
                     'name' => $item->name,
                     'type' => $item->type,
-                    'status' => $item->status ?? null,
                     'quantity' => $item->quantity,
                     'remaining' => $remaining,
+                    'is_available' => $isAvailable, // 👈 add this
                     'unit' => $item->unit ?? null,
                     'category' => $item->category ?? null,
                     'description' => $item->description ?? '--',
@@ -197,7 +207,6 @@ class ItemsController extends Controller
             'category_id' => 'required|integer',
             'quantity' => 'required|integer',
             'unit_id' => 'required|integer',
-            'status' => 'required|integer|in:0,1',
             'description' => 'nullable|string',
             'picture' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
             'received_date' => 'nullable|date',

@@ -33,10 +33,14 @@
         </p>
     </td>
     <td>
-        @if($item->remaining == 0 || $item->status == 0)
-        <span class="badge bg-danger-subtle text-danger">Not Available</span>
+        @if($item->is_available)
+        <span class="badge bg-success-subtle text-success">
+            Available
+        </span>
         @else
-        <span class="badge bg-success-subtle text-success">Available</span>
+        <span class="badge bg-danger-subtle text-danger">
+            Not Available
+        </span>
         @endif
     </td>
     <td>

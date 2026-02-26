@@ -21,19 +21,19 @@
                 <input type="text" class="form-control" id="item-name" name="name" value="{{ isset($item) ? $item->name : '' }}" required>
             </div>
 
-            <!-- Type -->
-            @if(!isset($item))
+            <!-- Unit -->
             <div class="col-md-6 mb-3">
-                <label for="item-type" class="form-label">Type</label>
-                <select class="form-select" id="item-type" name="type" required>
-                    <option value="">Select type</option>
-                    <option value="0" {{ (isset($item) && $item->type == 0) ? 'selected' : '' }}>Consumable</option>
-                    <option value="1" {{ (isset($item) && $item->type == 1) ? 'selected' : '' }}>Non-Consumable</option>
+                <label for="item-unit" class="form-label">Unit</label>
+                <select class="form-select" id="item-unit" name="unit_id" required>
+                    <option value="">Select Unit</option>
+                    @foreach ($units as $unit)
+                    <option value="{{ $unit->id }}"
+                        {{ (isset($item) && $item->unit_id == $unit->id) ? 'selected' : '' }}>
+                        {{ $unit->name }}
+                    </option>
+                    @endforeach
                 </select>
             </div>
-            @else
-            <input type="hidden" name="type" value="{{ $item->type }}">
-            @endif
         </div>
 
         <div class="row">
@@ -52,19 +52,19 @@
             <input type="hidden" name="quantity" value="{{ $item->quantity }}">
             @endif
 
-            <!-- Unit -->
+            <!-- Type -->
+            @if(!isset($item))
             <div class="col-md-6 mb-3">
-                <label for="item-unit" class="form-label">Unit</label>
-                <select class="form-select" id="item-unit" name="unit_id" required>
-                    <option value="">Select Unit</option>
-                    @foreach ($units as $unit)
-                    <option value="{{ $unit->id }}"
-                        {{ (isset($item) && $item->unit_id == $unit->id) ? 'selected' : '' }}>
-                        {{ $unit->name }}
-                    </option>
-                    @endforeach
+                <label for="item-type" class="form-label">Type</label>
+                <select class="form-select" id="item-type" name="type" required>
+                    <option value="">Select type</option>
+                    <option value="0" {{ (isset($item) && $item->type == 0) ? 'selected' : '' }}>Consumable</option>
+                    <option value="1" {{ (isset($item) && $item->type == 1) ? 'selected' : '' }}>Non-Consumable</option>
                 </select>
             </div>
+            @else
+            <input type="hidden" name="type" value="{{ $item->type }}">
+            @endif
         </div>
 
         <div class="row">
@@ -82,33 +82,22 @@
                 </select>
             </div>
 
-            <!-- Status -->
-            <div class="col-md-6 mb-3">
-                <label for="item-status" class="form-label">Status</label>
-                <select class="form-select" id="item-status" name="status" required>
-                    <option value="1" {{ (isset($item) && $item->status == 1) ? 'selected' : '' }}>Available</option>
-                    <option value="0" {{ (isset($item) && $item->status == 0) ? 'selected' : '' }}>Not Available</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="row">
             <!-- Received Date -->
             <div class="col-md-6 mb-3">
                 <label for="received-date" class="form-label">Received Date</label>
                 <input type="date" class="form-control" id="received-date" name="received_date"
                     value="{{ isset($inventory) ? $inventory->received_date : date('Y-m-d') }}">
             </div>
+        </div>
 
-            <!-- Warranty Expires -->
-            <div class="col-md-6 mb-3 non-consumable-fields" style="{{ isset($item) && $item->type == 1 ? '' : 'display:none;' }}">
-                <label for="warranty-expires" class="form-label">Warranty Expires</label>
-                <input type="date"
-                    class="form-control"
-                    id="warranty-expires"
-                    name="warranty_expires"
-                    value="{{ isset($inventory) ? $inventory->warranty_expires : '' }}">
-            </div>
+        <!-- Warranty Expires -->
+        <div class="mb-3 non-consumable-fields" style="{{ isset($item) && $item->type == 1 ? '' : 'display:none;' }}">
+            <label for="warranty-expires" class="form-label">Warranty Expires</label>
+            <input type="date"
+                class="form-control"
+                id="warranty-expires"
+                name="warranty_expires"
+                value="{{ isset($inventory) ? $inventory->warranty_expires : '' }}">
         </div>
 
         <!-- Description -->

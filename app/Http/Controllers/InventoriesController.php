@@ -66,10 +66,14 @@ class InventoriesController extends Controller
                 }
 
                 // Status keywords
-                if (in_array($searchLower, ['available', 'avail']) && $inventory->item->status == 1) {
+                if (in_array($searchLower, ['available', 'avail']) && strtolower($inventory->distribution_status) === 'available') {
                     $match = true;
                 }
-                if (in_array($searchLower, ['not available', 'not-available', 'not']) && $inventory->item->status == 0) {
+
+                if (
+                    in_array($searchLower, ['distributed', 'borrowed', 'pending', 'partial', 'returned', 'received']) &&
+                    strtolower($inventory->distribution_status) === $searchLower
+                ) {
                     $match = true;
                 }
 
@@ -113,19 +117,13 @@ class InventoriesController extends Controller
 
         // Apply status filter
         if (!empty($statusFilter) && strtolower($statusFilter) !== 'all status') {
-            $inventories = $inventories->filter(function ($inventory) use ($statusFilter) {
 
-                if (!$inventory->item) return false;
+            $statusFilterLower = strtolower($statusFilter);
 
-                if (strtolower($statusFilter) === 'available') {
-                    return $inventory->item->status == 1;
-                }
+            $inventories = $inventories->filter(function ($inventory) use ($statusFilterLower) {
+                if (!$inventory->distribution_status) return false;
 
-                if (strtolower($statusFilter) === 'not available') {
-                    return $inventory->item->status == 0;
-                }
-
-                return true;
+                return strtolower($inventory->distribution_status) === $statusFilterLower;
             });
         }
 
@@ -156,9 +154,17 @@ class InventoriesController extends Controller
             ->map(function ($c) {
                 $c->inventory_type = 'Consumable';
                 $c->warranty_expires = '--';
-                $c->distribution_status = $c->distribution->status ?? 'Available';
                 $c->item_name = $c->item->name ?? '--';
                 $c->qr_code_value = $c->qr_code->code ?? '--';
+
+                // Determine status from distributions
+                if ($c->itemDistributions->isEmpty()) {
+                    $c->distribution_status = 'Available';
+                } else {
+                    // Pick the most recent distribution status
+                    $c->distribution_status = $c->itemDistributions->last()->status ?? 'Available';
+                }
+
                 return $c;
             });
 
@@ -167,9 +173,16 @@ class InventoriesController extends Controller
             ->map(function ($n) {
                 $n->inventory_type = 'Non-Consumable';
                 $n->warranty_expires = $n->warranty_expires ?? '--';
-                $n->distribution_status = $n->distribution->status ?? 'Available';
                 $n->item_name = $n->item->name ?? '--';
                 $n->qr_code_value = $n->qr_code->code ?? '--';
+
+                // Determine status from distributions
+                if ($n->itemDistributions->isEmpty()) {
+                    $n->distribution_status = 'Available';
+                } else {
+                    $n->distribution_status = $n->itemDistributions->last()->status ?? 'Available';
+                }
+
                 return $n;
             });
 
@@ -215,7 +228,6 @@ class InventoriesController extends Controller
             'category_id' => 'required|integer',
             'quantity' => 'required|integer|min:1',
             'unit_id' => 'required|integer',
-            'status' => 'required|integer|in:0,1',
             'description' => 'nullable|string',
             'picture' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
             'received_date' => 'nullable|date',

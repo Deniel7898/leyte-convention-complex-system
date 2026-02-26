@@ -14,36 +14,6 @@ use Illuminate\Support\Facades\Auth;
 class ViewItemController extends Controller
 {
     /**
-     * Helper: Get all inventories (Consumable + Non-Consumable)
-     */
-    private function getInventories($itemId)
-    {
-        $consumables = InventoryConsumable::with(['item', 'qrCode'])
-            ->where('item_id', $itemId)
-            ->get()
-            ->map(function ($c) {
-                $c->inventory_type = 'Consumable';
-                $c->warranty_expires = '--';
-
-                return $c;
-            });
-
-        $nonConsumables = InventoryNonConsumable::with(['item', 'qrCode'])
-            ->where('item_id', $itemId)
-            ->get()
-            ->map(function ($n) {
-                $n->inventory_type = 'Non-Consumable';
-                $n->warranty_expires = $n->warranty_expires ?? '--';
-
-                return $n;
-            });
-
-        return $consumables->merge($nonConsumables)
-            ->sortByDesc('received_date')
-            ->values();
-    }
-
-    /**
      * Live Search for Inventory
      */
     public function liveSearch(Request $request)
@@ -93,12 +63,18 @@ class ViewItemController extends Controller
                     $match = true;
                 }
 
-                // Status keywords
-                if (in_array($searchLower, ['available', 'avail']) && $inventory->item->status == 1) {
-                    $match = true;
-                }
-                if (in_array($searchLower, ['not available', 'not-available', 'not']) && $inventory->item->status == 0) {
-                    $match = true;
+                // Status keywords (from distribution)
+                if (isset($inventory->distribution_status)) {
+                    if (in_array($searchLower, ['available', 'avail']) && strtolower($inventory->distribution_status) === 'available') {
+                        $match = true;
+                    }
+
+                    if (
+                        in_array($searchLower, ['distributed', 'borrowed', 'pending', 'partial', 'returned', 'received']) &&
+                        strtolower($inventory->distribution_status) === $searchLower
+                    ) {
+                        $match = true;
+                    }
                 }
 
                 // Search in unit name
@@ -122,18 +98,64 @@ class ViewItemController extends Controller
         }
 
         // Apply status filter
-        if ($statusFilter && strtolower($statusFilter) != 'all') {
-            $inventories = $inventories->filter(function ($inventory) use ($statusFilter) {
-                if (strtolower($statusFilter) === 'available') return $inventory->item->status == 1;
-                if (strtolower($statusFilter) === 'not available') return $inventory->item->status == 0;
-                return true;
-            });
+        $statusFilterLower = strtolower($statusFilter ?? '');
+
+        if (!in_array($statusFilterLower, ['all', 'all status']) && $statusFilterLower !== '') {
+            $inventories = $inventories->filter(
+                fn($inventory) =>
+                isset($inventory->distribution_status) &&
+                    strtolower($inventory->distribution_status) === $statusFilterLower
+            );
         }
 
         // Reset keys after filtering
         $viewItems = $inventories->values();
 
         return view('inventory.viewItem.table', compact('viewItems'));
+    }
+
+    /**
+     * Helper: Get all inventories (Consumable + Non-Consumable)
+     */
+    private function getInventories($itemId)
+    {
+        $consumables = InventoryConsumable::with(['item', 'qrCode', 'itemDistributions'])
+            ->where('item_id', $itemId)
+            ->get()
+            ->map(function ($c) {
+                $c->inventory_type = 'Consumable';
+                $c->warranty_expires = '--';
+
+                // Determine status from distributions
+                if ($c->itemDistributions->isEmpty()) {
+                    $c->distribution_status = 'Available';
+                } else {
+                    // Get the latest distribution status
+                    $c->distribution_status = $c->itemDistributions->last()->status ?? 'Available';
+                }
+
+                return $c;
+            });
+
+        $nonConsumables = InventoryNonConsumable::with(['item', 'qrCode', 'itemDistributions'])
+            ->where('item_id', $itemId)
+            ->get()
+            ->map(function ($n) {
+                $n->inventory_type = 'Non-Consumable';
+                $n->warranty_expires = $n->warranty_expires ?? '--';
+
+                if ($n->itemDistributions->isEmpty()) {
+                    $n->distribution_status = 'Available';
+                } else {
+                    $n->distribution_status = $n->itemDistributions->last()->status ?? 'Available';
+                }
+
+                return $n;
+            });
+
+        return $consumables->merge($nonConsumables)
+            ->sortByDesc('received_date')
+            ->values();
     }
 
     /**
