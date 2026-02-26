@@ -47,7 +47,11 @@
         <p>{{ $item->description ?? '--' }}</p>
     </td>
     <td>
-        <p>{{ $item->picture ?? '--' }}</p>
+        @if($item->picture)
+        <img src="{{ asset('storage/' . $item->picture) }}" alt="{{ $item->name }}" width="50">
+        @else
+        <span>No Image</span>
+        @endif
     </td>
     <td class="text-center">
         <a href="{{ route('viewItem.show', $item->id) }}"
