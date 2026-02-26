@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\QR_Code;
 use Illuminate\Http\Request;
+use App\Models\QR_Code;
+use App\Models\Units;
+use App\Models\Category;
+use App\Models\Item;
+
 // use SimpleSoftwareIO\QrCode\Facades\QrCode as QrGenerator;
 
 class QR_CodeController extends Controller
@@ -47,7 +51,12 @@ class QR_CodeController extends Controller
      */
     public function show($id)
     {
-        //
+        $categories = Category::all();
+        $units = Units::all();
+
+        $item = Item::findOrFail($id);
+
+        return view('inventory.items.form', compact('item', 'categories', 'units'));
     }
 
     /**

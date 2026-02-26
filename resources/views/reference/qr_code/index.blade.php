@@ -46,7 +46,7 @@
         <div class="col-auto" style="min-width: 140px;">
             <select id="categories-filter" class="form-select">
                 <option value="All">All Category</option>
-                
+
             </select>
         </div>
 
@@ -92,10 +92,19 @@
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="qrCodes_modal" tabindex="-1" aria-hidden="true">
+<!-- <div class="modal fade" id="qrCodes_modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
 
+        </div>
+    </div>
+</div> -->
+
+<!-- View Modal -->
+<div class="modal fade" id="view_qrCodes_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content modal-view">
+            <!-- Your modal header, body, footer here -->
         </div>
     </div>
 </div>

@@ -39,7 +39,7 @@
         </span>
     </td>
     <td>
-        <p>{{ $itemDistribution->qr_code ?? '--' }}</p>
+        <p>{{ $itemDistribution->item->qrCode->code ?? '--' }}</p>
     </td>
     <td>
         <p>{{ $itemDistribution->quantity ?? '--' }}</p>

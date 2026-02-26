@@ -102,7 +102,7 @@
 
         <!-- Description -->
         <div class="mb-3">
-            <label for="item-description" class="form-label">Description</label>
+            <label for="item-description" class="form-label">Description: (optional)</label>
             <textarea class="form-control"
                 id="item-description"
                 name="description"
