@@ -12,9 +12,13 @@ class Purchase_RequestsController extends Controller
     // ✅ PRINT ALL APPROVED
     public function printApproved()
     {
-        $approvedRequests = Purchase_Request::with(['creator', 'items'])
-            ->where('status', 'approved')
-            ->get();
+        $approvedRequests = Purchase_Request::with([
+            'creator',
+            'items.item.category',
+            'items.item.unit'
+        ])
+        ->where('status', 'approved')
+        ->get();
 
         return view('purchase_request.print_all', compact('approvedRequests'));
     }

@@ -1,8 +1,25 @@
 $(document).ready(function () {
 
+    /* ===============================
+       SUCCESS MESSAGE FADE IN/OUT
+    =============================== */
+    let alertBox = $('#success-alert');
+
+    if (alertBox.length) {
+        alertBox
+            .fadeIn(400)
+            .delay(2000)
+            .fadeOut(400);
+    }
+
+
+    /* ===============================
+       DELETE PURCHASE REQUEST
+    =============================== */
     $(document).on('click', '.delete-pr', function () {
 
         let url = $(this).data('url');
+        let row = $(this).closest('tr');
 
         Swal.fire({
             title: "Delete Purchase Request?",
@@ -26,9 +43,11 @@ $(document).ready(function () {
                     },
                     dataType: 'json'
                 })
-                .done(function (response) {
+                .done(function () {
 
-                    $('#pr_table').replaceWith(response.html);
+                    row.fadeOut(300, function () {
+                        $(this).remove();
+                    });
 
                     Swal.fire({
                         icon: "success",
