@@ -18,64 +18,59 @@ class QR_CodeController extends Controller
      */
     public function liveSearch(Request $request)
     {
-        $searchTerm = $request->input('query', '');
-        $typeFilter = $request->input('type', null);
-        $statusFilter = $request->input('status', null);
+        $searchTerm     = $request->input('query', '');
+        $typeFilter     = $request->input('type', null);
+        $statusFilter   = $request->input('status', null);
         $categoryFilter = $request->input('category', null);
 
-        // Get all QR codes with related items
-        $qrCodes = QR_Code::with([
-            'inventoryConsumable.item.unit',
-            'inventoryConsumable.item.category',
-            'inventoryNonConsumable.item.unit',
-            'inventoryNonConsumable.item.category',
-        ])->latest()->get();
+        $qrCodes = $this->getQRCodes();
 
-        // Filter by search term
         if ($searchTerm != '') {
             $searchLower = strtolower($searchTerm);
 
             $qrCodes = $qrCodes->filter(function ($qr) use ($searchTerm, $searchLower) {
-                $item = $qr->inventoryConsumable->item ?? $qr->inventoryNonConsumable->item ?? null;
+                $item = $qr->item;
                 if (!$item) return false;
 
                 $match = false;
 
-                // Search in item name or description
                 if (stripos($item->name, $searchTerm) !== false || stripos($item->description ?? '', $searchTerm) !== false) {
                     $match = true;
                 }
 
-                // Search in category
-                if ($item->category && stripos($item->category->name, $searchTerm) !== false) {
+                // Type keywords (Consumable)
+                if (in_array($searchLower, ['consumable', 'con']) && $item->type == 0) {
                     $match = true;
                 }
 
-                // Search in unit
-                if ($item->unit && stripos($item->unit->name, $searchTerm) !== false) {
+                // Type keywords (Non-Consumable)
+                if (in_array($searchLower, ['non-consumable', 'non', 'non consumable']) && $item->type == 1) {
                     $match = true;
                 }
+                // Search Unit
+                if ($item->unit && stripos($item->unit->name, $searchTerm) !== false) $match = true;
 
-                // Search in QR code value
-                if (stripos($qr->code, $searchTerm) !== false) {
-                    $match = true;
-                }
+                // Search Category
+                if ($item->category && stripos($item->category->name, $searchTerm) !== false) $match = true;
 
-                // Search in QR code status (change available → active)
+                // Search QR Code
+                if (stripos($qr->code, $searchTerm) !== false) $match = true;
+
+                // Status keywords
                 $statusMap = [
-                    QR_Code::STATUS_ACTIVE => 'active',
-                    QR_Code::STATUS_USED => 'used',
+                    QR_Code::STATUS_ACTIVE  => 'active',
+                    QR_Code::STATUS_USED    => 'used',
                     QR_Code::STATUS_EXPIRED => 'expired',
                 ];
                 if (isset($statusMap[$qr->status]) && stripos($statusMap[$qr->status], $searchTerm) !== false) {
                     $match = true;
                 }
 
-                // Search in created_at (date string)
-                if (!empty($qr->created_at) && $qr->created_at != '--') {
+                // Search Genrated date
+                if (!empty($item->created_at) && $item->created_at != '--') {
                     try {
-                        $formattedWarranty = Carbon::parse($qr->created_at)->format('M d, Y');
-                        if (stripos($formattedWarranty, $searchTerm) !== false) {
+                        $formattedReceived = Carbon::parse($item->created_at)->format('M d, Y');
+                        if (stripos($formattedReceived, $searchTerm) !== false) {
                             $match = true;
                         }
                     } catch (\Exception $e) {
@@ -83,7 +78,7 @@ class QR_CodeController extends Controller
                     }
                 }
 
-                // Search in created_by (assuming it's a relation)
+                // Created by
                 if ($qr->user && stripos($qr->user->name ?? '', $searchTerm) !== false) {
                     $match = true;
                 }
@@ -95,7 +90,7 @@ class QR_CodeController extends Controller
         // Filter by type
         if ($typeFilter && strtolower($typeFilter) != 'all') {
             $qrCodes = $qrCodes->filter(function ($qr) use ($typeFilter) {
-                $item = $qr->inventoryConsumable->item ?? $qr->inventoryNonConsumable->item ?? null;
+                $item = $qr->item;
                 if (!$item) return false;
 
                 if (strtolower($typeFilter) === 'consumable') return $item->type == 0;
@@ -105,81 +100,59 @@ class QR_CodeController extends Controller
             });
         }
 
-        // Filter by status (QR code only)
+        // Filter by status
         if (!empty($statusFilter) && strtolower($statusFilter) != 'all status') {
-            $qrCodes = $qrCodes->filter(function ($qr) use ($statusFilter) {
-                $status = strtolower($statusFilter);
+            $statusLower = strtolower($statusFilter);
 
-                if ($status === 'used') return $qr->status === QR_Code::STATUS_USED;
-                if ($status === 'active') return $qr->status === QR_Code::STATUS_ACTIVE;
-                if ($status === 'expired') return $qr->status === QR_Code::STATUS_EXPIRED;
-
-                return true;
+            $qrCodes = $qrCodes->filter(function ($qr) use ($statusLower) {
+                $statusMap = [
+                    'active'  => QR_Code::STATUS_ACTIVE,
+                    'used'    => QR_Code::STATUS_USED,
+                    'expired' => QR_Code::STATUS_EXPIRED,
+                ];
+                return isset($statusMap[$statusLower]) && $qr->status === $statusMap[$statusLower];
             });
         }
 
         // Filter by category
         if ($categoryFilter && strtolower($categoryFilter) != 'all') {
             $qrCodes = $qrCodes->filter(function ($qr) use ($categoryFilter) {
-                $item = $qr->inventoryConsumable->item ?? $qr->inventoryNonConsumable->item ?? null;
-                return $item && $item->category && $item->category->id == $categoryFilter;
+                return $qr->item && $qr->item->category && $qr->item->category->id == $categoryFilter;
             });
         }
 
-        // Reset keys
         $qrCodes = $qrCodes->values();
 
         return view('reference.qr_code.table', compact('qrCodes'));
     }
 
     /**
-     * Helper: get items with remaining, unit, category
+     * Helper: Get all QR codes with related items (Consumable + Non-Consumable)
      */
-    private function getItems()
+    private function getQRCodes()
     {
-        return Item::with([
-            'unit',
-            'category',
-            'inventoryConsumables.itemDistributions',
-            'inventoryNonConsumables.itemDistributions'
-        ])
+        $consumableQRCodes = QR_Code::with(['inventoryConsumable.item.unit', 'inventoryConsumable.item.category', 'user'])
+            ->whereHas('inventoryConsumable')
             ->get()
-            ->map(function ($item) {
-
-                // Count only available inventory
-                if ($item->type == 0) {
-                    $remaining = $item->inventoryConsumables
-                        ->filter(function ($inv) {
-                            return $inv->itemDistributions
-                                ->whereIn('status', ['distributed', 'borrowed', 'pending'])
-                                ->isEmpty();
-                        })
-                        ->count();
-                } else {
-                    $remaining = $item->inventoryNonConsumables
-                        ->filter(function ($inv) {
-                            return $inv->itemDistributions
-                                ->whereIn('status', ['distributed', 'borrowed', 'pending'])
-                                ->isEmpty();
-                        })
-                        ->count();
-                }
-
-                $isAvailable = $remaining > 0;
-
-                return (object)[
-                    'id' => $item->id,
-                    'name' => $item->name,
-                    'type' => $item->type,
-                    'quantity' => $item->quantity,
-                    'remaining' => $remaining,
-                    'is_available' => $isAvailable, // 👈 add this
-                    'unit' => $item->unit ?? null,
-                    'category' => $item->category ?? null,
-                    'description' => $item->description ?? '--',
-                    'picture' => $item->picture ?? null,
-                ];
+            ->map(function ($qr) {
+                $qr->item = $qr->inventoryConsumable->item ?? null;
+                $qr->item_type = 0; // Consumable
+                return $qr;
             });
+
+        $nonConsumableQRCodes = QR_Code::with(['inventoryNonConsumable.item.unit', 'inventoryNonConsumable.item.category', 'user'])
+            ->whereHas('inventoryNonConsumable')
+            ->get()
+            ->map(function ($qr) {
+                $qr->item = $qr->inventoryNonConsumable->item ?? null;
+                $qr->item_type = 1; // Non-Consumable
+                return $qr;
+            });
+
+        return $consumableQRCodes
+            ->concat($nonConsumableQRCodes)
+            ->sortByDesc('created_at')
+            ->values();
     }
 
     /**
@@ -189,12 +162,11 @@ class QR_CodeController extends Controller
     {
         $categories = Category::all();
 
-        $qrCodes = QR_Code::with([
-            'inventoryConsumable.item',
-            'inventoryNonConsumable.item'
-        ])->latest()->paginate(10);
+        // Use helper to get all QR codes
+        $qrCodes = $this->getQRCodes();
 
         $qrCodes_table = view('reference.qr_code.table', compact('qrCodes'))->render();
+
         return view('reference.qr_code.index', compact('qrCodes_table', 'categories'));
     }
 

@@ -4,16 +4,16 @@
     <td>
         <p>{{ $loop->iteration }}</p>
     </td>
-    <td>{{ $qrCode->item->item->name ?? '--' }}</td>
+    <td>{{ $qrCode->item->name ?? '--' }}</td>
     <td>
-        @if($qrCode->item->item->type == 0)
+        @if(($qrCode->item->type ?? 0) == 0)
         <span class="badge bg-success-subtle text-success">Consumable</span>
         @else
         <span class="badge bg-primary-subtle text-primary">Non-Consumable</span>
         @endif
     </td>
-    <td>{{ $qrCode->item->item->unit->name ?? '--' }}</td>
-    <td>{{ $qrCode->item->item->category->name ?? '--' }}</td>
+    <td>{{ $qrCode->item->unit->name ?? '--' }}</td>
+    <td>{{ $qrCode->item->category->name ?? '--' }}</td>
     <td>
         <span class="badge bg-success-subtle text-success">
             {{ $qrCode->code ?? '--' }}
@@ -21,7 +21,7 @@
     </td>
     <td style="padding:0; margin:0; vertical-align:top; text-align:center">
         @if($qrCode->qr_picture)
-        <img src="{{ asset('storage/' . $qrCode->qr_picture) }}" alt="{{ $qrCode->item->item->name }} QR Code" width="60">
+        <img src="{{ asset('storage/' . $qrCode->qr_picture) }}" alt="{{ $qrCode->item->name ?? 'QR Code' }} QR Code" width="60">
         @else
         --
         @endif
