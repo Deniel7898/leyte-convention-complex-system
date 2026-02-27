@@ -1,7 +1,7 @@
  @if($categories->count() > 0)
  @foreach($categories as $category)
  <tr>
-     <td>{{ $loop->iteration }}</td>
+     <td>{{ $categories->firstItem() + $loop->index }}</td>
      <td>{{ $category->name }}</td>
      <td>{{ $category->description }}</td>
      <td class="text-center">
@@ -22,7 +22,7 @@
          </button>
      </td>
  </tr>
- @endforeach    
+ @endforeach
  @else
  <tr>
      <td colspan="12" class="text-center text-muted text-danger">{{ __('No Categories found.') }}</td>

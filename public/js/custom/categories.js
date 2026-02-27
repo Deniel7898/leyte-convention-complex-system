@@ -56,7 +56,7 @@ $(function () {
             if (result.isConfirmed) {
                 $('#loading-spinner').addClass('active');
 
-                $.post(url, {
+                $.post(url + '?page=' + getCurrentPage(), {
                     _token: $('meta[name="csrf-token"]').attr('content'),
                     _method: 'DELETE'
                 })
@@ -99,51 +99,56 @@ $(function () {
         var data = form.serialize();
 
         $.ajax({
-            url: url,
+            url: url + '?page=' + getCurrentPage(),
             type: method,
             data: data,
             dataType: 'html'
         })
-        .done(function (response) {
-            $('#categories_table tbody').html(response);
+            .done(function (response) {
+                $('#categories_table tbody').html(response);
 
-            // Hide modal only if it's an update
-            if ($('#categories_modal').data('action') === 'update') {
-                $('#categories_modal').modal('hide');
-            }
+                // Hide modal only if it's an update
+                if ($('#categories_modal').data('action') === 'update') {
+                    $('#categories_modal').modal('hide');
+                }
 
-            form.find('input[type="text"], textarea').val('');
-            $('#loading-spinner').removeClass('active'); // hide
+                form.find('input[type="text"], textarea').val('');
+                $('#loading-spinner').removeClass('active'); // hide
 
-            //Sweet Alert
-            Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: 'Data saved successfully!',
-                showConfirmButton: false,
-                timer: 1500,
-                width: '400px',
-                padding: '0.8rem',
-                timerProgressBar: false
+                //Sweet Alert
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Data saved successfully!',
+                    showConfirmButton: false,
+                    timer: 1500,
+                    width: '400px',
+                    padding: '0.8rem',
+                    timerProgressBar: false
+                });
+            })
+            .fail(function (xhr) {
+                $('#loading-spinner').removeClass('active');
+                var message = 'Something went wrong.';
+                try {
+                    var json = JSON.parse(xhr.responseText);
+                    if (json.message) message = json.message;
+                } catch (e) {
+                    // not JSON
+                    if (xhr.responseText) message = xhr.responseText;
+                }
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: message,
+                    width: '400px'
+                });
+                console.log(xhr.responseText);
             });
-        })
-        .fail(function (xhr) {
-            $('#loading-spinner').removeClass('active');
-            var message = 'Something went wrong.';
-            try {
-                var json = JSON.parse(xhr.responseText);
-                if (json.message) message = json.message;
-            } catch (e) {
-                // not JSON
-                if (xhr.responseText) message = xhr.responseText;
-            }
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: message,
-                width: '400px'
-            });
-            console.log(xhr.responseText);
-        });
     });
+
+    //Get the Current Page for pagination
+    function getCurrentPage() {
+        return new URLSearchParams(window.location.search).get('page') || 1;
+    }
 })

@@ -5,18 +5,31 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 
 class CategoriesController extends Controller
 {
+    /**
+     * Helper: Get paginated categories table
+     */
+    private function getCategoriesTable($perPage = 10)
+    {
+        $categories = Category::paginate($perPage);
+        return view('reference.categories.table', compact('categories'))->render();
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $categories = Category::all();
-        $categories_table = view('reference.categories.table', compact('categories'))->render();
-        return view('reference.categories.index', compact('categories_table'));
+        $categories = Category::paginate(10);
+
+        return view('reference.categories.index', [
+            'categories' => $categories,
+            'categories_table' => view('reference.categories.table', compact('categories'))->render()
+        ]);
     }
 
     /**
@@ -42,9 +55,7 @@ class CategoriesController extends Controller
 
         Category::create($validated);
 
-        $categories = Category::all();
-        $categories_table = view('reference.categories.table', compact('categories'))->render();
-        return $categories_table;
+        return $this->getCategoriesTable();
     }
 
     /**
@@ -78,9 +89,7 @@ class CategoriesController extends Controller
 
         Category::where('id', $id)->update($validated);
 
-        $categories = Category::all();
-        $categories_table = view('reference.categories.table', compact('categories'))->render();
-        return $categories_table;
+        return $this->getCategoriesTable();
     }
 
     /**
@@ -91,8 +100,6 @@ class CategoriesController extends Controller
         $category = Category::findOrFail($id);
         $category->delete();
 
-        $categories = Category::all();
-        $categories_table = view('reference.categories.table', compact('categories'))->render();
-        return $categories_table;
+        return $this->getCategoriesTable();
     }
 }

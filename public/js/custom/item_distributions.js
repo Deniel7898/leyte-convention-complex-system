@@ -163,5 +163,4 @@ $(function () {
         // Trigger search when any dropdown changes
         $('#type-filter, #status-filter, #categories-filter, #dist-type-filter').on('change', performSearch);
     });
-
 })

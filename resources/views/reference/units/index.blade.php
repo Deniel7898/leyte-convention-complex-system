@@ -20,7 +20,7 @@
                 <button class="btn text-white add-unit"
                     title="Add Unit" data-url="{{ route('units.create') }}"
                     style="background-color: hsl(237, 34%, 30%);" onmouseover="this.style.backgroundColor='hsl(237, 34%, 40%)'" onmouseout="this.style.backgroundColor='hsl(237, 34%, 30%)'">
-                    + Add Unit     
+                    + Add Unit
                 </button>
             </div>
         </div>
@@ -44,6 +44,9 @@
                     {!!$units_table!!}
                 </tbody>
             </table>
+            <div class="flex justify-center mb-3 ms-3">
+                {{ $units->links() }}
+            </div>
         </div>
     </div>
 </div>
