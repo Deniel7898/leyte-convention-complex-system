@@ -48,9 +48,7 @@
             {{ ucfirst($status) }}
         </span>
     </td>
-    <td>
-        <p>{{ $viewItem->qr_code->code ?? '--' }}</p>
-    </td>
+    <td>{{ $viewItem->qrCode->code ?? '--' }}</td>
     <td>
         <p>
             {{ $viewItem->warranty_expires && $viewItem->warranty_expires != '--'

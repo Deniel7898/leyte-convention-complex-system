@@ -35,11 +35,10 @@ return new class extends Migration
 
         // Items
         Schema::create('items', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('name');
             $table->tinyInteger('type')->default(0); // 0 = consumable, 1 = non-consumable
             $table->text('description')->nullable();
-            $table->boolean('status')->default(1);
             $table->string('quantity')->default('1');
             $table->string('picture')->nullable();
             $table->foreignId('category_id')->nullable()->constrained('categories')->onDelete('set null');
@@ -54,7 +53,7 @@ return new class extends Migration
         Schema::create('inventory_consumable', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->date('received_date')->nullable();
-            $table->foreignId('item_id')->nullable()->constrained('items')->onDelete('cascade');
+            $table->foreignUuid('item_id')->nullable()->constrained('items')->onDelete('cascade');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
@@ -66,7 +65,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->date('received_date')->nullable();
             $table->date('warranty_expires')->nullable();
-            $table->foreignId('item_id')->nullable()->constrained('items')->onDelete('cascade');
+            $table->foreignUuid('item_id')->nullable()->constrained('items')->onDelete('cascade');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
@@ -125,7 +124,7 @@ return new class extends Migration
             $table->id();
             $table->text('description')->nullable();
             $table->string('quantity');
-            $table->foreignId('item_id')->nullable()->constrained('items')->onDelete('set null');
+            $table->foreignUuid('item_id')->nullable()->constrained('items')->onDelete('set null');
             $table->foreignId('purchase_request_id')->nullable()->constrained('purchase_request')->onDelete('set null');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
@@ -139,6 +138,7 @@ return new class extends Migration
             $table->foreignUuid('inventory_consumable_id')->nullable()->constrained('inventory_consumable')->onDelete('cascade');
             $table->foreignUuid('inventory_non_consumable_id')->nullable()->constrained('inventory_non_consumable')->onDelete('cascade');
             $table->string('code')->unique();
+            $table->string('qr_picture')->nullable();
             $table->enum('status', ['active', 'used', 'expired'])->default('active');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');

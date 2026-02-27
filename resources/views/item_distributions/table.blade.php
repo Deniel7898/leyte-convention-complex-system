@@ -5,23 +5,25 @@
         <p>{{ $loop->iteration }}</p>
     </td>
     <td>
-        <p>{{ $itemDistribution->item->item->name ?? '--' }}</p>
+        <p>{{ $itemDistribution->item->name ?? '--' }}</p>
     </td>
     <td>
-        @if(($itemDistribution->item->item?->type ?? 0) == 0)
+        @if(($itemDistribution->item->type ?? 0) == 0)
         <span class="badge bg-success-subtle text-success">Consumable</span>
         @else
         <span class="badge bg-primary-subtle text-primary">Non-Consumable</span>
         @endif
     </td>
     <td>
-        <p>{{ $itemDistribution->item->item->unit->name ?? '--' }}</p>
+        <p>{{ $itemDistribution->item->unit->name ?? '--' }}</p>
     </td>
     <td>
-        <p>{{ $itemDistribution->item->item->category->name ?? '--' }}</p>
+        <p>{{ $itemDistribution->item->category->name ?? '--' }}</p>
     </td>
     <td>
-        <p>{{ $itemDistribution->distribution_date ?? '--' }}</p>
+        {{ $itemDistribution->distribution_date && $itemDistribution->distribution_date != '--'
+            ? \Carbon\Carbon::parse($itemDistribution->distribution_date)->format('M d, Y')
+                : '--' }}
     </td>
     <td>
         @php
@@ -39,7 +41,7 @@
         </span>
     </td>
     <td>
-        <p>{{ $itemDistribution->qr_code ?? '--' }}</p>
+        <p>{{ $itemDistribution->qrCode->code ?? '--' }}</p>
     </td>
     <td>
         <p>{{ $itemDistribution->quantity ?? '--' }}</p>
@@ -71,7 +73,9 @@
         <p>{{ $itemDistribution->description ?? '--' }}</p>
     </td>
     <td>
-        <p>{{ $itemDistribution->due_date ?? '--' }}</p>
+        {{ $itemDistribution->due_date && $itemDistribution->due_date != '--'
+            ? \Carbon\Carbon::parse($itemDistribution->due_date)->format('M d, Y')
+                : '--' }}
     </td>
     <!-- <td>
         <p>{{ $itemDistribution->returned_date ?? '--' }}</p>

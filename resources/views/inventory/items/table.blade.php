@@ -33,17 +33,25 @@
         </p>
     </td>
     <td>
-        @if($item->remaining == 0 || $item->status == 0)
-        <span class="badge bg-danger-subtle text-danger">Not Available</span>
+        @if($item->is_available)
+        <span class="badge bg-success-subtle text-success">
+            Available
+        </span>
         @else
-        <span class="badge bg-success-subtle text-success">Available</span>
+        <span class="badge bg-danger-subtle text-danger">
+            Not Available
+        </span>
         @endif
     </td>
     <td>
         <p>{{ $item->description ?? '--' }}</p>
     </td>
     <td>
-        <p>{{ $item->picture ?? '--' }}</p>
+        @if($item->picture)
+        <img src="{{ asset('storage/' . $item->picture) }}" alt="{{ $item->name }}" width="50">
+        @else
+        <span>No Image</span>
+        @endif
     </td>
     <td class="text-center">
         <a href="{{ route('viewItem.show', $item->id) }}"

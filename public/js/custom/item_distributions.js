@@ -127,4 +127,40 @@ $(function () {
             }
         });
     });
+
+    $(function () {
+        function performSearch() {
+            let query = $('#itemDistribution-search').val();
+            let type = $('#type-filter').val();          // dropdown for type
+            let status = $('#status-filter').val(); // dropdown for status
+            let category = $('#categories-filter').val(); // dropdown for category
+            let distType = $('#dist-type-filter').val(); // gets "Distributed" or "Borrowed"
+
+            $.ajax({
+                url: window.liveSearchUrl, // e.g., "/items/live-search"
+                type: 'GET',
+                data: {
+                    query: query,
+                    type: type,
+                    status: status,
+                    category: category,
+                    dist_type: distType,
+                },
+                success: function (response) {
+                    $('#itemDistributions-table-body').html(response);
+                },
+                error: function (xhr) {
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+
+        // Trigger search while typing
+        $('#itemDistribution-search').on('keyup', function () {
+            performSearch();
+        });
+
+        // Trigger search when any dropdown changes
+        $('#type-filter, #status-filter, #categories-filter, #dist-type-filter').on('change', performSearch);
+    });
 })

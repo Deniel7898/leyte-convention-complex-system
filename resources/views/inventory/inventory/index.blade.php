@@ -43,7 +43,12 @@
             <select id="status-filter" class="form-select">
                 <option>All Status</option>
                 <option>Available</option>
-                <option>Not Available</option>
+                <option>Distributed</option>
+                <option>Borrowed</option>
+                <option>Partial</option>
+                <option>Pending</option>
+                <option>Returned</option>
+                <option>Received</option>
             </select>
         </div>
 
@@ -64,7 +69,7 @@
 <div class="card shadow-sm border-0 rounded-4 card-styles mt-3">
     <div class="card-body p-0">
         <div class="table-responsive rounded-4">
-            <table class="table align-middle table-hover" id="inventories_table">
+            <table class="table align-middle table-hover mb-0" id="inventories_table">
                 <thead class="bg-light">
                     <tr class="text-uppercase text-muted small">
                         <th>{{ __('#') }}</th>
@@ -83,6 +88,9 @@
                     {!! $inventories_table !!}
                 </tbody>
             </table>
+            <div class="flex justify-center mb-3 ms-3">
+                {{ $inventories->links() }}
+            </div>
         </div>
     </div>
 </div>
