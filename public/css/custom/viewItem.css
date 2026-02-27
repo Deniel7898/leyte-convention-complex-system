@@ -83,5 +83,6 @@
 #viewItems-table-body tr td {
   /* top/bottom | left/right */
   padding: 1rem 1.5rem;
-
+  /* prevents text from breaking into multiple lines */
+  white-space: nowrap;
 }

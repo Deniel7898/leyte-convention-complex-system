@@ -1,7 +1,7 @@
 @if($units->count() > 0)
 @foreach($units as $unit)
 <tr>
-    <td><p>{{ $loop->iteration }}</p></td>
+    <td>{{ $units->firstItem() + $loop->index }}</td>
     <td><p>{{ $unit->name }}</p></td>
     <td><p>{{ $unit->description ?? '--'}}</p></td>
     <td class="text-center">

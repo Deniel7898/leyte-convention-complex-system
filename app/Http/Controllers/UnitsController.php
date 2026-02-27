@@ -1,20 +1,33 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Units;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class unitsController extends Controller
+class UnitsController extends Controller
 {
+    /**
+     * Helper: Get paginated categories table
+     */
+    private function getUnitsTable($perPage = 10)
+    {
+        $units = Units::paginate($perPage);
+        return view('reference.units.table', compact('units'))->render();
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $units = Units::all();
-        $units_table = view('reference.units.table', compact('units'))->render();
-        return view('reference.units.index', compact('units_table'));
+        $units = Units::paginate(10);
+
+        return view('reference.units.index', [
+            'units' => $units,
+            'units_table' => view('reference.units.table', compact('units'))->render()
+        ]);
     }
 
     /**
@@ -40,8 +53,7 @@ class unitsController extends Controller
 
         units::create($validated);
 
-        $units = Units::all();
-        return view('reference.units.table', compact('units'))->render();
+        return $this->getUnitsTable();
     }
 
     /**
@@ -75,8 +87,7 @@ class unitsController extends Controller
 
         Units::updateOrCreate(['id' => $id], $validated);
 
-        $units = Units::all();
-        return view('reference.units.table', compact('units'))->render();
+        return $this->getUnitsTable();
     }
 
     /**
@@ -87,7 +98,6 @@ class unitsController extends Controller
         $unit = Units::findOrFail($id);
         $unit->delete();
 
-        $units = Units::all();
-        return view('reference.units.table', compact('units'))->render();
+        return $this->getUnitsTable();
     }
 }
