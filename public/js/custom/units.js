@@ -56,7 +56,7 @@ $(function () {
             if (result.isConfirmed) {
                 $('#loading-spinner').addClass('active');
 
-                $.post(url, {
+                $.post(url + '?page=' + getCurrentPage(), {
                     _token: $('meta[name="csrf-token"]').attr('content'),
                     _method: 'DELETE'
                 })
@@ -92,7 +92,7 @@ $(function () {
         var method = form.attr('method');
         var data = form.serialize();
         $.ajax({
-            url: url,
+            url: url + '?page=' + getCurrentPage(),
             type: method,
             data: data,
             success: function (response) {
@@ -120,4 +120,9 @@ $(function () {
             }
         })
     })
+
+    //Get the Current Page for pagination
+    function getCurrentPage() {
+        return new URLSearchParams(window.location.search).get('page') || 1;
+    }
 })

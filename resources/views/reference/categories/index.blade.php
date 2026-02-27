@@ -31,7 +31,7 @@
 <div class="card shadow-sm border-0 rounded-4 card-styles">
     <div class="card-body p-0">
         <div class="table-responsive rounded-4">
-            <table class="table align-middle table-hover" id="categories_table">
+            <table class="table align-middle table-hover mb-0" id="categories_table">
                 <thead class="bg-light">
                     <tr class="text-uppercase text-muted small">
                         <th>{{ __('#') }}</th>
@@ -44,6 +44,9 @@
                     {!!$categories_table!!}
                 </tbody>
             </table>
+            <div class="flex justify-center mb-3 ms-3">
+                {{ $categories->links() }}
+            </div>
         </div>
     </div>
 </div>

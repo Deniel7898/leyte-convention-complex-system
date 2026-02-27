@@ -1,7 +1,7 @@
  @if($inventories->count() > 0)
  @foreach($inventories as $inventory)
  <tr class="text-start">
-     <td>{{ $loop->iteration }}</td>
+     <td>{{ $inventories->firstItem() + $loop->index }}</td>
      <td>{{ $inventory->item->name ?? '--' }}</td>
      <td>
          {{ $inventory->received_date && $inventory->received_date != '--'

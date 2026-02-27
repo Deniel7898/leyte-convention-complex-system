@@ -18,11 +18,13 @@ use BaconQrCode\Writer;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd; // already imported
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 
 class InventoriesController extends Controller
 {
     /**
-     * Live Search for Inventory
+     * Live Search for Inventory with filters and pagination
      */
     public function liveSearch(Request $request)
     {
@@ -31,87 +33,59 @@ class InventoriesController extends Controller
         $statusFilter = $request->input('status', null);
         $categoryFilter = $request->input('category', null);
 
-        $inventories = $this->getInventories();
+        // Get all inventories (unpaginated)
+        $inventories = $this->getAllInventories();
 
         // Apply text search
-        if ($searchTerm != '') {
+        if (!empty($searchTerm)) {
             $searchLower = strtolower($searchTerm);
 
             $inventories = $inventories->filter(function ($inventory) use ($searchTerm, $searchLower) {
-
                 if (!$inventory->item) return false;
-
                 $match = false;
 
-                // Search item name
+                // Item name
                 if (stripos($inventory->item->name, $searchTerm) !== false) {
                     $match = true;
                 }
 
-                // Search received date
+                // Received date
                 if (!empty($inventory->received_date) && $inventory->received_date != '--') {
                     try {
                         $formattedReceived = Carbon::parse($inventory->received_date)->format('M d, Y');
-                        if (stripos($formattedReceived, $searchTerm) !== false) {
-                            $match = true;
-                        }
+                        if (stripos($formattedReceived, $searchTerm) !== false) $match = true;
                     } catch (\Exception $e) {
-                        // Ignore invalid dates
                     }
                 }
 
-                // Search warranty date
+                // Warranty date
                 if (!empty($inventory->warranty_expires) && $inventory->warranty_expires != '--') {
                     try {
                         $formattedWarranty = Carbon::parse($inventory->warranty_expires)->format('M d, Y');
-                        if (stripos($formattedWarranty, $searchTerm) !== false) {
-                            $match = true;
-                        }
+                        if (stripos($formattedWarranty, $searchTerm) !== false) $match = true;
                     } catch (\Exception $e) {
-                        // Ignore invalid dates
                     }
                 }
 
                 // Type keywords
-                if (in_array($searchLower, ['consumable', 'con']) && $inventory->item->type == 0) {
-                    $match = true;
-                }
-                if (in_array($searchLower, ['non-consumable', 'non', 'non consumable']) && $inventory->item->type == 1) {
-                    $match = true;
-                }
+                if (in_array($searchLower, ['consumable', 'con']) && $inventory->item->type == 0) $match = true;
+                if (in_array($searchLower, ['non-consumable', 'non', 'non consumable']) && $inventory->item->type == 1) $match = true;
 
                 // Status keywords
-                if (in_array($searchLower, ['available', 'avail']) && strtolower($inventory->distribution_status) === 'available') {
-                    $match = true;
-                }
-
+                if (in_array($searchLower, ['available', 'avail']) && strtolower($inventory->distribution_status) === 'available') $match = true;
                 if (
                     in_array($searchLower, ['distributed', 'borrowed', 'pending', 'partial', 'returned', 'received']) &&
                     strtolower($inventory->distribution_status) === $searchLower
-                ) {
-                    $match = true;
-                }
+                ) $match = true;
 
-                // Search in unit name
-                if (
-                    $inventory->item->unit &&
-                    stripos($inventory->item->unit->name, $searchTerm) !== false
-                ) {
-                    $match = true;
-                }
+                // Unit name
+                if ($inventory->item->unit && stripos($inventory->item->unit->name, $searchTerm) !== false) $match = true;
 
-                // Search in category name
-                if (
-                    $inventory->item->category &&
-                    stripos($inventory->item->category->name, $searchTerm) !== false
-                ) {
-                    $match = true;
-                }
+                // Category name
+                if ($inventory->item->category && stripos($inventory->item->category->name, $searchTerm) !== false) $match = true;
 
-                // Search in QR code
-                if (!empty($inventory->qrCode->code) && stripos($inventory->qrCode->code, $searchTerm) !== false) {
-                    $match = true;
-                }
+                // QR code
+                if (!empty($inventory->qrCode->code) && stripos($inventory->qrCode->code, $searchTerm) !== false) $match = true;
 
                 return $match;
             });
@@ -120,54 +94,53 @@ class InventoriesController extends Controller
         // Apply type filter
         if (!empty($typeFilter) && strtolower($typeFilter) !== 'all type') {
             $inventories = $inventories->filter(function ($inventory) use ($typeFilter) {
-
                 if (!$inventory->item) return false;
-
-                if (strtolower($typeFilter) === 'consumable') {
-                    return $inventory->item->type == 0;
-                }
-
-                if (strtolower($typeFilter) === 'non-consumable') {
-                    return $inventory->item->type == 1;
-                }
-
+                if (strtolower($typeFilter) === 'consumable') return $inventory->item->type == 0;
+                if (strtolower($typeFilter) === 'non-consumable') return $inventory->item->type == 1;
                 return true;
             });
         }
 
         // Apply status filter
         if (!empty($statusFilter) && strtolower($statusFilter) !== 'all status') {
-
             $statusFilterLower = strtolower($statusFilter);
-
             $inventories = $inventories->filter(function ($inventory) use ($statusFilterLower) {
-                if (!$inventory->distribution_status) return false;
-
-                return strtolower($inventory->distribution_status) === $statusFilterLower;
+                return $inventory->distribution_status && strtolower($inventory->distribution_status) === $statusFilterLower;
             });
         }
 
         // Apply category filter
         if (!empty($categoryFilter) && strtolower($categoryFilter) !== 'all') {
             $inventories = $inventories->filter(function ($inventory) use ($categoryFilter) {
-
-                if (!$inventory->item || !$inventory->item->category) {
-                    return false;
-                }
-
-                return $inventory->item->category->id == $categoryFilter;
+                return $inventory->item && $inventory->item->category && $inventory->item->category->id == $categoryFilter;
             });
         }
 
+        // Reset keys after filtering
         $inventories = $inventories->values();
 
-        return view('inventory.inventory.table', compact('inventories'));
+        // Manual pagination
+        $perPage = 20; // Change per page if needed
+        $currentPage = Paginator::resolveCurrentPage() ?: 1;
+        $currentItems = $inventories->slice(($currentPage - 1) * $perPage, $perPage)->values();
+
+        $paginatedInventories = new LengthAwarePaginator(
+            $currentItems,
+            $inventories->count(),
+            $perPage,
+            $currentPage,
+            ['path' => Paginator::resolveCurrentPath()]
+        );
+
+        // Return the table view
+        return view('inventory.inventory.table', ['inventories' => $paginatedInventories]);
     }
 
     /**
      * Helper: Get all inventories (Consumable + Non-Consumable)
+     * No pagination, useful for search and filtering
      */
-    private function getInventories()
+    private function getAllInventories()
     {
         $consumables = InventoryConsumable::with(['item', 'qrCode', 'itemDistributions'])
             ->get()
@@ -175,15 +148,9 @@ class InventoriesController extends Controller
                 $c->inventory_type = 'Consumable';
                 $c->warranty_expires = '--';
                 $c->item_name = $c->item->name ?? '--';
-
-                // Determine status from distributions
-                if ($c->itemDistributions->isEmpty()) {
-                    $c->distribution_status = 'Available';
-                } else {
-                    // Pick the most recent distribution status
-                    $c->distribution_status = $c->itemDistributions->last()->status ?? 'Available';
-                }
-
+                $c->distribution_status = $c->itemDistributions->isEmpty()
+                    ? 'Available'
+                    : $c->itemDistributions->last()->status ?? 'Available';
                 return $c;
             });
 
@@ -193,20 +160,37 @@ class InventoriesController extends Controller
                 $n->inventory_type = 'Non-Consumable';
                 $n->warranty_expires = $n->warranty_expires ?? '--';
                 $n->item_name = $n->item->name ?? '--';
-
-                // Determine status from distributions
-                if ($n->itemDistributions->isEmpty()) {
-                    $n->distribution_status = 'Available';
-                } else {
-                    $n->distribution_status = $n->itemDistributions->last()->status ?? 'Available';
-                }
-
+                $n->distribution_status = $n->itemDistributions->isEmpty()
+                    ? 'Available'
+                    : $n->itemDistributions->last()->status ?? 'Available';
                 return $n;
             });
 
+        // Combine both and sort by received_date descending
         return $consumables->concat($nonConsumables)
             ->sortByDesc('received_date')
             ->values();
+    }
+
+    /**
+     * Helper: Get paginated inventories (Consumable + Non-Consumable)
+     */
+    private function getInventories($perPage = 20)
+    {
+        // Get all inventories first
+        $allInventories = $this->getAllInventories();
+
+        // Manual pagination
+        $currentPage = Paginator::resolveCurrentPage() ?: 1;
+        $currentItems = $allInventories->slice(($currentPage - 1) * $perPage, $perPage)->values();
+
+        return new LengthAwarePaginator(
+            $currentItems,
+            $allInventories->count(),
+            $perPage,
+            $currentPage,
+            ['path' => Paginator::resolveCurrentPath()]
+        );
     }
 
     /**
@@ -214,14 +198,15 @@ class InventoriesController extends Controller
      */
     public function index()
     {
-        // Get all inventories (consumables + non-consumables)
+        // Paginate inventories instead of getting all
         $inventories = $this->getInventories();
 
         $categories = Category::all();
 
+        // Pass the paginated inventories to the table view
         $inventories_table = view('inventory.inventory.table', compact('inventories'))->render();
 
-        return view('inventory.inventory.index', compact('inventories_table', 'categories'));
+        return view('inventory.inventory.index', compact('inventories_table', 'categories', 'inventories'));
     }
 
     /**
