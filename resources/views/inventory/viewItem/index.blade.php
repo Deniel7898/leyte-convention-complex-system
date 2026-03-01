@@ -27,7 +27,12 @@
             <select id="status-filter" class="form-select">
                 <option>All Status</option>
                 <option>Available</option>
-                <option>Not Available</option>
+                <option>Distributed</option>
+                <option>Borrowed</option>
+                <option>Partial</option>
+                <option>Pending</option>
+                <option>Returned</option>
+                <option>Received</option>
             </select>
         </div>
 

@@ -2,23 +2,258 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Models\Item;
 use App\Models\InventoryConsumable;
 use App\Models\InventoryNonConsumable;
 use App\Models\ItemDistribution;
+use App\Models\QR_Code;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class ItemDistributionsController extends Controller
 {
     /**
+     * Live Search for Item Distributions
+     */
+    public function liveSearch(Request $request)
+    {
+        $searchTerm     = $request->input('query', '');
+        $typeFilter     = $request->input('type', null);
+        $statusFilter   = $request->input('status', null);
+        $categoryFilter = $request->input('category', null);
+        $distTypeFilter = $request->input('dist_type', null);
+
+        $distributions = $this->getItemDistributions();
+
+        // TEXT SEARCH 
+        if ($searchTerm != '') {
+
+            $searchLower = strtolower($searchTerm);
+
+            $distributions = $distributions->filter(function ($dist) use ($searchTerm, $searchLower) {
+
+                if (!$dist->item) return false;
+
+                $match = false;
+
+                // Search item name
+                if (stripos($dist->item->name, $searchTerm) !== false) {
+                    $match = true;
+                }
+
+                // Search unit
+                if (
+                    $dist->item->unit &&
+                    stripos($dist->item->unit->name, $searchTerm) !== false
+                ) {
+                    $match = true;
+                }
+
+                // Search category
+                if (
+                    $dist->item->category &&
+                    stripos($dist->item->category->name, $searchTerm) !== false
+                ) {
+                    $match = true;
+                }
+
+                // Search QR Code
+                if (
+                    $dist->qrCode &&
+                    stripos($dist->qrCode->code, $searchTerm) !== false
+                ) {
+                    $match = true;
+                }
+
+                // Search status
+                if (
+                    $dist->status &&
+                    stripos($dist->status, $searchTerm) !== false
+                ) {
+                    $match = true;
+                }
+
+                // Search description
+                if (
+                    $dist->description &&
+                    stripos($dist->description, $searchTerm) !== false
+                ) {
+                    $match = true;
+                }
+
+                // Search remarks
+                if (
+                    $dist->remarks &&
+                    stripos($dist->remarks, $searchTerm) !== false
+                ) {
+                    $match = true;
+                }
+
+                // Type keywords
+                if (in_array($searchLower, ['consumable', 'con']) && $dist->item->type == 0) {
+                    $match = true;
+                }
+
+                if (in_array($searchLower, ['non-consumable', 'non', 'non consumable']) && $dist->item->type == 1) {
+                    $match = true;
+                }
+
+                // Distribution type keywords
+                if (in_array($searchLower, ['distribution']) && $dist->type == 0) {
+                    $match = true;
+                }
+
+                if (in_array($searchLower, ['borrow', 'borrowed']) && $dist->type == 1) {
+                    $match = true;
+                }
+
+                // Search Distribution date
+                if (!empty($dist->distribution_date) && $dist->distribution_date != '--') {
+                    try {
+                        $formattedReceived = Carbon::parse($dist->distribution_date)->format('M d, Y');
+                        if (stripos($formattedReceived, $searchTerm) !== false) {
+                            $match = true;
+                        }
+                    } catch (\Exception $e) {
+                        // Ignore invalid dates
+                    }
+                }
+
+                // Search Due date
+                if (!empty($dist->due_date) && $dist->due_date != '--') {
+                    try {
+                        $formattedReceived = Carbon::parse($dist->due_date)->format('M d, Y');
+                        if (stripos($formattedReceived, $searchTerm) !== false) {
+                            $match = true;
+                        }
+                    } catch (\Exception $e) {
+                        // Ignore invalid dates
+                    }
+                }
+
+                return $match;
+            });
+        }
+
+        //TYPE FILTER (Consumable / Non-Consumable)
+        if (!empty($typeFilter) && !str_contains(strtolower($typeFilter), 'all')) {
+
+            $distributions = $distributions->filter(function ($dist) use ($typeFilter) {
+
+                if (!$dist->item) return false;
+
+                if (strtolower($typeFilter) === 'consumable') {
+                    return $dist->item->type == 0;
+                }
+
+                if (strtolower($typeFilter) === 'non-consumable') {
+                    return $dist->item->type == 1;
+                }
+
+                return true;
+            });
+        }
+
+        // STATUS FILTER
+        if (!empty($statusFilter) && !str_contains(strtolower($statusFilter), 'all')) {
+
+            $statusLower = strtolower($statusFilter);
+
+            $distributions = $distributions->filter(function ($dist) use ($statusLower) {
+                return strtolower($dist->status) === $statusLower;
+            });
+        }
+
+        // CATEGORY FILTER
+        if (!empty($categoryFilter) && strtolower($categoryFilter) !== 'all') {
+
+            $distributions = $distributions->filter(function ($dist) use ($categoryFilter) {
+
+                if (!$dist->item || !$dist->item->category) return false;
+
+                return $dist->item->category->id == $categoryFilter;
+            });
+        }
+
+        // DISTRIBUTION TYPE FILTER
+        if (!empty($distTypeFilter) && !str_contains(strtolower($distTypeFilter), 'all')) {
+
+            $distributions = $distributions->filter(function ($dist) use ($distTypeFilter) {
+
+                if (strtolower($distTypeFilter) === 'distribution') {
+                    return $dist->type == 0;
+                }
+
+                if (strtolower($distTypeFilter) === 'borrow') {
+                    return $dist->type == 1;
+                }
+
+                return true;
+            });
+        }
+
+        $itemDistributions = $distributions->values();
+
+        return view('item_distributions.table', compact('itemDistributions'));
+    }
+
+    /**
+     * Helper: Get all Item Distributions (Consumable + Non-Consumable)
+     */
+    private function getItemDistributions()
+    {
+        $consumables = ItemDistribution::with([
+            'inventory_consumable.item.unit',
+            'inventory_consumable.item.category',
+            'inventory_consumable.qrCode'
+        ])
+            ->whereHas('inventory_consumable')
+            ->get()
+            ->map(function ($d) {
+
+                $d->item = $d->inventory_consumable->item ?? null;
+                $d->qrCode = $d->inventory_consumable->qrCode ?? null;
+                $d->item_type = 0;
+                $d->dist_type = $d->type;
+
+                return $d;
+            });
+
+        $nonConsumables = ItemDistribution::with([
+            'inventory_non_consumable.item.unit',
+            'inventory_non_consumable.item.category',
+            'inventory_non_consumable.qrCode'
+        ])
+            ->whereHas('inventory_non_consumable')
+            ->get()
+            ->map(function ($d) {
+
+                $d->item = $d->inventory_non_consumable->item ?? null;
+                $d->qrCode = $d->inventory_non_consumable->qrCode ?? null;
+                $d->item_type = 1;
+                $d->dist_type = $d->type;
+
+                return $d;
+            });
+
+        return $consumables
+            ->concat($nonConsumables)
+            ->sortByDesc('created_at')
+            ->values();
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $itemDistributions = ItemDistribution::all();
+        $itemDistributions = $this->getItemDistributions();
+        $categories = Category::all();
+
         $itemDistributions_table = view('item_distributions.table', compact('itemDistributions'))->render();
-        return view('item_distributions.index', compact('itemDistributions_table'));
+        return view('item_distributions.index', compact('itemDistributions_table', 'categories'));
     }
 
     /**
@@ -95,10 +330,7 @@ class ItemDistributionsController extends Controller
         });
 
         // Get all distributions with inventory -> item
-        $itemDistributions = ItemDistribution::with([
-            'inventory_consumable.item',
-            'inventory_non_consumable.item',
-        ])->latest()->get();
+        $itemDistributions = $this->getItemDistributions();
 
         return response()->json([
             'html' => view('item_distributions.table', compact('itemDistributions'))->render(),

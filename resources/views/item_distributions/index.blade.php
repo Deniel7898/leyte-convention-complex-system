@@ -13,15 +13,44 @@
                         <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
                     </svg>
                 </span>
-                <input type="search" id="item-search" class="form-control" placeholder="Search by item name or QR ID...">
+                <input type="search" id="itemDistribution-search" class="form-control" placeholder="Search by item name or QR ID...">
             </div>
+        </div>
+
+        <div class="col-auto" style="min-width: 140px;">
+            <select id="type-filter" class="form-select">
+                <option>All Item Type</option>
+                <option>Consumable</option>
+                <option>Non-Consumable</option>
+            </select>
+        </div>
+
+        <div class="col-auto" style="min-width: 140px;">
+            <select id="categories-filter" class="form-select">
+                <option value="All">All Category</option>
+                @foreach($categories as $category)
+                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="col-auto" style="min-width: 140px;">
+            <select id="dist-type-filter" class="form-select">
+                <option>All Dist. Type</option>
+                <option>Distribution</option>
+                <option>Borrow</option>
+            </select>
         </div>
 
         <div class="col-auto" style="min-width: 140px;">
             <select id="status-filter" class="form-select">
                 <option>All Status</option>
-                <option>Available</option>
-                <option>Not Available</option>
+                <option>Distributed</option>
+                <option>Borrowed</option>
+                <option>Partial</option>
+                <option>Pending</option>
+                <option>Returned</option>
+                <option>Received</option>
             </select>
         </div>
 
@@ -80,13 +109,13 @@
 </div>
 
 <!-- View Modal -->
-<div class="modal fade" id="items_modal_view" tabindex="-1" aria-hidden="true">
+<!-- <div class="modal fade" id="items_modal_view" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content modal-view">
-            <!-- Your modal header, body, footer here -->
+           
         </div>
     </div>
-</div>
+</div> -->
 
 <!-- Loading Spinner -->
 <div id="loading-spinner">
@@ -94,7 +123,7 @@
 </div>
 
 <script>
-    window.liveSearchUrl = "{{ route('items.liveSearch') }}";
+    window.liveSearchUrl = "{{ route('item_distributions.liveSearch') }}";
 </script>
 
 @endsection

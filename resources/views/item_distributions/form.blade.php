@@ -25,14 +25,8 @@
                             data-type="{{ $item->type }}"
                             data-unit="{{ $item->unit->name ?? 'N/A' }}"
                             data-quantity="{{ $item->quantity }}"
-                            data-consumables='@json($item->inventoryConsumables->map(fn($c) => [
-        "id" => $c->id,
-        "qrCode" => optional($c->qrCode)->code
-    ]))'
-                            data-nonconsumables='@json($item->inventoryNonConsumables->map(fn($nc) => [
-        "id" => $nc->id,
-        "qrCode" => optional($nc->qrCode)->code
-    ]))'>
+                            data-consumables='@json($item->inventoryConsumables->map(fn($c) => ["id" => $c->id, "qrCode" => optional($c->qrCode)->code]))'
+                            data-nonconsumables='@json($item->inventoryNonConsumables->map(fn($nc) => ["id" => $nc->id, "qrCode" => optional($nc->qrCode)->code]))'>
                             {{ $item->name }}
                         </option>
                         @endforeach

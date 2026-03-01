@@ -11,6 +11,12 @@ use App\Models\InventoryNonConsumable;
 use App\Models\QR_Code;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Facades\Storage;
+use BaconQrCode\Writer;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd; 
 
 class ItemsController extends Controller
 {
@@ -80,10 +86,11 @@ class ItemsController extends Controller
                 }
 
                 // status mapping keywords
-                if (in_array($searchLower, ['available', 'avail']) && $item->status == 1) {
+                if (in_array($searchLower, ['available', 'avail']) && $item->remaining > 0) {
                     $match = true;
                 }
-                if (in_array($searchLower, ['not-available', 'not available', 'not']) && $item->status == 0) {
+
+                if (in_array($searchLower, ['not-available', 'not available', 'not']) && $item->remaining == 0) {
                     $match = true;
                 }
 
@@ -101,12 +108,14 @@ class ItemsController extends Controller
         }
 
         // Apply status filter (dropdown)
-        if ($statusFilter && strtolower($statusFilter) != 'all') {
-            $items = $items->filter(function ($item) use ($statusFilter) {
-                if (strtolower($statusFilter) === 'available') return $item->status == 1;
-                if (strtolower($statusFilter) === 'not available') return $item->status == 0;
-                return true;
-            });
+        if (!empty($statusFilter) && strtolower($statusFilter) !== 'all status') {
+
+            $wantAvailable = strtolower($statusFilter) === 'available';
+
+            $items = $items->filter(
+                fn($item) =>
+                $wantAvailable ? $item->remaining > 0 : $item->remaining == 0
+            );
         }
 
         // Apply category filter (dropdown)
@@ -127,11 +136,16 @@ class ItemsController extends Controller
      */
     private function getItems()
     {
-        return Item::with(['unit', 'category', 'inventoryConsumables.itemDistributions', 'inventoryNonConsumables.itemDistributions'])
+        return Item::with([
+            'unit',
+            'category',
+            'inventoryConsumables.itemDistributions',
+            'inventoryNonConsumables.itemDistributions'
+        ])
             ->get()
             ->map(function ($item) {
 
-                // Count only available inventory (units that are NOT distributed/borrowed/pending)
+                // Count only available inventory
                 if ($item->type == 0) {
                     $remaining = $item->inventoryConsumables
                         ->filter(function ($inv) {
@@ -150,13 +164,15 @@ class ItemsController extends Controller
                         ->count();
                 }
 
+                $isAvailable = $remaining > 0;
+
                 return (object)[
                     'id' => $item->id,
                     'name' => $item->name,
                     'type' => $item->type,
-                    'status' => $item->status ?? null,
                     'quantity' => $item->quantity,
                     'remaining' => $remaining,
+                    'is_available' => $isAvailable, // 👈 add this
                     'unit' => $item->unit ?? null,
                     'category' => $item->category ?? null,
                     'description' => $item->description ?? '--',
@@ -197,7 +213,6 @@ class ItemsController extends Controller
             'category_id' => 'required|integer',
             'quantity' => 'required|integer',
             'unit_id' => 'required|integer',
-            'status' => 'required|integer|in:0,1',
             'description' => 'nullable|string',
             'picture' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
             'received_date' => 'nullable|date',
@@ -216,29 +231,35 @@ class ItemsController extends Controller
 
         $item = Item::create($validated);
 
-        // Current date for today
-        $datetime = date('Ymd'); // e.g., 20260225
+        $datetime = date('Ymd');
         $prefix = strtoupper(substr($item->name, 0, 1));
 
-        // Get the last QR code **for today** (sequence will reset each day)
         $lastQrToday = QR_Code::where('code', 'like', "LCC-{$prefix}{$datetime}-%")
             ->orderByDesc('code')
             ->first();
 
         $lastSequence = 0;
-
         if ($lastQrToday) {
             $parts = explode('-', $lastQrToday->code);
             $lastSequence = (int) end($parts);
         }
 
-        // Loop only for the quantity of the newly added item
+        // Loop once per quantity
         for ($i = 0; $i < $item->quantity; $i++) {
-
             $lastSequence++;
             $sequence = str_pad($lastSequence, 3, '0', STR_PAD_LEFT);
-
             $qrCodeValue = 'LCC-' . $prefix . $datetime . '-' . $sequence;
+            $qrImageName = $qrCodeValue . '.svg'; // .svg now
+            $qrImagePath = 'qrcodes/' . $qrImageName;
+
+            // Use Svg backend for QR generation
+            $renderer = new ImageRenderer(
+                new RendererStyle(200), // QR size
+                new SvgImageBackEnd()
+            );
+            $writer = new Writer($renderer);
+
+            Storage::disk('public')->put($qrImagePath, $writer->writeString($qrCodeValue));
 
             if ($item->type == 0) {
                 $consumable = InventoryConsumable::create([
@@ -251,6 +272,7 @@ class ItemsController extends Controller
 
                 QR_Code::create([
                     'code' => $qrCodeValue,
+                    'qr_picture' => $qrImagePath,
                     'inventory_consumable_id' => $consumable->id,
                     'status' => QR_Code::STATUS_USED,
                     'created_by' => Auth::id(),
@@ -268,6 +290,7 @@ class ItemsController extends Controller
 
                 QR_Code::create([
                     'code' => $qrCodeValue,
+                    'qr_picture' => $qrImagePath,
                     'inventory_non_consumable_id' => $nonConsumable->id,
                     'status' => QR_Code::STATUS_USED,
                     'created_by' => Auth::id(),
@@ -276,7 +299,7 @@ class ItemsController extends Controller
             }
         }
 
-        $items = $this->getItems(); // Use helper to recalc remaining
+        $items = $this->getItems(); // Recalculate remaining
 
         return response()->json([
             'html' => view('inventory.items.table', compact('items'))->render(),
@@ -321,7 +344,6 @@ class ItemsController extends Controller
             'category_id' => 'required|integer',
             'quantity' => 'required|integer',
             'unit_id' => 'required|integer',
-            'status' => 'required|integer|in:0,1',
             'description' => 'nullable|string',
             'picture' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
             // 'warranty_expires' => 'nullable|date', // validate date format
