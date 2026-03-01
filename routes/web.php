@@ -23,7 +23,8 @@ use App\Http\Controllers\QR_CodeController;
 
 Route::get('/', function () {return view('welcome');});
 
-Auth::routes();
+// authentication routes; disable user self-registration since only admins may create accounts
+Auth::routes(['register' => false]);
 
 Route::get('/dashboard', function () {return view('dashboard');})->middleware(['auth', 'verified'])->name('dashboard');
 

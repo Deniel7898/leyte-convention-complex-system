@@ -20,13 +20,41 @@
                 @method('PATCH')
 
                 <div class="row">
-                    <div class="col-12">
+                    <div class="col-md-4 col-12">
                         <div class="input-style-1">
-                            <label for="name">{{ __('Name') }}</label>
-                            <input type="text" @error('name') class="form-control is-invalid" @enderror name="name"
-                                id="name" placeholder="{{ __('Name') }}"
-                                value="{{ old('name', auth()->user()->name) }}" required>
-                            @error('name')
+                            <label for="first_name">{{ __('First Name') }}</label>
+                            <input type="text" @error('first_name') class="form-control is-invalid" @enderror name="first_name"
+                                id="first_name" placeholder="{{ __('First Name') }}"
+                                value="{{ old('first_name', auth()->user()->first_name) }}" required>
+                            @error('first_name')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 col-12">
+                        <div class="input-style-1">
+                            <label for="middle_name">{{ __('Middle Name') }}</label>
+                            <input type="text" @error('middle_name') class="form-control is-invalid" @enderror name="middle_name"
+                                id="middle_name" placeholder="{{ __('Middle Name') }}"
+                                value="{{ old('middle_name', auth()->user()->middle_name) }}">
+                            @error('middle_name')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 col-12">
+                        <div class="input-style-1">
+                            <label for="last_name">{{ __('Last Name') }}</label>
+                            <input type="text" @error('last_name') class="form-control is-invalid" @enderror name="last_name"
+                                id="last_name" placeholder="{{ __('Last Name') }}"
+                                value="{{ old('last_name', auth()->user()->last_name) }}" required>
+                            @error('last_name')
                             <span class="invalid-feedback" role="alert">
                                 <strong>{{ $message }}</strong>
                             </span>
@@ -41,6 +69,20 @@
                                 name="email" id="email" placeholder="{{ __('Email') }}"
                                 value="{{ old('email', auth()->user()->email) }}" required>
                             @error('email')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                            @enderror
+                        </div>
+                    </div>
+                    <!-- end col -->
+                    <div class="col-12">
+                        <div class="input-style-1">
+                            <label for="phone">{{ __('Phone') }}</label>
+                            <input @error('phone') class="form-control is-invalid" @enderror type="text"
+                                name="phone" id="phone" placeholder="{{ __('Phone') }}"
+                                value="{{ old('phone', auth()->user()->phone) }}">
+                            @error('phone')
                             <span class="invalid-feedback" role="alert">
                                 <strong>{{ $message }}</strong>
                             </span>
@@ -72,7 +114,7 @@
                     <!-- end col -->
                     <div class="col-12">
                         <div class="button-group d-flex justify-content-center flex-wrap">
-                            <button type="submit" class="text-white main-btn btn-hover w-100 text-center" style="background: hsl(238, 35%, 25%);">
+                            <button type="submit" class="text-white main-btn btn-hover w-100 text-center" style="background: #2563eb;">
                                 {{ __('Submit') }}
                             </button>
                         </div>

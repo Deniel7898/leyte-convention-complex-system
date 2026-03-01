@@ -118,6 +118,7 @@
             </ul>
         </li>
 
+        @if(auth()->user()->is_admin)
         <li class="nav-item @if(request()->routeIs('users.index')) active @endif">
             <a href="{{ route('users.index') }}" title="{{ __('Users') }}">
                 <span class="icon">
@@ -128,6 +129,7 @@
                 <span class="text">{{ __('Users') }}</span>
             </a>
         </li>
+        @endif
 
         <!-- Divider -->
         <hr class="mt-4 border-light opacity-50">

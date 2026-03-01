@@ -22,6 +22,19 @@ class LoginController extends Controller
     use AuthenticatesUsers;
 
     /**
+     * Allow users to authenticate with either email or username.
+     */
+    protected function credentials(\Illuminate\Http\Request $request)
+    {
+        $login = $request->input('email');
+        $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'name';
+        return [
+            $field => $login,
+            'password' => $request->input('password'),
+        ];
+    }
+
+    /**
      * Where to redirect users after login.
      *
      * @var string

@@ -18,12 +18,12 @@
         <form method="POST" action="{{ route('login') }}">
             @csrf
 
-            <!-- Email -->
+            <!-- Username or Email -->
             <div class="form-group">
-                <label>Email</label>
-                <input type="email" 
+                <label>Username or Email</label>
+                <input type="text" 
                        name="email" 
-                       placeholder="Enter email"
+                       placeholder="Enter username or email"
                        value="{{ old('email') }}"
                        required>
                 @error('email')
@@ -48,18 +48,9 @@
                 Sign In
             </button>
 
-            <!-- Register -->
-            @if (Route::has('register'))
-            <p class="register-text">
-                New employee?
-                <a href="{{ route('register') }}">Create an account</a>
-            </p>
-            @endif
+            <!-- registration disabled; only administrators can add users -->
+            {{-- registration link removed --}}
 
-            <!-- Demo credentials -->
-            <div class="demo-box">
-                Demo Credentials: <strong>admin / admin</strong>
-            </div>
         </form>
 
     </div>
