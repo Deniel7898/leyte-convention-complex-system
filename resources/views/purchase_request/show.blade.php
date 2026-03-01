@@ -31,29 +31,17 @@
 
         <div class="divider"></div>
 
-        <table class="lcc-table">
-            <thead>
-                <tr>
-                    <th>Description</th>
-                    <th style="width:120px;">Quantity</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($purchaseRequest->items as $item)
-                    <tr>
-                        <td>{{ $item->description }}</td>
-                        <td>{{ $item->quantity }}</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="2" style="text-align:center;">
-                            No items found.
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-
+        <div class="qr-card">
+            @forelse($purchaseRequest->items as $item)
+                <div class="qr-block">
+                    <strong>{{ $item->description }}</strong>
+                    <span>{{ $item->quantity }}</span>
+                </div>
+            @empty
+                <div class="empty-state">No items found.</div>
+            @endforelse
+        </div>
+        </div>
     </div>
 
 </div>

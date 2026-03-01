@@ -24,7 +24,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Auth::routes();
+// authentication routes; disable user self-registration since only admins may create accounts
+Auth::routes(['register' => false]);
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -32,7 +33,10 @@ Route::get('/dashboard', function () {
 
 Route::middleware('auth')->group(function () {
 
-    Route::get('users', [UserController::class, 'index'])->name('users.index');
+    // user management; only administrators may manage other users
+    Route::resource('users', UserController::class)
+        ->only(['index','create','store','edit','update','destroy'])
+        ->middleware('can:manage-users');
 
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

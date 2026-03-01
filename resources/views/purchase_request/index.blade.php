@@ -10,7 +10,7 @@
         <div class="top-bar">
 
         <div class="left-actions">
-            <a href="{{ route('purchase_request.create') }}"
+<a href="{{ route('purchase_request.create') }}"
             class="btn-modern btn-primary-modern">
                 Create Request
             </a>
@@ -51,13 +51,16 @@
         </div>
         @endif
 
+        @if($requests->count())
         @include('purchase_request.table')
 
         <div class="pagination-wrapper">
             {{ $requests->withQueryString()->links() }}
         </div>
+        @else
+        <div class="empty-state">No purchase requests found.</div>
+        @endif
 
     </div>
-
 </div>
 @endsection

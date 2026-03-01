@@ -17,10 +17,17 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
+    // when we split the name into parts we keep the legacy 'name' for
+    // backward compatibility but also allow first/middle/last.
     protected $fillable = [
         'name',
+        'first_name',
+        'middle_name',
+        'last_name',
         'email',
+        'phone',
         'password',
+        'is_admin',
     ];
 
     /**
@@ -40,5 +47,19 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'is_admin' => 'boolean',
     ];
+
+    /**
+     * Get the user's full name combining the individual name parts.
+     */
+    public function getFullNameAttribute()
+    {
+        // fall back to the legacy name column if individual parts are blank
+        if ($this->first_name || $this->last_name) {
+            return trim("{$this->first_name} {$this->middle_name} {$this->last_name}");
+        }
+
+        return $this->name;
+    }
 }

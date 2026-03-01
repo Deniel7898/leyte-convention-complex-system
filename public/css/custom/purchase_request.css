@@ -1,6 +1,9 @@
 /* ===============================
    PAGE CONTAINER
 ================================= */
+/* ===============================
+   PAGE CONTAINER
+================================= */
 .page-wrapper {
     padding: 30px;
 }
@@ -27,23 +30,6 @@
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
 
-/* ===============================
-   BUTTONS
-================================= */
-.btn-primary-modern {
-    background: linear-gradient(135deg, #4f46e5, #6366f1);
-    border: none;
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-weight: 500;
-    color: #fff;
-    transition: 0.3s ease;
-}
-
-.btn-primary-modern:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(79, 70, 229, 0.4);
-}
 
 /* ===============================
    TABLE
@@ -310,6 +296,8 @@ td .btn-modern {
     transform: translateY(0);
     box-shadow: none;
 }
+
+/* Buttons are now styled globally in main.css using .main-btn, .primary-btn, etc. */
 
 /* ===============================
    PAGINATION

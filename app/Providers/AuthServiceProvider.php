@@ -21,6 +21,9 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Gate for controlling access to user administration
+        \Illuminate\Support\Facades\Gate::define('manage-users', function ($user) {
+            return (bool) $user->is_admin;
+        });
     }
 }
