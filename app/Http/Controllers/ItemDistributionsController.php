@@ -371,9 +371,6 @@ class ItemDistributionsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
         $request->validate([
@@ -389,61 +386,29 @@ class ItemDistributionsController extends Controller
 
         DB::transaction(function () use ($request, $id) {
 
-            // Delete previous distributions for this inventory IDs
-            // Optional: you can skip this if you want to update in place
-            ItemDistribution::whereIn('id', [$id])->delete();
+            $existingDistribution = ItemDistribution::findOrFail($id);
 
-            // Loop through the new inventory IDs to update/create distributions
-            foreach ($request->inventory_ids as $inventoryId) {
+            // Determine inventory type
+            $inventoryId = $request->inventory_ids[0]; // Only updating single inventory for edit
+            $consumable = InventoryConsumable::find($inventoryId);
+            $nonConsumable = InventoryNonConsumable::find($inventoryId);
 
-                // Check if it's a consumable
-                $consumable = InventoryConsumable::find($inventoryId);
-                if ($consumable) {
-                    ItemDistribution::updateOrCreate(
-                        ['id' => $id], // Update the current distribution
-                        [
-                            'type' => $request->type,
-                            'description' => $request->description,
-                            'remarks' => $request->remarks,
-                            'quantity' => 1,
-                            'distribution_date' => $request->distribution_date ?? now(),
-                            'due_date' => $request->due_date,
-                            'status' => $request->status,
-                            'inventory_consumable_id' => $consumable->id,
-                            'created_by' => auth()->id(),
-                            'updated_by' => auth()->id(),
-                        ]
-                    );
-                    continue;
-                }
-
-                // Otherwise, non-consumable
-                $nonConsumable = InventoryNonConsumable::find($inventoryId);
-                if ($nonConsumable) {
-                    ItemDistribution::updateOrCreate(
-                        ['id' => $id],
-                        [
-                            'type' => $request->type,
-                            'description' => $request->description,
-                            'remarks' => $request->remarks,
-                            'quantity' => 1,
-                            'distribution_date' => $request->distribution_date ?? now(),
-                            'due_date' => $request->due_date,
-                            'status' => $request->status,
-                            'inventory_non_consumable_id' => $nonConsumable->id,
-                            'created_by' => auth()->id(),
-                            'updated_by' => auth()->id(),
-                        ]
-                    );
-                }
-            }
+            $existingDistribution->update([
+                'type' => $request->type,
+                'description' => $request->description,
+                'remarks' => $request->remarks,
+                'quantity' => 1,
+                'distribution_date' => $request->distribution_date ?? now(),
+                'due_date' => $request->due_date,
+                'status' => $request->status,
+                'inventory_consumable_id' => $consumable->id ?? null,
+                'inventory_non_consumable_id' => $nonConsumable->id ?? null,
+                'updated_by' => auth()->id(),
+            ]);
         });
 
         // Return updated table with all distributions
-        $itemDistributions = ItemDistribution::with([
-            'inventory_consumable.item',
-            'inventory_non_consumable.item',
-        ])->latest()->get();
+        $itemDistributions = $this->getItemDistributions();
 
         return response()->json([
             'html' => view('item_distributions.table', compact('itemDistributions'))->render(),
@@ -459,17 +424,11 @@ class ItemDistributionsController extends Controller
         // Find the distribution
         $itemDistribution = ItemDistribution::find($id);
 
-        if (!$itemDistribution) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Item Distribution not found.',
-            ], 404);
-        }
-
         // Delete the distribution
         $itemDistribution->delete();
 
-        $itemDistributions = ItemDistribution::all();
+        // Return updated table with all distributions
+        $itemDistributions = $this->getItemDistributions();
 
         return response()->json([
             'html' => view('item_distributions.table', compact('itemDistributions'))->render(),
