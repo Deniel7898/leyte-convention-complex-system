@@ -129,7 +129,7 @@
         <!-- Simple Picture Upload -->
         <div class="mb-3">
             @if(!isset($inventory))
-            <label class="form-label">Inventory Picture</label>
+            <label class="form-label">Item Picture</label>
             <div class="border rounded p-3 text-center"
                 id="picture-dropzone"
                 style="cursor: pointer; min-height: 150px; display: flex; align-inventory: center; justify-content: center;">
