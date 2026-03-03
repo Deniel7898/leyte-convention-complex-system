@@ -12,18 +12,14 @@
     <link rel="stylesheet" href="{{ asset('css/fullcalendar.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/morris.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/main.css') }}" />
-    <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/login.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 </head>
-<body>
-<div class="min-vh-100 d-flex justify-content-center align-items-center">
-    <div class="row d-flex justify-content-center align-items-center">
-        <div class="col-10">
-            <div class="row g-0 auth-row">
-                @yield('content')
-            </div>
-        </div>
+<body style="background-image: url('{{ asset('images/home_bg/palo_capitol.jpg') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+    <div class="d-flex justify-content-center align-items-center min-vh-100">
+        {{-- Only yield the login card directly --}}
+        @yield('content')
     </div>
-</div>
+    <script src="{{ asset('js/login.js') }}"></script>
 </body>
 </html>
