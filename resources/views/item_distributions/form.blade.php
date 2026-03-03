@@ -1,41 +1,53 @@
-    <form method="POST" action="{{ route('item_distributions.store') }}">
-        @csrf
+<form action="{{ isset($itemDistribution) ? route('item_distributions.update', $itemDistribution->id) : route('item_distributions.store') }}"
+    method="POST"
+    enctype="multipart/form-data">
 
-        <div class="modal-header" style="background-color: rgb(43, 45, 87);">
-            <h5 class="modal-title text-white">{{ isset($itemDistribution) ? 'Edit' : 'New' }} Distribution</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
+    @csrf
+    @if(isset($itemDistribution))
+    @method('PUT')
+    @endif
 
-        <div class="modal-body">
+    <div class="modal-header" style="background-color: rgb(43, 45, 87);">
+        <h5 class="modal-title text-white">{{ isset($itemDistribution) ? 'Edit' : 'New' }} Distribution</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    </div>
 
-            <div class="row">
-                <!-- Select Item -->
+    <div class="modal-body">
+
+        <div class="row">
+            @if(!isset($itemDistribution))
+            <!-- Select Item -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Select Item</label>
+                <select
+                    id="itemSelect"
+                    class="form-select"
+                    {{ isset($itemDistribution) ? 'disabled' : 'required' }}
+                    name="{{ isset($itemDistribution) ? '' : 'item_id' }}">
+
+                    <option value="">-- Select Item --</option>
+
+                    @foreach($items as $item)
+                    <option value="{{ $item->id }}"
+                        data-type="{{ $item->type }}"
+                        data-unit="{{ $item->unit->name ?? 'N/A' }}"
+                        data-quantity="{{ $item->quantity }}"
+                        data-consumables='@json($item->inventoryConsumables->map(fn($c) => ["id" => $c->id, "qrCode" => optional($c->qrCode)->code]))'
+                        data-nonconsumables='@json($item->inventoryNonConsumables->map(fn($nc) => ["id" => $nc->id, "qrCode" => optional($nc->qrCode)->code]))'>
+                        {{ $item->name }}
+                    </option>
+                    @endforeach
+                </select>
+
+                <small class="text-muted">
+                    Selecting an item will load its available units.
+                </small>
+                @else
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">Select Item</label>
-                    <select
-                        id="itemSelect"
-                        class="form-select"
-                        {{ isset($itemDistribution) ? 'disabled' : 'required' }}
-                        name="{{ isset($itemDistribution) ? '' : 'item_id' }}">
-
-                        <option value="">-- Select Item --</option>
-
-                        @foreach($items as $item)
-                        <option value="{{ $item->id }}"
-                            data-type="{{ $item->type }}"
-                            data-unit="{{ $item->unit->name ?? 'N/A' }}"
-                            data-quantity="{{ $item->quantity }}"
-                            data-consumables='@json($item->inventoryConsumables->map(fn($c) => ["id" => $c->id, "qrCode" => optional($c->qrCode)->code]))'
-                            data-nonconsumables='@json($item->inventoryNonConsumables->map(fn($nc) => ["id" => $nc->id, "qrCode" => optional($nc->qrCode)->code]))'>
-                            {{ $item->name }}
-                        </option>
-                        @endforeach
-                    </select>
-
-                    <small class="text-muted">
-                        Selecting an item will load its available units.
-                    </small>
+                    <label for="item-name" class="form-label">Item Name</label>
+                    <input type="text" class="form-control" id="item-name" name="name" value="{{ $selectedItem->name ?? '' }}" required>
                 </div>
+                @endif
 
                 <!-- Type -->
                 <div class="col-md-6 mb-3">
@@ -107,7 +119,10 @@
                         </tbody>
                     </table>
                 </div>
-
+                @if(isset($itemDistribution))
+                <input type="hidden" name="inventory_ids[]"
+                    value="{{ $itemDistribution->inventory_consumable_id ?? $itemDistribution->inventory_non_consumable_id }}">
+                @endif
                 <small class="text-muted d-block mt-1">
                     Check the boxes to select multiple units.
                 </small>
@@ -119,7 +134,7 @@
                 <textarea class="form-control"
                     name="description"
                     rows="2"
-                    placeholder="Optional description for this distribution"></textarea>
+                    placeholder="Optional description for this distribution">{{ old('description', $itemDistribution->description ?? '') }}</textarea>
             </div>
 
             <!-- Remarks -->
@@ -128,7 +143,7 @@
                 <textarea class="form-control"
                     name="remarks"
                     rows="2"
-                    placeholder="Optional Remarks for this distribution"></textarea>
+                    placeholder="Optional Remarks for this distribution">{{ old('remarks', $itemDistribution->remarks ?? '') }}</textarea>
             </div>
         </div>
 
@@ -145,45 +160,45 @@
                 Save Distribution
             </button>
         </div>
-    </form>
+</form>
 
-    <script>
-        const itemSelect = document.getElementById('itemSelect');
-        const unitsSection = document.getElementById('unitsSection');
-        const unitsTableBody = document.querySelector('#unitsTable tbody');
-        const unitsLabel = document.getElementById('unitsLabel');
-        const itemInfo = document.getElementById('itemInfo');
-        const selectAllCheckbox = document.getElementById('selectAllUnits');
+<script>
+    const itemSelect = document.getElementById('itemSelect');
+    const unitsSection = document.getElementById('unitsSection');
+    const unitsTableBody = document.querySelector('#unitsTable tbody');
+    const unitsLabel = document.getElementById('unitsLabel');
+    const itemInfo = document.getElementById('itemInfo');
+    const selectAllCheckbox = document.getElementById('selectAllUnits');
 
-        itemSelect.addEventListener('change', function() {
-            const selected = this.options[this.selectedIndex];
-            const type = selected.dataset.type;
-            const quantity = selected.dataset.quantity;
-            const unitName = selected.dataset.unit;
-            const consumables = JSON.parse(selected.dataset.consumables || '[]');
-            const nonConsumables = JSON.parse(selected.dataset.nonconsumables || '[]');
+    itemSelect.addEventListener('change', function() {
+        const selected = this.options[this.selectedIndex];
+        const type = selected.dataset.type;
+        const quantity = selected.dataset.quantity;
+        const unitName = selected.dataset.unit;
+        const consumables = JSON.parse(selected.dataset.consumables || '[]');
+        const nonConsumables = JSON.parse(selected.dataset.nonconsumables || '[]');
 
-            unitsTableBody.innerHTML = '';
+        unitsTableBody.innerHTML = '';
 
-            const allUnits = [...consumables, ...nonConsumables];
+        const allUnits = [...consumables, ...nonConsumables];
 
-            if (allUnits.length === 0) {
-                unitsSection.classList.add('d-none');
-                return;
-            }
+        if (allUnits.length === 0) {
+            unitsSection.classList.add('d-none');
+            return;
+        }
 
-            unitsSection.classList.remove('d-none');
+        unitsSection.classList.remove('d-none');
 
-            unitsLabel.innerText = 'Units for "' + selected.text + '"';
-            itemInfo.innerText =
-                'Type: ' + (type == 0 ? 'Consumable' : 'Non-Consumable') +
-                ' | Unit: ' + unitName +
-                ' | Quantity: ' + quantity +
-                ' | Remaining: ' + allUnits.length;
+        unitsLabel.innerText = 'Units for "' + selected.text + '"';
+        itemInfo.innerText =
+            'Type: ' + (type == 0 ? 'Consumable' : 'Non-Consumable') +
+            ' | Unit: ' + unitName +
+            ' | Quantity: ' + quantity +
+            ' | Remaining: ' + allUnits.length;
 
-            allUnits.forEach((unit, index) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
+        allUnits.forEach((unit, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
             <td>${index + 1}</td>
             <td>${selected.text}</td>
             <td>${unit.qrCode ?? 'N/A'}</td>
@@ -191,16 +206,16 @@
                 <input type="checkbox" class="unitCheckbox" name="inventory_ids[]" value="${unit.id}">
             </td>
         `;
-                unitsTableBody.appendChild(tr);
-            });
-
-            // Reset "select all" checkbox
-            selectAllCheckbox.checked = false;
+            unitsTableBody.appendChild(tr);
         });
 
-        // Select/Deselect All functionality
-        selectAllCheckbox.addEventListener('change', function() {
-            const checkboxes = document.querySelectorAll('.unitCheckbox');
-            checkboxes.forEach(cb => cb.checked = this.checked);
-        });
-    </script>
+        // Reset "select all" checkbox
+        selectAllCheckbox.checked = false;
+    });
+
+    // Select/Deselect All functionality
+    selectAllCheckbox.addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.unitCheckbox');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+    });
+</script>

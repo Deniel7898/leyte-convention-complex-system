@@ -8,7 +8,11 @@
          <i class="bi bi-tag me-1"></i>
          {{ $service_record->item->item->category->name ?? '--' }}
      </td>
-     <td>{{ $service_record->item->qrCode->code ?? '--' }}</td>
+     <td>
+         <span class="badge bg-success-subtle text-success">
+             {{ $service_record->item->qrCode->code ?? '--' }}
+         </span>
+     </td>
      <td>{{ $service_record->quantity ?? '--' }}</td>
      <td>{{ $service_record->status ?? '--' }}</td>
      <td>{{ $service_record->description ?? '--' }}</td>

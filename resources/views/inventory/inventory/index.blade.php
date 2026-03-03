@@ -80,6 +80,7 @@
                         <th>{{ __('Category') }}</th>
                         <th>{{ __('Status') }}</th>
                         <th>{{ __('QR Code') }}</th>
+                        <th class="text-center">{{ __('Qr Picture') }}</th>
                         <th>{{ __('Warranty Expires') }}</th>
                         <th class="text-center">{{ __('Actions') }}</th>
                     </tr>

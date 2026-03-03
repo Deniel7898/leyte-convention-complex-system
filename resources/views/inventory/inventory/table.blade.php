@@ -46,6 +46,13 @@
          </span>
      </td>
      <td>{{ $inventory->qrCode->code ?? '--' }}</td>
+     <td style="padding:0; margin:0; vertical-align:top; text-align:center">
+         @if($inventory->qrCode->qr_picture)
+         <img src="{{ asset('storage/' . $inventory->qrCode->qr_picture) }}" alt="{{ $inventory->qrCode->item->name ?? 'QR Code' }} QR Code" width="60">
+         @else
+         --
+         @endif
+     </td>
      <td>
          {{ $inventory->warranty_expires && $inventory->warranty_expires != '--'
             ? \Carbon\Carbon::parse($inventory->warranty_expires)->format('M d, Y')
