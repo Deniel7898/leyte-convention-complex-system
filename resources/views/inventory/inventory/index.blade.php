@@ -88,7 +88,7 @@
                     {!! $inventories_table !!}
                 </tbody>
             </table>
-            <div class="flex justify-center mb-3 ms-3">
+            <div id="inventory-pagination" class="flex justify-center mb-3 ms-3">
                 {{ $inventories->links() }}
             </div>
         </div>

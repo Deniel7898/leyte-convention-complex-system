@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('page_title', 'Reference Data - Units')
+@section('page_title', 'Reference Data')
 
 @section('content')
 <!-- ========== title-wrapper start ========== -->
