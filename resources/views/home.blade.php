@@ -4,8 +4,8 @@
 
 <style>
     /* =========================
-       Stats Cards
-    ========================== */
+   Stats Cards
+========================== */
     .stats-card {
         border-radius: 16px;
         padding: 1.5rem 2rem;
@@ -66,16 +66,39 @@
         color: #dc3545;
     }
 
+    .stats-card .stat-icon {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: 26px;
+        color: #fff;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+        /* Makes it clickable */
+        text-decoration: none;
+        /* Remove underline from <a> */
+    }
+
+    .stats-card .stat-icon:hover {
+        transform: scale(1.1);
+        /* Slightly enlarge on hover */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        /* Add shadow on hover */
+    }
+
     /* =========================
-       Quick Actions
-    ========================== */
+   Quick Actions
+========================== */
     .quick-action-box {
         border: 3px dashed #d6dbe1;
         border-radius: 14px;
         padding: 30px;
         background-color: #f8f9fa;
         cursor: pointer;
-        transition: all 0.25s ease-in-out;
+        transition: all .25s ease-in-out;
         display: flex;
         gap: 15px;
         align-items: flex-start;
@@ -88,21 +111,18 @@
     }
 
     .quick-action-box.primary:hover {
-        background-color: #e7ecf5;
+        background: #e7ecf5;
         border-color: #0d6efd;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
     }
 
     .quick-action-box.success:hover {
-        background-color: #e6f4ea;
+        background: #e6f4ea;
         border-color: #198754;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
     }
 
     .quick-action-box.warning:hover {
-        background-color: #fff8e6;
+        background: #fff8e6;
         border-color: #ffc107;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
     }
 
     .quick-action-box .icon {
@@ -121,8 +141,8 @@
     }
 
     /* =========================
-       Mini Cards
-    ========================== */
+   Mini Cards
+========================== */
     .mini-card {
         border-radius: 14px;
         padding: 20px;
@@ -133,34 +153,74 @@
 
     .mini-card h5 {
         font-weight: 600;
-        margin-bottom: 15px;
+        margin-bottom: 12px;
     }
 
     .metric {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
         font-size: 0.95rem;
     }
 
     .status-list {
         list-style: none;
-        padding-left: 0;
+        padding: 0;
         margin: 0;
     }
 
     .status-list li {
         display: flex;
         justify-content: space-between;
-        padding: 6px 0;
+        align-items: center;
+        padding: 8px 0;
         font-size: 0.95rem;
+    }
+
+    /* =========================
+   Recent Activity Timeline
+========================== */
+
+    .activity-item {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        /* reduced gap */
+        padding: 10px 0;
+        /* clean vertical spacing */
+    }
+
+    .activity-item:not(:last-child) {
+        border-bottom: 1px solid #e9ecef;
+        /* soft divider instead of <hr> */
+    }
+
+    .activity-content {
+        flex-grow: 1;
+    }
+
+    .activity-dot {
+        width: 8px;
+        /* slightly smaller */
+        height: 8px;
+        border-radius: 50%;
+        margin-top: 6px;
+    }
+
+    .activity-time {
+        white-space: nowrap;
+        font-size: 0.8rem;
+        /* slightly smaller time */
     }
 </style>
 
+
 <!-- =========================
-         Stats Cards
-    ========================== -->
+     Stats Cards
+========================== -->
 <div class="row g-3 mt-3">
+
     <div class="col-lg-3 col-md-6">
         <div class="stats-card primary">
             <div>
@@ -168,7 +228,7 @@
                 <div class="stat-number">1,234</div>
                 <div class="stat-change up">+5.2% vs last month</div>
             </div>
-            <div class="stat-icon"><i class="bi bi-box-seam"></i></div>
+            <a href="#" class="stat-icon"><i class="bi bi-box-seam"></i></a>
         </div>
     </div>
 
@@ -179,18 +239,18 @@
                 <div class="stat-number">856</div>
                 <div class="stat-change up">+3.8% vs last month</div>
             </div>
-            <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
+            <a href="#" class="stat-icon"><i class="bi bi-check-circle"></i></a>
         </div>
     </div>
 
     <div class="col-lg-3 col-md-6">
         <div class="stats-card warning">
             <div>
-                <div class="stat-title">Needs Maintenance</div>
+                <div class="stat-title">Items Service Required</div>
                 <div class="stat-number">45</div>
                 <div class="stat-change up">+2.1% vs last month</div>
             </div>
-            <div class="stat-icon"><i class="bi bi-tools"></i></div>
+            <a href="#" class="stat-icon"><i class="bi bi-tools"></i></a>
         </div>
     </div>
 
@@ -201,14 +261,16 @@
                 <div class="stat-number">23</div>
                 <div class="stat-change down">-1.2% vs last month</div>
             </div>
-            <div class="stat-icon"><i class="bi bi-cart-dash"></i></div>
+            <a href="#" class="stat-icon"><i class="bi bi-cart-dash"></i></a>
         </div>
     </div>
+
 </div>
 
+
 <!-- =========================
-         Quick Actions
-    ========================== -->
+     Quick Actions
+========================== -->
 <div class="mt-4">
     <div class="card shadow-sm border-0 rounded-4">
         <div class="card-body p-4 bg-light rounded-4">
@@ -261,61 +323,59 @@
     </div>
 </div>
 
+
 <!-- =========================
-     Recent Activity & Status
+     Recent Activity & System Status
 ========================== -->
-<div class="row g-3 mt-2 align-items-stretch">
+<div class="row g-3 mt-3 align-items-stretch">
 
-    <!-- Recent Activity -->
-    <div class="col-lg-6">
-        <div class="mini-card h-100">
+    <!-- Recent Activity Metrics -->
+    <div class="col-lg-6 d-flex">
+        <div class="mini-card w-100 d-flex flex-column">
 
-            <h5 class="mb-2">
-                <i class="bi bi-bar-chart-line me-2"></i>
-                Recent Activity Metrics
-            </h5>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">
+                    <i class="bi bi-bar-chart-line me-2"></i>
+                    Recent Activity Metrics
+                </h5>
+                <a href="{{ url('/activities') }}" class="analytics-link">
+                    <i class="bi bi-graph-up"></i>
+                    View Analytics
+                </a>
+            </div>
 
-            <a href="{{ url('/activities') }}"
-                class="text-decoration-none small">
-                View All Activities →
-            </a>
+            <div class="mt-1 flex-grow-1">
 
-            <div class="mt-3">
-
-                <!-- Items Added -->
-                <div class="metric mb-1">
+                <div class="metric">
                     <span>Items Added Today</span>
                     <span class="fw-semibold">23</span>
                 </div>
-                <div class="progress mb-2" style="height: 6px;">
-                    <div class="progress-bar bg-primary" style="width: 65%"></div>
+                <div class="progress mb-2" style="height:6px;">
+                    <div class="progress-bar bg-primary" style="width:65%"></div>
                 </div>
 
-                <!-- Items Distributed -->
-                <div class="metric mb-1">
+                <div class="metric">
                     <span>Items Distributed</span>
                     <span class="fw-semibold">15</span>
                 </div>
-                <div class="progress mb-2" style="height: 6px;">
-                    <div class="progress-bar bg-success" style="width: 45%"></div>
+                <div class="progress mb-2" style="height:6px;">
+                    <div class="progress-bar bg-success" style="width:45%"></div>
                 </div>
 
-                <!-- Services Logged -->
-                <div class="metric mb-1">
+                <div class="metric">
                     <span>Services Logged</span>
                     <span class="fw-semibold">5</span>
                 </div>
-                <div class="progress mb-2" style="height: 6px;">
-                    <div class="progress-bar bg-warning" style="width: 25%"></div>
+                <div class="progress mb-2" style="height:6px;">
+                    <div class="progress-bar bg-warning" style="width:25%"></div>
                 </div>
 
-                <!-- Items in Transit -->
-                <div class="metric mb-1">
+                <div class="metric">
                     <span>Items in Transit</span>
                     <span class="fw-semibold">12</span>
                 </div>
-                <div class="progress" style="height: 6px;">
-                    <div class="progress-bar bg-info" style="width: 40%"></div>
+                <div class="progress" style="height:6px;">
+                    <div class="progress-bar bg-info" style="width:40%"></div>
                 </div>
 
             </div>
@@ -323,48 +383,37 @@
     </div>
 
     <!-- System Status -->
-    <div class="col-lg-6">
-        <div class="mini-card h-100">
+    <div class="col-lg-6 d-flex">
+        <div class="mini-card w-100 d-flex flex-column">
 
-            <h5 class="mb-2">
+            <h5 class="mb-3">
                 <i class="bi bi-server me-2"></i>
                 System Status
             </h5>
 
-            <ul class="status-list mt-3 p-0">
+            <ul class="status-list flex-grow-1">
 
-                <li class="d-flex justify-content-between align-items-center py-2">
-                    <div>
-                        <strong>Database</strong><br>
-                        <span class="fw-semibold small">98%</span>
-                    </div>
-                    <span class="badge bg-success">Online</span>
+                <li>
+                    <div><strong>Database</strong></div>
+                    <span class="badge bg-success-subtle text-success">Online</span>
                 </li>
 
-                <li class="d-flex justify-content-between align-items-center py-2">
-                    <div>
-                        <strong>Local Sync</strong><br>
-                        <span class="fw-semibold small">76%</span>
-                    </div>
-                    <span class="badge bg-primary">Syncing</span>
+                <li>
+                    <div><strong>Local Sync</strong></div>
+                    <span class="badge bg-primary-subtle text-primary">Syncing</span>
                 </li>
 
-                <li class="d-flex justify-content-between align-items-center py-2">
-                    <div>
-                        <strong>Backup Service</strong><br>
-                        <span class="fw-semibold small">64%</span>
-                    </div>
-                    <span class="badge bg-warning text-dark">Processing</span>
+                <li>
+                    <div><strong>Backup Service</strong></div>
+                    <span class="badge bg-warning-subtle text-warning">Processing</span>
                 </li>
 
-                <li class="d-flex justify-content-between align-items-center py-2">
+                <li>
                     <div>
                         <strong>Last Backup</strong><br>
-                        <span class="fw-semibold small text-muted">
-                            Today • 2:45 PM
-
+                        <span class="small text-muted">Today • 2:45 PM</span>
                     </div>
-                    <span class="badge bg-secondary">Updated</span>
+                    <span class="badge bg-success-subtle text-success">Updated</span>
                 </li>
 
             </ul>
@@ -373,9 +422,66 @@
     </div>
 
 </div>
+<!-- =========================
+     Recent Activity Timeline
+========================== -->
+<div class="mt-3"> <!-- reduced from mt-4 -->
+    <div class="mini-card py-3"> <!-- reduced vertical padding -->
 
+        <h5 class="mb-3"> <!-- reduced from mb-4 -->
+            <i class="bi bi-clock-history me-2"></i>
+            Recent Activity
+        </h5>
+
+        <div class="activity-item">
+            <div class="activity-dot bg-success"></div>
+            <div class="activity-content">
+                <div class="fw-semibold">New delivery received</div>
+                <div class="text-muted small">Office Chairs (x10)</div>
+            </div>
+            <div class="activity-time text-muted small">
+                10 minutes ago
+            </div>
+        </div>
+
+        <div class="activity-item">
+            <div class="activity-dot bg-warning"></div>
+            <div class="activity-content">
+                <div class="fw-semibold">Maintenance required</div>
+                <div class="text-muted small">Projector - Room 201</div>
+            </div>
+            <div class="activity-time text-muted small">
+                1 hour ago
+            </div>
+        </div>
+
+        <div class="activity-item">
+            <div class="activity-dot bg-primary"></div>
+            <div class="activity-content">
+                <div class="fw-semibold">Item issued</div>
+                <div class="text-muted small">Laptop - HP EliteBook</div>
+            </div>
+            <div class="activity-time text-muted small">
+                2 hours ago
+            </div>
+        </div>
+
+        <div class="activity-item">
+            <div class="activity-dot bg-primary"></div>
+            <div class="activity-content">
+                <div class="fw-semibold">Purchase order created</div>
+                <div class="text-muted small">Printer Cartridges</div>
+            </div>
+            <div class="activity-time text-muted small">
+                3 hours ago
+            </div>
+        </div>
+
+    </div>
+</div>
 
 @endsection
+
 
 @push('scripts')
 <script>
