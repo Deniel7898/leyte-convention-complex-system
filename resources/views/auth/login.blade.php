@@ -47,10 +47,6 @@
             </div>
 
             <button type="submit" class="login-btn">Sign In</button>
-
-            @if (Route::has('password.request'))
-            <p class="forgot-text"><a href="{{ route('password.request') }}">Forgot Password?</a></p>
-            @endif
         </form>
     </div>
 </div>
