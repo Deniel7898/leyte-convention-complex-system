@@ -110,6 +110,6 @@
 @endforeach
 @else
 <tr>
-    <td colspan="12" class="text-center text-muted text-danger">{{ __('No Distribution found.') }}</td>
+    <td colspan="15" class="text-center text-muted text-danger">{{ __('No Distribution found.') }}</td>
 </tr>
 @endif
