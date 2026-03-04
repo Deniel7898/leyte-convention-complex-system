@@ -1,28 +1,29 @@
 @extends('layouts.app')
 
-@section('page_title', 'Reference Data - Units')
+@section('page_title', 'Reference Data')
 
 @section('content')
 <!-- ========== title-wrapper start ========== -->
-<div class="title-wrapper mb-1 pt-10">
-    <div class="row align-items-center">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <!-- Left: Page Title -->
-                <div class="title mt-20">
-                    <div>
-                        <h4>Units List</h4>
-                        <p class="text-muted mb-0 text-sm">This is the reference data used for item measurements in inventory.</p>
-                    </div>
-                </div>
-
-                <!-- Right: Add Button -->
-                <button class="btn text-white add-unit"
-                    title="Add Unit" data-url="{{ route('units.create') }}"
-                    style="background-color: hsl(237, 34%, 30%);" onmouseover="this.style.backgroundColor='hsl(237, 34%, 40%)'" onmouseout="this.style.backgroundColor='hsl(237, 34%, 30%)'">
-                    + Add Unit
-                </button>
+<div class="card mb-3 shadow-sm border-0 card-styles mt-30">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center p-1">
+            <!-- Left: Page Title -->
+            <div class="title">
+                <h3 class="mb-1 fw-700">Units of Measurements</h3>
+                <p class="text-muted mb-0 text-sm">
+                    This is the reference data used for item measurements in inventory.
+                </p>
             </div>
+
+            <!-- Right: Add Button -->
+            <button class="btn text-white add-unit"
+                title="Add Unit"
+                data-url="{{ route('units.create') }}"
+                style="background-color: hsl(237, 34%, 30%);"
+                onmouseover="this.style.backgroundColor='hsl(237, 34%, 40%)'"
+                onmouseout="this.style.backgroundColor='hsl(237, 34%, 30%)'">
+                + Add Unit
+            </button>
         </div>
     </div>
 </div>
@@ -36,7 +37,9 @@
                     <tr class="text-uppercase text-muted small">
                         <th>{{ __('#') }}</th>
                         <th>{{ __('Name') }}</th>
+                        <th>{{ __('Abbreviation') }}</th>
                         <th>{{ __('Description') }}</th>
+                        <th>{{ __('Created Date') }}</th>
                         <th class="text-center">{{ __('Actions') }}</th>
                     </tr>
                 </thead>

@@ -133,37 +133,48 @@ $(function () {
         });
     });
 
-    $(function () {
-        function performSearch() {
-            let query = $('#inventory-search').val();
-            let type = $('#type-filter').val();          // dropdown for type
-            let status = $('#status-filter').val(); // dropdown for status
-            let category = $('#categories-filter').val(); // dropdown for category
 
-            $.ajax({
-                url: window.liveSearchUrl,
-                type: 'GET',
-                data: {
-                    query: query,
-                    type: type,
-                    status: status,
-                    category: category
-                },
-                success: function (response) {
-                    $('#inventory-table-body').html(response);
-                },
-                error: function (xhr) {
-                    console.error(xhr.responseText);
+    function performSearch() {
+        let query = $('#inventory-search').val().trim();
+        let type = $('#type-filter').val();
+        let status = $('#status-filter').val();
+        let category = $('#categories-filter').val();
+
+        $.ajax({
+            url: window.liveSearchUrl,
+            type: 'GET',
+            data: {
+                query: query,
+                type: type,
+                status: status,
+                category: category
+            },
+            success: function (response) {
+                // Update table rows
+                $('#inventory-table-body').html(response);
+
+                // Hide pagination if any search/filter is applied
+                if (query !== '' ||
+                    (type && type.toLowerCase() !== 'all type') ||
+                    (status && status.toLowerCase() !== 'all status') ||
+                    (category && category.toLowerCase() !== 'all')) {
+                    $('#inventory-pagination').hide();
+                } else {
+                    $('#inventory-pagination').show(); // show default pagination when no filter
                 }
-            });
-        }
-
-        // Trigger search while typing
-        $('#inventory-search').on('keyup', function () {
-            performSearch();
+            },
+            error: function (xhr) {
+                console.error(xhr.responseText);
+            }
         });
+    }
 
-        // Trigger search when any dropdown changes
-        $('#type-filter, #status-filter, #categories-filter').on('change', performSearch);
+    // Trigger search while typing
+    $('#inventory-search').on('keyup', function () {
+        performSearch();
     });
+
+    // Trigger search when any dropdown changes
+    $('#type-filter, #status-filter, #categories-filter').on('change', performSearch);
+
 })

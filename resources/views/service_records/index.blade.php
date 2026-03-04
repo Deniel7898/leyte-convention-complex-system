@@ -17,6 +17,14 @@
             </div>
         </div>
 
+         <div class="col-auto" style="min-width: 140px;">
+            <select id="type-filter" class="form-select">
+                <option>All Service Type</option>
+                <option>Maintenance</option>
+                <option>Installation</option>
+            </select>
+        </div>
+
         <div class="col-auto" style="min-width: 140px;">
             <select id="status-filter" class="form-select">
                 <option>All Status</option>
@@ -26,7 +34,7 @@
         </div>
 
         <div class="col-auto">
-            <div class="col-auto add-serviceRecord" data-url="">
+            <div class="col-auto add-serviceRecord" data-url="{{route('service_records.create')}}">
                 <button class="btn px-4 text-white" style="background-color: hsl(237, 34%, 30%);" onmouseover="this.style.backgroundColor='hsl(237, 34%, 40%)'" onmouseout="this.style.backgroundColor='hsl(237, 34%, 30%)'">
                     + New Item Service
                 </button>
@@ -49,22 +57,20 @@
                         <th>{{ __('Item') }}</th>
                         <th>{{ __('Unit') }}</th>
                         <th>{{ __('Category') }}</th>
-                        <th>{{ __('Dist. Date') }}</th>
-                        <th>{{ __('Dist. Type') }}</th>
+                        <th>{{ __('Service Type') }}</th>
                         <th>{{ __('QR Code') }}</th>
                         <th>{{ __('Qty') }}</th>
-                        <th>{{ __('Status') }}</th>
                         <th>{{ __('Description') }}</th>
                         <th>{{ __('Schedule Date') }}</th>
                         <th>{{ __('Completed Date') }}</th>
                         <th>{{ __('Encharge Person') }}</th>
-                        <th>{{ __('Picture') }}</th>
+                        <th class="text-center">{{ __('Picture') }}</th>
                         <th>{{ __('Remarks') }}</th>
                         <th class="text-center">{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody id="serviceRecords-table-body" class="text-muted small">
-                   
+                    {!!$serviceRecords_table!!}
                 </tbody>
             </table>
         </div>
@@ -72,7 +78,7 @@
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="itemDistributions_modal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="serviceRecords_modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
 

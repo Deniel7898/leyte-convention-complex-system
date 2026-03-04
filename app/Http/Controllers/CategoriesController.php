@@ -11,11 +11,14 @@ use Illuminate\Pagination\Paginator;
 class CategoriesController extends Controller
 {
     /**
-     * Helper: Get paginated categories table
+     * Helper: Get paginated categories table with items count
      */
     private function getCategoriesTable($perPage = 10)
     {
-        $categories = Category::paginate($perPage);
+        // Eager load items count for performance
+        $categories = Category::withCount(['inventoryConsumables', 'inventoryNonConsumables'])->paginate(10);
+
+        // Render the table or cards partial with this data
         return view('reference.categories.table', compact('categories'))->render();
     }
 
@@ -24,11 +27,12 @@ class CategoriesController extends Controller
      */
     public function index()
     {
-        $categories = Category::paginate(10);
+        // Eager load items count here as well
+       $categories = Category::withCount(['inventoryConsumables', 'inventoryNonConsumables'])->paginate(10);
 
         return view('reference.categories.index', [
             'categories' => $categories,
-            'categories_table' => view('reference.categories.table', compact('categories'))->render()
+            'categories_table' => view('reference.categories.table', compact('categories'))->render(),
         ]);
     }
 

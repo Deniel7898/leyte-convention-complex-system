@@ -62,7 +62,7 @@
             <!-- Type -->
             @if(!isset($inventory))
             <div class="col-md-6 mb-3">
-                <label for="inventory-type" class="form-label">Type</label>
+                <label for="inventory-type" class="form-label">Item Type</label>
                 <select class="form-select" id="inventory-type" name="type" required>
                     <option value="">Select type</option>
                     <option value="0" {{ (isset($inventory) && $inventory->item->type == 0) ? 'selected' : '' }}>Consumable</option>
@@ -129,7 +129,7 @@
         <!-- Simple Picture Upload -->
         <div class="mb-3">
             @if(!isset($inventory))
-            <label class="form-label">Inventory Picture</label>
+            <label class="form-label">Item Picture</label>
             <div class="border rounded p-3 text-center"
                 id="picture-dropzone"
                 style="cursor: pointer; min-height: 150px; display: flex; align-inventory: center; justify-content: center;">
