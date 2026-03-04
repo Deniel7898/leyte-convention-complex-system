@@ -77,7 +77,7 @@
                         <th>{{ __('Category') }}</th>
                         <th>{{ __('Status') }}</th>
                         <th>{{ __('Description') }}</th>
-                        <th>{{ __('Picture') }}</th>
+                        <th class="text-center">{{ __('Picture') }}</th>
                         <th class="text-center">{{ __('Actions') }}</th>
                     </tr>
                 </thead>

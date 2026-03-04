@@ -55,7 +55,7 @@
             <!-- Type -->
             @if(!isset($item))
             <div class="col-md-6 mb-3">
-                <label for="item-type" class="form-label">Type</label>
+                <label for="item-type" class="form-label">Item Type</label>
                 <select class="form-select" id="item-type" name="type" required>
                     <option value="">Select type</option>
                     <option value="0" {{ (isset($item) && $item->type == 0) ? 'selected' : '' }}>Consumable</option>

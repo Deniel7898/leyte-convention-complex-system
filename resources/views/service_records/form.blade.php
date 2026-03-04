@@ -17,7 +17,7 @@
             <div class="card shadow-sm border-0">
                 <div class="card-body p-0">
                     <div class="border rounded shadow-sm" style="max-height: 250px; overflow-y: auto; background-color: #f9f9f9;">
-                        <table class="table table-sm mb-0 align-middle text-center" id="unitsTable">
+                        <table class="table table-sm mb-0 align-middle text-center table-hover" id="unitsTable">
                             <thead class="table-light sticky-top">
                                 <tr>
                                     <th style="width:50px;">
@@ -29,6 +29,7 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                @if($nonConsumables->count() > 0)
                                 @foreach($nonConsumables as $nonConsumable)
                                 <tr>
                                     <td>
@@ -43,6 +44,13 @@
                                     <td>{{ $nonConsumable->qrCode->code ?? 'N/A' }}</td>
                                 </tr>
                                 @endforeach
+                                @else
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted text-danger">
+                                        {{ __('No non-consumable items found.') }}
+                                    </td>
+                                </tr>
+                                @endif
                             </tbody>
                         </table>
                     </div>
@@ -64,17 +72,28 @@
         </div>
         @endif
 
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="service_record-type" class="form-label">Service Type</label>
+                <select class="form-select" id="service_record-type" name="type" required>
+                    <option value="">Select type</option>
+                    <option value="0" {{ (isset($service_record) && $service_record->type == 0) || old('type') === '0' ? 'selected' : '' }}>Maintenance</option>
+                    <option value="1" {{ (isset($service_record) && $service_record->type == 1) || old('type') === '1' ? 'selected' : '' }}>Installation</option>
+                </select>
+            </div>
+
+            <!-- Schedule Date -->
+            <div class="col-md-6 mb-3">
+                <label for="schedule_date" class="form-label">Schedule Date</label>
+                <input type="date" class="form-control" id="schedule_date" name="schedule_date"
+                    value="{{ old('schedule_date', isset($service_record) ? \Carbon\Carbon::parse($service_record->schedule_date)->format('Y-m-d') : '') }}" required>
+            </div>
+        </div>
+
         <!-- Description -->
         <div class="mb-3">
             <label for="description" class="form-label">Description</label>
             <textarea class="form-control" id="description" name="description" rows="3" required>{{ old('description', $service_record->description ?? '') }}</textarea>
-        </div>
-
-        <!-- Schedule Date -->
-        <div class="mb-3">
-            <label for="schedule_date" class="form-label">Schedule Date</label>
-            <input type="date" class="form-control" id="schedule_date" name="schedule_date"
-                value="{{ old('schedule_date', isset($service_record) ? \Carbon\Carbon::parse($service_record->schedule_date)->format('Y-m-d') : '') }}" required>
         </div>
 
         <!-- Person in Charge -->
@@ -84,13 +103,32 @@
                 value="{{ old('incharge_person', $service_record->encharge_person ?? '') }}" required>
         </div>
 
-        <!-- Picture Upload -->
+        <!-- Simple Picture Upload -->
         <div class="mb-3">
-            <label for="picture" class="form-label">Picture</label>
-            <input type="file" class="form-control" id="picture" name="picture" accept="image/*">
-            @if(isset($service_record) && $service_record->picture)
-            <img src="{{ asset('storage/' . $service_record->picture) }}" alt="Current Picture" class="img-thumbnail mt-2" width="150">
-            @endif
+            <label class="form-label">Item Picture</label>
+            <div class="border rounded p-3 text-center"
+                id="service_record-dropzone"
+                style="cursor: pointer; min-height: 150px; display: flex; align-items: center; justify-content: center;">
+
+                <!-- Fixed ID to match JS -->
+                <input type="file"
+                    id="service_record-picture"
+                    name="picture"
+                    accept="image/*"
+                    onchange="previewPicture(event)"
+                    style="display:none;">
+
+                <img id="picture-preview"
+                    src="{{ isset($service_record) && $service_record->picture ? asset('storage/' . $service_record->picture) : '' }}"
+                    class="img-fluid rounded"
+                    style="max-height: 120px; {{ isset($service_record) && $service_record->picture ? '' : 'display:none;' }}">
+
+                <div id="picture-placeholder"
+                    class="text-muted"
+                    style="{{ isset($service_record) && $service_record->picture ? 'display:none;' : '' }}">
+                    Click or drag to upload picture
+                </div>
+            </div>
         </div>
 
         <!-- Hidden input for item ID -->
@@ -103,6 +141,48 @@
     </div>
 </form>
 
+
+<script>
+    (function() {
+        const dropzone = document.getElementById('service_record-dropzone');
+        const inputFile = document.getElementById('service_record-picture'); // corrected ID
+        const preview = document.getElementById('picture-preview');
+        const placeholder = document.getElementById('picture-placeholder');
+
+        if (!dropzone || !inputFile) return;
+
+        // Click opens file dialog
+        dropzone.addEventListener('click', () => inputFile.click());
+
+        // Drag & Drop
+        dropzone.addEventListener('dragover', e => e.preventDefault());
+        dropzone.addEventListener('drop', e => {
+            e.preventDefault();
+            if (e.dataTransfer.files.length > 0) {
+                inputFile.files = e.dataTransfer.files;
+                previewFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        // Preview function
+        function previewFile(file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                placeholder.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Input change event
+        inputFile.addEventListener('change', () => {
+            if (inputFile.files.length > 0) {
+                previewFile(inputFile.files[0]);
+            }
+        });
+    })();
+</script>
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {

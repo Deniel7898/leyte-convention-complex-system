@@ -95,13 +95,13 @@ return new class extends Migration
         // Service Records
         Schema::create('service_records', function (Blueprint $table) {
             $table->id();
+            $table->tinyInteger('type')->default(0);
             $table->text('description')->nullable();
             $table->string('quantity');
             $table->date('schedule_date')->nullable();
             $table->date('completed_date')->nullable();
             $table->text('encharge_person')->nullable();
             $table->string('picture')->nullable();
-            $table->text('remarks')->nullable();
             $table->foreignUuid('inventory_non_consumable_id')->nullable()->constrained('inventory_non_consumable')->onDelete('set null');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');

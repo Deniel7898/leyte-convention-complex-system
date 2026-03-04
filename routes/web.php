@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ItemsController;
 use App\Http\Controllers\InventoriesController;
 use App\Http\Controllers\ItemDistributionsController;
+use App\Http\Controllers\Service_RecordsController;
 use App\Http\Controllers\ViewItemController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Purchase_RequestsController;
@@ -69,6 +70,7 @@ Route::post('/item-distributions/{id}/return', [ItemDistributionsController::cla
 // Item Service Records Routes 
 --------------------------------------------------------------------------*/
 Route::resource('service_records', App\Http\Controllers\Service_RecordsController::class)->middleware('auth'); // includes all CRUD routes for item service records
+Route::post('/service-records/{id}/complete', [Service_RecordsController::class, 'complete'])->name('service_records.complete');
 
 /*--------------------------------------------------------------------------
 // References Routes 
