@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="icon" type="image/jpg" href="{{ asset('images/logo/leyte_province_logo.jpg') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/logo/leyte_province_logo.jpg') }}">
     <title>{{ config('app.name', 'Laravel') }}</title>
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -184,7 +184,7 @@
     <script src="{{ asset('js/main.js') }}"></script>
 
     <script src="{{ asset('js/custom/'.request()->segment(1).'.js') }}"></script>
-    
+
     <!-- Sweet alert CDN -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
