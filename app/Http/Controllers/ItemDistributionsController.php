@@ -11,6 +11,7 @@ use App\Models\ItemDistribution;
 use App\Models\QR_Code;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ItemDistributionsController extends Controller
 {
@@ -253,7 +254,7 @@ class ItemDistributionsController extends Controller
         $categories = Category::all();
 
         $itemDistributions_table = view('item_distributions.table', compact('itemDistributions'))->render();
-        return view('item_distributions.index', compact('itemDistributions_table', 'categories'));
+        return view('item_distributions.index', compact('itemDistributions_table', 'categories', 'itemDistributions'));
     }
 
     /**
@@ -283,45 +284,47 @@ class ItemDistributionsController extends Controller
             'inventory_ids.*' => 'string',
             'status' => 'required|string|max:255', // use the form value
             'description' => 'nullable|string',
-            'remarks' => 'nullable|string',
             'distribution_date' => 'nullable|date',
             'due_date' => 'nullable|date',
         ]);
 
         DB::transaction(function () use ($request) {
 
+            $totalItems = count($request->inventory_ids); // total items in this transaction
+            $transactionId = Str::uuid(); // new transaction id for this batch
+
             foreach ($request->inventory_ids as $inventoryId) {
 
-                // Check if it's a consumable
+                // Check if consumable
                 $consumable = InventoryConsumable::find($inventoryId);
                 if ($consumable) {
                     ItemDistribution::create([
                         'type' => $request->type,
                         'description' => $request->description,
-                        'remarks' => $request->remarks,
-                        'quantity' => 1,
+                        'quantity' => $totalItems, // <-- dynamic quantity
                         'distribution_date' => $request->distribution_date ?? now(),
                         'due_date' => $request->due_date,
-                        'status' => $request->status,                 // <-- from form
+                        'status' => $request->status,
                         'inventory_consumable_id' => $consumable->id,
-                        'created_by' => auth()->id(),                // <-- auth helper
+                        'transaction_id' => $transactionId, // <-- assign transaction id
+                        'created_by' => auth()->id(),
                         'updated_by' => auth()->id(),
                     ]);
-                    continue; // skip to next inventory ID
+                    continue;
                 }
 
-                // Otherwise, non-consumable
+                // Non-consumable
                 $nonConsumable = InventoryNonConsumable::find($inventoryId);
                 if ($nonConsumable) {
                     ItemDistribution::create([
                         'type' => $request->type,
                         'description' => $request->description,
-                        'remarks' => $request->remarks,
-                        'quantity' => 1,
+                        'quantity' => $totalItems, // <-- dynamic quantity
                         'distribution_date' => $request->distribution_date ?? now(),
                         'due_date' => $request->due_date,
-                        'status' => $request->status,                // <-- from form
+                        'status' => $request->status,
                         'inventory_non_consumable_id' => $nonConsumable->id,
+                        'transaction_id' => $transactionId, // <-- assign transaction id
                         'created_by' => auth()->id(),
                         'updated_by' => auth()->id(),
                     ]);
@@ -379,7 +382,6 @@ class ItemDistributionsController extends Controller
             'inventory_ids.*' => 'string',
             'status' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'remarks' => 'nullable|string',
             'distribution_date' => 'nullable|date',
             'due_date' => 'nullable|date',
         ]);
@@ -396,7 +398,6 @@ class ItemDistributionsController extends Controller
             $existingDistribution->update([
                 'type' => $request->type,
                 'description' => $request->description,
-                'remarks' => $request->remarks,
                 'quantity' => 1,
                 'distribution_date' => $request->distribution_date ?? now(),
                 'due_date' => $request->due_date,

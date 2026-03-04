@@ -76,14 +76,14 @@ return new class extends Migration
         // Item Distributions
         Schema::create('item_distributions', function (Blueprint $table) {
             $table->id();
+            $table->uuid('transaction_id');
             $table->tinyInteger('type')->default(0);
             $table->text('description')->nullable();
             $table->string('quantity');
             $table->date('distribution_date')->nullable();
             $table->date('due_date')->nullable();
             $table->date('returned_date')->nullable();
-            $table->enum('status', ['pending', 'distributed', 'partial', 'borrowed', 'returned', 'received'])->default('distributed');
-            $table->text('remarks')->nullable();
+            $table->enum('status', ['pending', 'distributed', 'partial', 'borrowed', 'received'])->default('distributed');
             $table->foreignUuid('inventory_consumable_id')->nullable()->constrained('inventory_consumable')->onDelete('set null');
             $table->foreignUuid('inventory_non_consumable_id')->nullable()->constrained('inventory_non_consumable')->onDelete('set null');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
