@@ -45,13 +45,14 @@ class UnitsController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'abbreviation' => 'nullable|string',
             'description' => 'nullable|string',
         ]);
 
         $validated['created_by'] = Auth::id();
         $validated['updated_by'] = Auth::id();
 
-        units::create($validated);
+        Units::create($validated);
 
         return $this->getUnitsTable();
     }
@@ -80,6 +81,7 @@ class UnitsController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'abbreviation' => 'nullable|string',
             'description' => 'nullable|string',
         ]);
 
