@@ -4,6 +4,11 @@
      <td>{{ $categories->firstItem() + $loop->index }}</td>
      <td>{{ $category->name }}</td>
      <td>{{ $category->description }}</td>
+     <td>
+         {{ $category->created_at && $category->created_at != '--'
+            ? \Carbon\Carbon::parse($category->created_at)->format('M d, Y')
+                : '--' }}
+     </td>
      <td class="text-center">
          <button type="button" title="Edit Item" class="btn p-0 border-0 bg-transparent text-gray me-2 edit" data-url="{{route('categories.edit', ['category' => $category->id])}}">
              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-pen w-4 h-4">

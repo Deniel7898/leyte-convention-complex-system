@@ -80,6 +80,7 @@
                         <th>{{ __('Category') }}</th>
                         <th>{{ __('Status') }}</th>
                         <th>{{ __('QR Code') }}</th>
+                        <th class="text-center">{{ __('Qr Picture') }}</th>
                         <th>{{ __('Warranty Expires') }}</th>
                         <th class="text-center">{{ __('Actions') }}</th>
                     </tr>
@@ -88,7 +89,7 @@
                     {!! $inventories_table !!}
                 </tbody>
             </table>
-            <div class="flex justify-center mb-3 ms-3">
+            <div id="inventory-pagination" class="flex justify-center mb-3 ms-3">
                 {{ $inventories->links() }}
             </div>
         </div>

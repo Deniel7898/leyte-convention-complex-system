@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ItemsController;
 use App\Http\Controllers\InventoriesController;
 use App\Http\Controllers\ItemDistributionsController;
+use App\Http\Controllers\Service_RecordsController;
 use App\Http\Controllers\ViewItemController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Purchase_RequestsController;
@@ -21,7 +22,7 @@ use App\Http\Controllers\QR_CodeController;
 |
 */
 
-Route::get('/', function () {return view('welcome');});
+Route::get('/', function () {return view('/auth.login');});
 
 Auth::routes();
 
@@ -63,11 +64,13 @@ Route::delete('/viewItem/{inventory}', [ViewItemController::class, 'destroy'])->
 // Item Distributions Routes 
 --------------------------------------------------------------------------*/
 Route::resource('item_distributions', App\Http\Controllers\ItemDistributionsController::class)->middleware('auth'); // includes all CRUD routes for item distributions
+Route::post('/item-distributions/{id}/return', [ItemDistributionsController::class, 'return'])->name('itemDistribution.return');
 
 /*--------------------------------------------------------------------------
 // Item Service Records Routes 
 --------------------------------------------------------------------------*/
-Route::resource('service_records', App\Http\Controllers\Service_RecordsController::class)->middleware('auth'); // includes all CRUD routes for item distributions
+Route::resource('service_records', App\Http\Controllers\Service_RecordsController::class)->middleware('auth'); // includes all CRUD routes for item service records
+Route::post('/service-records/{id}/complete', [Service_RecordsController::class, 'complete'])->name('service_records.complete');
 
 /*--------------------------------------------------------------------------
 // References Routes 

@@ -46,7 +46,7 @@
     <td>
         <p>{{ $item->description ?? '--' }}</p>
     </td>
-    <td>
+    <td style="padding:0; margin:0; vertical-align:top; text-align:center">
         @if($item->picture)
         <img src="{{ asset('storage/' . $item->picture) }}" alt="{{ $item->name }}" width="50">
         @else

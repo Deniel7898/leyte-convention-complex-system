@@ -15,6 +15,10 @@
             <input type="text" class="form-control" id="unit-name" name="name" value="{{ isset($unit) ? $unit->name : '' }}">
         </div>
         <div class="mb-3">
+            <label for="unit-abbreviation" class="col-form-label">Abbreviation: (optional)</label>
+            <input type="text" class="form-control" id="unit-abbreviation" name="abbreviation" value="{{ isset($unit) ? $unit->abbreviation : '' }}">
+        </div>
+        <div class="mb-3">
             <label for="unit-description" class="col-form-label">Description: (optional)</label>
             <textarea class="form-control" id="unit-description" name="description">{{ isset($unit) ? $unit->description : '' }}</textarea>
         </div>
