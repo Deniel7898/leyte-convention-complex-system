@@ -63,11 +63,12 @@ Route::delete('/viewItem/{inventory}', [ViewItemController::class, 'destroy'])->
 // Item Distributions Routes 
 --------------------------------------------------------------------------*/
 Route::resource('item_distributions', App\Http\Controllers\ItemDistributionsController::class)->middleware('auth'); // includes all CRUD routes for item distributions
+Route::post('/item-distributions/{id}/return', [ItemDistributionsController::class, 'return'])->name('itemDistribution.return');
 
 /*--------------------------------------------------------------------------
 // Item Service Records Routes 
 --------------------------------------------------------------------------*/
-Route::resource('service_records', App\Http\Controllers\Service_RecordsController::class)->middleware('auth'); // includes all CRUD routes for item distributions
+Route::resource('service_records', App\Http\Controllers\Service_RecordsController::class)->middleware('auth'); // includes all CRUD routes for item service records
 
 /*--------------------------------------------------------------------------
 // References Routes 
