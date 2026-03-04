@@ -45,15 +45,25 @@ class DatabaseSeeder extends Seeder
         // ----------------------
         // UNITS
         // ----------------------
-        $units = ['Piece', 'Pack', 'Box', 'Set', 'Liter', 'Kilogram'];
+        $units = [
+            ['name' => 'Piece', 'abbr' => 'pc'],
+            ['name' => 'Pack', 'abbr' => 'pk'],
+            ['name' => 'Box', 'abbr' => 'bx'],
+            ['name' => 'Set', 'abbr' => 'st'],
+            ['name' => 'Liter', 'abbr' => 'L'],
+            ['name' => 'Kilogram', 'abbr' => 'kg'],
+        ];
 
-        foreach ($units as $unitName) {
+        foreach ($units as $unit) {
             Units::updateOrCreate(
-                ['name' => $unitName],
-                ['description' => $unitName . ' unit']
+                ['name' => $unit['name']],
+                [
+                    'description' => $unit['name'] . ' unit',
+                    'abbreviation' => $unit['abbr'],
+                ]
             );
         }
-
+        
         // ----------------------
         // CATEGORIES
         // ----------------------
