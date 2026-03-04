@@ -58,14 +58,6 @@
         font-size: 0.85rem;
     }
 
-    .stat-change.up {
-        color: #198754;
-    }
-
-    .stat-change.down {
-        color: #dc3545;
-    }
-
     .stats-card .stat-icon {
         width: 50px;
         height: 50px;
@@ -226,9 +218,8 @@
             <div>
                 <div class="stat-title">Total Items</div>
                 <div class="stat-number">1,234</div>
-                <div class="stat-change up">+5.2% vs last month</div>
             </div>
-            <a href="#" class="stat-icon"><i class="bi bi-box-seam"></i></a>
+            <a href="{{ route('inventory.index') }}" class="stat-icon"><i class="bi bi-box-seam"></i></a>
         </div>
     </div>
 
@@ -237,9 +228,8 @@
             <div>
                 <div class="stat-title">Available</div>
                 <div class="stat-number">856</div>
-                <div class="stat-change up">+3.8% vs last month</div>
             </div>
-            <a href="#" class="stat-icon"><i class="bi bi-check-circle"></i></a>
+            <a href="{{ route('items.index') }}" class="stat-icon"><i class="bi bi-check-circle"></i></a>
         </div>
     </div>
 
@@ -248,9 +238,8 @@
             <div>
                 <div class="stat-title">Items Service Required</div>
                 <div class="stat-number">45</div>
-                <div class="stat-change up">+2.1% vs last month</div>
             </div>
-            <a href="#" class="stat-icon"><i class="bi bi-tools"></i></a>
+            <a href="{{ route('service_records.index') }}" class="stat-icon"><i class="bi bi-tools"></i></a>
         </div>
     </div>
 
@@ -259,9 +248,8 @@
             <div>
                 <div class="stat-title">To Purchase</div>
                 <div class="stat-number">23</div>
-                <div class="stat-change down">-1.2% vs last month</div>
             </div>
-            <a href="#" class="stat-icon"><i class="bi bi-cart-dash"></i></a>
+            <a href="{{ route('purchase_request.index') }}" class="stat-icon"><i class="bi bi-cart-dash"></i></a>
         </div>
     </div>
 
@@ -278,51 +266,45 @@
 
             <div class="row g-3">
                 <div class="col-lg-4 col-md-6">
-                    <div class="quick-action-box primary"
-                        onclick="handleQuickAction('add')">
+                    <a href="{{ route('items.index') }}" class="quick-action-box primary text-decoration-none">
                         <div class="icon text-primary">
                             <i class="bi bi-box-seam"></i>
                         </div>
                         <div>
-                            <div class="action-title">Add New Item</div>
+                            <div class="action-title text-primary">Add New Item</div>
                             <div class="action-desc">Record new inventory</div>
                         </div>
-                    </div>
+                    </a>
                 </div>
 
                 <div class="col-lg-4 col-md-6">
-                    <div class="quick-action-box success"
-                        onclick="handleQuickAction('distribution')">
+                    <a href="{{ route('item_distributions.index') }}" class="quick-action-box success text-decoration-none">
                         <div class="icon text-success">
                             <i class="bi bi-send"></i>
                         </div>
                         <div>
-                            <div class="action-title">Log Distribution</div>
+                            <div class="action-title text-success">Log Distribution</div>
                             <div class="action-desc">Track outgoing supplies</div>
                         </div>
-                    </div>
+                    </a>
                 </div>
 
                 <div class="col-lg-4 col-md-6">
-                    <div class="quick-action-box warning"
-                        onclick="handleQuickAction('service')">
+                    <a href="{{ route('service_records.index') }}" class="quick-action-box warning text-decoration-none">
                         <div class="icon text-warning">
                             <i class="bi bi-tools"></i>
                         </div>
                         <div>
-                            <div class="action-title">Log Item Service</div>
-                            <div class="action-desc">
-                                Track installation & maintenance
-                            </div>
+                            <div class="action-title text-warning">Log Item Service</div>
+                            <div class="action-desc">Track installation & maintenance</div>
                         </div>
-                    </div>
+                    </a>
                 </div>
             </div>
 
         </div>
     </div>
 </div>
-
 
 <!-- =========================
      Recent Activity & System Status
