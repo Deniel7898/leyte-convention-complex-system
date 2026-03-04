@@ -17,6 +17,14 @@
             </div>
         </div>
 
+         <div class="col-auto" style="min-width: 140px;">
+            <select id="type-filter" class="form-select">
+                <option>All Service Type</option>
+                <option>Maintenance</option>
+                <option>Installation</option>
+            </select>
+        </div>
+
         <div class="col-auto" style="min-width: 140px;">
             <select id="status-filter" class="form-select">
                 <option>All Status</option>
@@ -49,14 +57,14 @@
                         <th>{{ __('Item') }}</th>
                         <th>{{ __('Unit') }}</th>
                         <th>{{ __('Category') }}</th>
+                        <th>{{ __('Service Type') }}</th>
                         <th>{{ __('QR Code') }}</th>
                         <th>{{ __('Qty') }}</th>
-                        <th>{{ __('Status') }}</th>
                         <th>{{ __('Description') }}</th>
                         <th>{{ __('Schedule Date') }}</th>
                         <th>{{ __('Completed Date') }}</th>
                         <th>{{ __('Encharge Person') }}</th>
-                        <th>{{ __('Picture') }}</th>
+                        <th class="text-center">{{ __('Picture') }}</th>
                         <th>{{ __('Remarks') }}</th>
                         <th class="text-center">{{ __('Actions') }}</th>
                     </tr>

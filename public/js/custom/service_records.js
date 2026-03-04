@@ -164,4 +164,71 @@ $(function () {
 
     // // Trigger search when any dropdown changes
     // $('#type-filter, #status-filter, #categories-filter').on('change', performSearch);
+
+    // complete button click
+    $(document).on('click', '.complete-service', function () {
+
+        let url = $(this).data('url');
+        let itemName = $(this).data('item');
+        let scheduleDate = $(this).data('schedule');
+        let person = $(this).data('person');
+        let serviceTypeValue = $(this).data('type');
+
+        let serviceType = serviceTypeValue == 0
+            ? 'Maintenance'
+            : 'Installation';
+
+        Swal.fire({
+            title: "Mark as completed?",
+            html: `
+            <div style="text-align:left">
+                <p><strong>Item:</strong> ${itemName}</p>
+                <p><strong>Service Type:</strong> ${serviceType}</p>
+                <p><strong>Schedule Date:</strong> ${scheduleDate}</p>
+                <p><strong>In-Charge:</strong> ${person}</p>
+            </div>
+        `,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#198754",
+            cancelButtonColor: "#6c757d",
+            confirmButtonText: "Yes, complete it",
+            width: '400px',
+        }).then((result) => {
+
+            if (result.isConfirmed) {
+
+                $('#loading-spinner').addClass('active');
+
+                $.post(url, {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                })
+                    .done(function (response) {
+
+                        $('#serviceRecords_table tbody').html(response.html);
+
+                        Swal.fire({
+                            icon: "success",
+                            title: "Completed!",
+                            text: response.message,
+                            timer: 1200,
+                            showConfirmButton: false,
+                            width: '400px',
+                            padding: '0.8rem'
+                        });
+
+                    })
+                    .fail(function (xhr) {
+                        Swal.fire("Error!", "Something went wrong.", "error");
+                        console.log(xhr.responseText);
+                    })
+                    .always(function () {
+                        $('#loading-spinner').removeClass('active');
+                    });
+
+            }
+
+        });
+
+    });
 })

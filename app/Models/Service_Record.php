@@ -12,13 +12,13 @@ class Service_Record extends Model
     use SoftDeletes;
 
     protected $fillable = [
+        'type',
         'description',
         'quantity',
         'schedule_date',
         'completed_date',
         'encharge_person',
         'picture',
-        'remarks',
         'inventory_non_consumable_id',
         'created_by',
         'updated_by',
