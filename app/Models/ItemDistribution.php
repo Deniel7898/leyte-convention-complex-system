@@ -12,6 +12,7 @@ class ItemDistribution extends Model
     use SoftDeletes;
 
     protected $fillable = [
+        'transaction_id',
         'item_id',
         'type',
         'description',
@@ -20,7 +21,6 @@ class ItemDistribution extends Model
         'due_date',
         'returned_date',
         'status',
-        'remarks',
         'inventory_consumable_id',
         'inventory_non_consumable_id',
         'created_by',

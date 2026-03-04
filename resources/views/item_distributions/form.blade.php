@@ -63,8 +63,8 @@
             @else
             <div class="col-md-6 mb-3">
                 <label for="itemDistribution-type" class="form-label">Distribution Type</label>
-                <input type="text" class="form-control" value="{{ $selectedItem->type == 0 ? 'Distribution' : 'Borrow' }}" readonly>
-                <input type="hidden" name="type" value="{{ $selectedItem->type }}">
+                <input type="text" class="form-control" value="{{ $itemDistribution->type == 0 ? 'Distribution' : 'Borrow' }}" readonly>
+                <input type="hidden" name="type" value="{{ $itemDistribution->type }}">
             </div>
             @endif
         </div>
@@ -165,15 +165,6 @@
                 name="description"
                 rows="2"
                 placeholder="Optional description for this distribution">{{ old('description', $itemDistribution->description ?? '') }}</textarea>
-        </div>
-
-        <!-- Remarks -->
-        <div class="mb-3">
-            <label class="form-label">Remarks: (optional)</label>
-            <textarea class="form-control"
-                name="remarks"
-                rows="2"
-                placeholder="Optional Remarks for this distribution">{{ old('remarks', $itemDistribution->remarks ?? '') }}</textarea>
         </div>
     </div>
 
