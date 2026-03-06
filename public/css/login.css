@@ -1,0 +1,134 @@
+ body,
+ html {
+     margin: 0;
+     padding: 0;
+     height: 100%;
+     font-family: Arial, sans-serif;
+ }
+
+ /* Centered login card */
+ .login-card {
+     position: relative;
+     width: 550px;
+     max-width: 90%;
+     padding: 40px 30px;
+     border-radius: 16px;
+     background: rgba(255, 255, 255, 0.25);
+     backdrop-filter: blur(10px);
+     -webkit-backdrop-filter: blur(10px);
+     border: 1px solid rgba(255, 255, 255, 0.3);
+     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+     text-align: center;
+     z-index: 1;
+ }
+
+ /* Logo */
+ .login-card .logo img {
+     width: 120px;
+     border-radius: 50%;
+     margin-bottom: 10px;
+     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+     background: rgba(255, 255, 255, 0.3);
+     margin-top: -1rem;
+ }
+
+ /* Title & subtitle */
+ .login-card .title {
+     font-size: 28px;
+     font-weight: 700;
+     margin-bottom: 8px;
+     text-shadow: 1px 1px 4px rgba(255, 255, 255, 1);
+ }
+
+ .login-card .subtitle {
+     font-size: 14px;
+     margin-bottom: 25px;
+     color: rgba(0, 0, 0, 0.7);
+ }
+
+ /* Form inputs */
+ .login-card .form-group {
+     margin-bottom: 20px;
+     text-align: left;
+ }
+
+ .login-card .form-group label {
+     font-weight: 600;
+     font-size: 14px;
+     margin-bottom: 4px;
+     display: block;
+     color: #fff;
+     margin-top: -0.6rem;
+ }
+
+ .login-card .form-group input {
+     width: 100%;
+     padding: 12px;
+     border-radius: 10px;
+     border: 1px solid rgba(255, 255, 255, 0.3);
+     background: rgba(255, 255, 255, 0.2);
+     color: #fff;
+     font-size: 14px;
+     outline: none;
+     transition: 0.3s;
+ }
+
+ .login-card .form-group input:focus {
+     border-color: rgba(255, 255, 255, 0.8);
+     /* white-ish border on focus */
+     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+     /* subtle white glow */
+     outline: none;
+ }
+
+ .login-card .form-group input::placeholder {
+     color: rgba(255, 255, 255, 0.6);
+     opacity: 1;
+ }
+
+ /* Submit button */
+ .login-card .login-btn {
+     width: 100%;
+     padding: 12px;
+     border: none;
+     border-radius: 10px;
+     background: rgba(255, 255, 255, 0.55);
+     color: #555;
+     font-weight: 600;
+     cursor: pointer;
+     transition: 0.3s;
+     margin-top: 0.7rem;
+ }
+
+ .login-card .login-btn:hover {
+     background: hsl(237, 34%, 26%);
+     color: #fff;
+ }
+
+ .login-card .forgot-text {
+     margin-top: 20px;
+     font-size: 14px;
+     text-align: center;
+ }
+
+ .login-card .forgot-text a {
+     color: hsl(237, 34%, 26%);
+     font-weight: 600;
+     text-decoration: underline;
+ }
+
+ .login-card .error {
+     color: #ff6b6b;
+     font-size: 12px;
+     margin-top: 4px;
+     display: block;
+ }
+
+ .container-center {
+     min-height: 100vh;
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     position: relative;
+     z-index: 1;
+ }

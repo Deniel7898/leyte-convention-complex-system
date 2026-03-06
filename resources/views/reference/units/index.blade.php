@@ -1,0 +1,69 @@
+@extends('layouts.app')
+
+@section('page_title', 'Reference Data')
+
+@section('content')
+<!-- ========== title-wrapper start ========== -->
+<div class="card mb-3 shadow-sm border-0 card-styles mt-30">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center p-1">
+            <!-- Left: Page Title -->
+            <div class="title">
+                <h3 class="mb-1 fw-700">Units of Measurements</h3>
+                <p class="text-muted mb-0 text-sm">
+                    This is the reference data used for item measurements in inventory.
+                </p>
+            </div>
+
+            <!-- Right: Add Button -->
+            <button class="btn text-white add-unit"
+                title="Add Unit"
+                data-url="{{ route('units.create') }}"
+                style="background-color: hsl(237, 34%, 30%);"
+                onmouseover="this.style.backgroundColor='hsl(237, 34%, 40%)'"
+                onmouseout="this.style.backgroundColor='hsl(237, 34%, 30%)'">
+                + Add Unit
+            </button>
+        </div>
+    </div>
+</div>
+<!-- ========== title-wrapper end ========== -->
+
+<div class="card shadow-sm border-0 rounded-4 card-styles">
+    <div class="card-body p-0">
+        <div class="table-responsive rounded-4">
+            <table class="table align-middle table-hover" id="units_table">
+                <thead class="bg-light">
+                    <tr class="text-uppercase text-muted small">
+                        <th>{{ __('#') }}</th>
+                        <th>{{ __('Name') }}</th>
+                        <th>{{ __('Abbreviation') }}</th>
+                        <th>{{ __('Description') }}</th>
+                        <th>{{ __('Created Date') }}</th>
+                        <th class="text-center">{{ __('Actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody id="units-table-body" class="text-muted small">
+                    {!!$units_table!!}
+                </tbody>
+            </table>
+            <div class="flex justify-center mb-3 ms-3">
+                {{ $units->links() }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="units_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+        </div>
+    </div>
+</div>
+<!-- Loading Spinner -->
+<div id="loading-spinner">
+    <div class="spinner"></div>
+</div>
+@endsection

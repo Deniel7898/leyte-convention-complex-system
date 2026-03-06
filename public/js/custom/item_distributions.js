@@ -1,0 +1,231 @@
+$(function () {
+
+    //add button click
+    $(document).on('click', '.add-itemDistribution', function () {
+        $('#loading-spinner').addClass('active');
+
+        // When opening modal for add
+        $('#itemDistributions_modal').data('action', 'add');
+
+        url = $(this).data('url');
+        $.ajax({
+            url: url,
+            type: 'GET',
+            success: function (response) {
+                $('#itemDistributions_modal .modal-content').html(response);
+                $('#loading-spinner').removeClass('active'); // hide
+                $('#itemDistributions_modal').modal('show');
+            }
+        })
+    })
+
+    //edit button click
+    $(document).on('click', '.edit', function () {
+        $('#loading-spinner').addClass('active');
+
+        // When opening modal for update
+        $('#itemDistributions_modal').data('action', 'update');
+
+        url = $(this).data('url');
+        $.ajax({
+            url: url,
+            type: 'GET',
+            success: function (response) {
+                $('#itemDistributions_modal .modal-content').html(response);
+                $('#loading-spinner').removeClass('active'); // hide
+                $('#itemDistributions_modal').modal('show');
+            }
+        })
+    })
+
+    //delete button click
+    $(document).on('click', '.delete', function () {
+        let url = $(this).data('url');
+
+        //Sweet ALert
+        Swal.fire({
+            title: "Are you sure?",
+            text: "This action cannot be undone!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#6c757d",
+            confirmButtonText: "Yes, delete",
+            width: '400px',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#loading-spinner').addClass('active');
+
+                $.post(url, {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    _method: 'DELETE'
+                })
+                    .done(function (response) {
+                        $('#itemDistributions_table tbody').html(response.html);
+
+                        Swal.fire({
+                            title: "Deleted!",
+                            text: "The record has been removed.",
+                            icon: "success",
+                            timer: 1000,
+                            showConfirmButton: false,
+                            width: '400px',
+                            padding: '0.8rem'
+                        });
+                    })
+                    .fail(function (xhr) {
+                        Swal.fire("Error!", "Something went wrong.", "error");
+                        console.log(xhr.responseText);
+                    })
+                    .always(function () {
+                        $('#loading-spinner').removeClass('active');
+                    });
+            }
+        });
+    });
+
+    //form submit
+    $(document).on('submit', 'form', function (e) {
+        e.preventDefault();
+        $('#loading-spinner').addClass('active');
+
+        var form = $(this);
+        var url = form.attr('action');
+        var method = form.attr('method');
+        var data = new FormData(this);
+
+        $.ajax({
+            url: url,
+            type: method,
+            data: data,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+
+                $('#itemDistributions_table tbody').html(response.html);
+
+                $('#itemDistributions_modal').modal('hide');
+
+                //Reset form fields
+                form[0].reset();
+
+                $('#loading-spinner').removeClass('active');
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: response.message,
+                    showConfirmButton: false,
+                    timer: 1500,
+                    width: '400px',
+                    padding: '0.8rem'
+                });
+            },
+            error: function (xhr) {
+                console.log(xhr.responseJSON);
+                $('#loading-spinner').removeClass('active');
+            }
+        });
+    });
+
+    $(function () {
+        function performSearch() {
+            let query = $('#itemDistribution-search').val();
+            let type = $('#type-filter').val();          // dropdown for type
+            let status = $('#status-filter').val(); // dropdown for status
+            let category = $('#categories-filter').val(); // dropdown for category
+            let distType = $('#dist-type-filter').val(); // gets "Distributed" or "Borrowed"
+
+            $.ajax({
+                url: window.liveSearchUrl, // e.g., "/items/live-search"
+                type: 'GET',
+                data: {
+                    query: query,
+                    type: type,
+                    status: status,
+                    category: category,
+                    dist_type: distType,
+                },
+                success: function (response) {
+                    $('#itemDistributions-table-body').html(response);
+                },
+                error: function (xhr) {
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+
+        // Trigger search while typing
+        $('#itemDistribution-search').on('keyup', function () {
+            performSearch();
+        });
+
+        // Trigger search when any dropdown changes
+        $('#type-filter, #status-filter, #categories-filter, #dist-type-filter').on('change', performSearch);
+    });
+
+    $(document).on('click', '.return-item', function () {
+
+        let url = $(this).data('url');
+        let itemName = $(this).data('item');
+        let qrCode = $(this).data('qr');
+        let distTypeValue = $(this).data('type');
+        let status = $(this).data('status');
+        let description = $(this).data('description');
+
+        let serviceType = distTypeValue == 0 ? 'Distribution' : 'Borrow';
+
+        Swal.fire({
+            title: "Mark item as returned?",
+            html: `
+        <div style="text-align:left">
+            <p><strong>Item:</strong> ${itemName}</p>
+            <p><strong>Distribution Type:</strong> ${serviceType}</p>
+            <p><strong>QR Code:</strong> ${qrCode}</p>
+            <p><strong>Status:</strong> ${status}</p>
+            <p><strong>Description:</strong> ${description}</p>
+        </div>
+        `,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#0d6efd", // blue for return
+            cancelButtonColor: "#6c757d",
+            confirmButtonText: "Yes, return it",
+            width: '400px',
+        }).then((result) => {
+
+            if (result.isConfirmed) {
+
+                $('#loading-spinner').addClass('active');
+
+                $.post(url, {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                })
+                    .done(function (response) {
+                        // Update the table
+                        $('#itemDistributions_table tbody').html(response.html);
+
+                        Swal.fire({
+                            icon: "success",
+                            title: "Returned!",
+                            text: response.message || "Item successfully returned.",
+                            timer: 1500,
+                            showConfirmButton: false,
+                            width: '400px',
+                            padding: '0.8rem'
+                        });
+
+                    })
+                    .fail(function (xhr) {
+                        Swal.fire("Error!", "Something went wrong.", "error");
+                        console.error(xhr.responseText);
+                    })
+                    .always(function () {
+                        $('#loading-spinner').removeClass('active');
+                    });
+            }
+
+        });
+
+    });
+})
