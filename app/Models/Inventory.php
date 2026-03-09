@@ -6,15 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class InventoryConsumable extends Model
+class Inventory extends Model
 {
     use HasUuids, SoftDeletes;
 
-    protected $table = 'inventory_consumable';
+    protected $table = 'inventories';
 
     protected $fillable = [
         'received_date',
         'item_id',
+        'warranty_expires',
         'created_by',
         'updated_by',
     ];
@@ -31,12 +32,12 @@ class InventoryConsumable extends Model
 
     public function qrCode()
     {
-        return $this->hasOne(QR_Code::class, 'inventory_consumable_id');
+        return $this->hasOne(QR_Code::class, 'inventory_id');
     }
 
     public function itemDistributions()
     {
-        return $this->hasMany(ItemDistribution::class, 'inventory_consumable_id');
+        return $this->hasMany(ItemDistribution::class, 'inventory_id');
     }
 
     protected static function booted()

@@ -63,15 +63,15 @@ class DatabaseSeeder extends Seeder
                 ]
             );
         }
-        
+
         // ----------------------
         // CATEGORIES
         // ----------------------
         $categories = [
-            'Com Parts' => 'Computer parts and accessories',
-            'Disposable' => 'Single-use or consumable items',
-            'Tools' => 'Tools and equipment',
-            'Electric Mats' => 'Electrical mats and accessories'
+            'Disposable'    => 'Single-use or consumable items',
+            'Plumbing Mats' => 'Protective mats used in plumbing work',
+            'Tools'         => 'Tools and equipment',
+            'Electric Mats' => 'Electrical mats and accessories',
         ];
 
         foreach ($categories as $name => $description) {

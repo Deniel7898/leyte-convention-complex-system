@@ -23,14 +23,6 @@
         </div>
 
         <div class="col-auto" style="min-width: 140px;">
-            <select id="type-filter" class="form-select">
-                <option>All Type</option>
-                <option>Consumable</option>
-                <option>Non-Consumable</option>
-            </select>
-        </div>
-
-        <div class="col-auto" style="min-width: 140px;">
             <select id="categories-filter" class="form-select">
                 <option value="All">All Category</option>
                 @foreach($categories as $category)
@@ -74,14 +66,12 @@
                     <tr class="text-uppercase text-muted small">
                         <th>{{ __('#') }}</th>
                         <th>{{ __('Item') }}</th>
-                        <th>{{ __('Received Date') }}</th>
-                        <th>{{ __('Type') }}</th>
                         <th>{{ __('Unit') }}</th>
                         <th>{{ __('Category') }}</th>
+                        <th>{{ __('Received Date') }}</th>
                         <th>{{ __('Status') }}</th>
                         <th>{{ __('QR Code') }}</th>
                         <th class="text-center">{{ __('Qr Picture') }}</th>
-                        <th>{{ __('Warranty Expires') }}</th>
                         <th class="text-center">{{ __('Actions') }}</th>
                     </tr>
                 </thead>

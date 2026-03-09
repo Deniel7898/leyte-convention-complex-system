@@ -6,14 +6,19 @@ use Illuminate\Http\Request;
 use App\Models\Item;
 use App\Models\Units;
 use App\Models\Category;
-use App\Models\InventoryNonConsumable;
-use App\Models\InventoryConsumable;
+use App\Models\Inventory;
 use App\Models\QR_Code;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
+use BaconQrCode\Writer;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 
 class ViewItemController extends Controller
 {
+
     /**
      * Live Search for Inventory
      */
@@ -25,8 +30,8 @@ class ViewItemController extends Controller
 
         $inventories = $this->getInventories($itemId);
 
-        // Apply text search
         if ($searchTerm != '') {
+
             $searchLower = strtolower($searchTerm);
 
             $inventories = $inventories->filter(function ($inventory) use ($searchTerm, $searchLower) {
@@ -35,58 +40,55 @@ class ViewItemController extends Controller
 
                 $match = false;
 
-                // Search item name
                 if (stripos($inventory->item->name, $searchTerm) !== false) {
                     $match = true;
                 }
 
-                // Search received date
-                if (!empty($inventory->received_date) && $inventory->received_date != '--') {
+                if (!empty($inventory->received_date)) {
+
                     try {
+
                         $formattedReceived = Carbon::parse($inventory->received_date)->format('M d, Y');
+
                         if (stripos($formattedReceived, $searchTerm) !== false) {
                             $match = true;
                         }
                     } catch (\Exception $e) {
-                        // Ignore invalid dates
                     }
                 }
 
-                // Search warranty date
-                if (!empty($inventory->warranty_expires) && $inventory->warranty_expires != '--') {
+                if (!empty($inventory->warranty_expires)) {
+
                     try {
+
                         $formattedWarranty = Carbon::parse($inventory->warranty_expires)->format('M d, Y');
+
                         if (stripos($formattedWarranty, $searchTerm) !== false) {
                             $match = true;
                         }
                     } catch (\Exception $e) {
-                        // Ignore invalid dates
                     }
                 }
 
-                // Type keywords
                 if (in_array($searchLower, ['consumable', 'con']) && $inventory->item->type == 0) {
                     $match = true;
                 }
-                if (in_array($searchLower, ['non-consumable', 'non', 'non consumable']) && $inventory->item->type == 1) {
+
+                if (in_array($searchLower, ['non-consumable', 'non']) && $inventory->item->type == 1) {
                     $match = true;
                 }
 
-                // Status keywords (from distribution)
                 if (isset($inventory->distribution_status)) {
+
                     if (in_array($searchLower, ['available', 'avail']) && strtolower($inventory->distribution_status) === 'available') {
                         $match = true;
                     }
 
-                    if (
-                        in_array($searchLower, ['distributed', 'borrowed', 'pending', 'partial', 'returned', 'received']) &&
-                        strtolower($inventory->distribution_status) === $searchLower
-                    ) {
+                    if (strtolower($inventory->distribution_status) === $searchLower) {
                         $match = true;
                     }
                 }
 
-                // Search in unit name
                 if (
                     $inventory->item->unit &&
                     stripos($inventory->item->unit->name, $searchTerm) !== false
@@ -94,7 +96,6 @@ class ViewItemController extends Controller
                     $match = true;
                 }
 
-                // Search in category name
                 if (
                     $inventory->item->category &&
                     stripos($inventory->item->category->name, $searchTerm) !== false
@@ -102,8 +103,10 @@ class ViewItemController extends Controller
                     $match = true;
                 }
 
-                // Search in QR code
-                if (!empty($inventory->qrCode->code) && stripos($inventory->qrCode->code, $searchTerm) !== false) {
+                if (
+                    $inventory->qrCode &&
+                    stripos($inventory->qrCode->code, $searchTerm) !== false
+                ) {
                     $match = true;
                 }
 
@@ -111,10 +114,10 @@ class ViewItemController extends Controller
             });
         }
 
-        // Apply status filter
         $statusFilterLower = strtolower($statusFilter ?? '');
 
         if (!in_array($statusFilterLower, ['all', 'all status']) && $statusFilterLower !== '') {
+
             $inventories = $inventories->filter(
                 fn($inventory) =>
                 isset($inventory->distribution_status) &&
@@ -122,155 +125,128 @@ class ViewItemController extends Controller
             );
         }
 
-        // Reset keys after filtering
         $viewItems = $inventories->values();
 
         return view('inventory.viewItem.table', compact('viewItems'));
     }
 
     /**
-     * Helper: Get all inventories (Consumable + Non-Consumable)
+     * Helper: Get inventories
      */
     private function getInventories($itemId)
     {
-        $consumables = InventoryConsumable::with(['item', 'qrCode', 'itemDistributions'])
+
+        return Inventory::with(['item', 'qrCode', 'itemDistributions'])
             ->where('item_id', $itemId)
             ->get()
-            ->map(function ($c) {
-                $c->inventory_type = 'Consumable';
-                $c->warranty_expires = '--';
+            ->map(function ($inventory) {
 
-                // Determine status from distributions
-                if ($c->itemDistributions->isEmpty()) {
-                    $c->distribution_status = 'Available';
+                if ($inventory->itemDistributions->isEmpty()) {
+
+                    $inventory->distribution_status = 'Available';
                 } else {
-                    // Get the latest distribution status
-                    $c->distribution_status = $c->itemDistributions->last()->status ?? 'Available';
+
+                    $inventory->distribution_status =
+                        $inventory->itemDistributions->last()->status ?? 'Available';
                 }
 
-                return $c;
-            });
-
-        $nonConsumables = InventoryNonConsumable::with(['item', 'qrCode', 'itemDistributions'])
-            ->where('item_id', $itemId)
-            ->get()
-            ->map(function ($n) {
-                $n->inventory_type = 'Non-Consumable';
-                $n->warranty_expires = $n->warranty_expires ?? '--';
-
-                if ($n->itemDistributions->isEmpty()) {
-                    $n->distribution_status = 'Available';
-                } else {
-                    $n->distribution_status = $n->itemDistributions->last()->status ?? 'Available';
-                }
-
-                return $n;
-            });
-
-        return $consumables->merge($nonConsumables)
+                return $inventory;
+            })
             ->sortByDesc('received_date')
             ->values();
     }
 
     /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new inventory
+     * Create form
      */
     public function create($item = null)
     {
+
         $categories = Category::all();
         $units = Units::all();
         $items = Item::all();
 
-        // Use the passed item ID or fallback
-        $selectedItem = $item ? Item::findOrFail($item) : $items->first();
+        $selectedItem = $item
+            ? Item::findOrFail($item)
+            : $items->first();
 
-        return view('inventory.viewItem.form', compact('items', 'selectedItem', 'categories', 'units'));
+        return view('inventory.viewItem.form', compact(
+            'items',
+            'selectedItem',
+            'categories',
+            'units'
+        ));
     }
 
     /**
-     * Store a new inventory
+     * Store inventory
      */
     public function store(Request $request)
     {
+
         $request->validate([
             'item_id' => 'required|exists:items,id',
             'quantity' => 'required|integer|min:1',
-            'type' => 'required|in:0,1',
             'received_date' => 'required|date',
             'warranty_expires' => 'nullable|date',
         ]);
 
         $item = Item::findOrFail($request->item_id);
 
-        // Current date for today
-        $datetime = date('Ymd'); // e.g., 20260225
+        $datetime = date('Ymd');
         $prefix = strtoupper(substr($item->name, 0, 1));
 
-        // Get the last QR code for today (sequence resets daily)
         $lastQrToday = QR_Code::where('code', 'like', "LCC-{$prefix}{$datetime}-%")
             ->orderByDesc('code')
             ->first();
 
         $lastSequence = 0;
+
         if ($lastQrToday) {
+
             $parts = explode('-', $lastQrToday->code);
             $lastSequence = (int) end($parts);
         }
 
-        // Loop to create inventory records & QR codes based on quantity
         for ($i = 0; $i < $request->quantity; $i++) {
 
             $lastSequence++;
+
             $sequence = str_pad($lastSequence, 3, '0', STR_PAD_LEFT);
+
             $qrCodeValue = 'LCC-' . $prefix . $datetime . '-' . $sequence;
 
-            if ($item->type == 0) {
-                // Create consumable inventory
-                $consumable = InventoryConsumable::create([
-                    'item_id' => $item->id,
-                    'received_date' => $request->received_date,
-                    'created_by' => Auth::id(),
-                    'updated_by' => Auth::id(),
-                ]);
+            $qrImageName = $qrCodeValue . '.svg';
 
-                // Create QR code linked to this consumable
-                QR_Code::create([
-                    'code' => $qrCodeValue,
-                    'inventory_consumable_id' => $consumable->id,
-                    'status' => QR_Code::STATUS_USED,
-                    'created_by' => Auth::id(),
-                    'updated_by' => Auth::id(),
-                ]);
-            } else {
-                // Create non-consumable inventory
-                $nonConsumable = InventoryNonConsumable::create([
-                    'item_id' => $item->id,
-                    'received_date' => $request->received_date,
-                    'warranty_expires' => $request->warranty_expires,
-                    'created_by' => Auth::id(),
-                    'updated_by' => Auth::id(),
-                ]);
+            $qrImagePath = 'qrcodes/' . $qrImageName;
 
-                // Create QR code linked to this non-consumable
-                QR_Code::create([
-                    'code' => $qrCodeValue,
-                    'inventory_non_consumable_id' => $nonConsumable->id,
-                    'status' => QR_Code::STATUS_USED,
-                    'created_by' => Auth::id(),
-                    'updated_by' => Auth::id(),
-                ]);
-            }
+            $renderer = new ImageRenderer(
+                new RendererStyle(200),
+                new SvgImageBackEnd()
+            );
+
+            $writer = new Writer($renderer);
+
+            Storage::disk('public')->put($qrImagePath, $writer->writeString($qrCodeValue));
+
+            $inventory = Inventory::create([
+                'item_id' => $item->id,
+                'received_date' => $request->received_date,
+                'warranty_expires' => $item->type == 1 ? $request->warranty_expires : null,
+                'created_by' => Auth::id(),
+                'updated_by' => Auth::id(),
+            ]);
+
+            QR_Code::create([
+                'code' => $qrCodeValue,
+                'qr_picture' => $qrImagePath,
+                'inventory_id' => $inventory->id,
+                'status' => QR_Code::STATUS_USED,
+                'created_by' => Auth::id(),
+                'updated_by' => Auth::id(),
+            ]);
         }
 
-        // Optionally increment total quantity in items table
         $item->increment('quantity', $request->quantity);
 
         $viewItems = $this->getInventories($item->id);
@@ -282,72 +258,69 @@ class ViewItemController extends Controller
     }
 
     /**
-     * Show the inventory table for a specific item
+     * Show inventory list
      */
     public function show($id)
     {
+
         $viewItem = Item::with(['category', 'unit'])->findOrFail($id);
 
         $viewItems = $this->getInventories($viewItem->id);
 
         $viewItems_table = view('inventory.viewItem.table', compact('viewItems', 'viewItem'))->render();
 
-        return view('inventory.viewItem.index', compact('viewItem', 'viewItems', 'viewItems_table'));
+        return view('inventory.viewItem.index', compact(
+            'viewItem',
+            'viewItems',
+            'viewItems_table'
+        ));
     }
 
     /**
-     * Show the form for editing an inventory
+     * Edit inventory
      */
     public function edit($id)
     {
-        // Find inventory item (non-consumable first)
-        $inventory = InventoryNonConsumable::with('item')->find($id);
 
-        if (!$inventory) {
-            $inventory = InventoryConsumable::with('item')->findOrFail($id);
-        }
+        $inventory = Inventory::with('item')->findOrFail($id);
 
         $items = Item::all();
         $categories = Category::all();
         $units = Units::all();
 
-        $item = $inventory; // Use $item for the form action
-        $selectedItem = $inventory->item; // For Item input Read only
+        $item = $inventory;
+        $selectedItem = $inventory->item;
 
-        return view('inventory.viewItem.form', compact('items', 'item', 'selectedItem', 'categories', 'units'));
+        return view('inventory.viewItem.form', compact(
+            'items',
+            'item',
+            'selectedItem',
+            'categories',
+            'units'
+        ));
     }
 
     /**
-     * Update an inventory
+     * Update inventory
      */
     public function update(Request $request, $id)
     {
+
         $request->validate([
             'item_id' => 'required|exists:items,id',
             'received_date' => 'required|date',
             'warranty_expires' => 'nullable|date',
         ]);
 
-        // Find the inventory record (non‑consumable first)
-        $inventory = InventoryNonConsumable::find($id);
+        $inventory = Inventory::findOrFail($id);
 
-        if ($inventory) {
-            // Non‑consumable
-            $inventory->warranty_expires = $request->warranty_expires;
-        } else {
-            // Consumable
-            $inventory = InventoryConsumable::findOrFail($id);
-        }
+        $inventory->update([
+            'item_id' => $request->item_id,
+            'received_date' => $request->received_date,
+            'warranty_expires' => $request->warranty_expires,
+            'updated_by' => Auth::id(),
+        ]);
 
-        // Update common fields
-        $inventory->item_id = $request->item_id;
-        $inventory->received_date = $request->received_date;
-        $inventory->updated_by = Auth::id();
-
-        // Save the changes
-        $inventory->save();
-
-        // Now pass the item id
         $viewItems = $this->getInventories($inventory->item_id);
 
         return response()->json([
@@ -356,31 +329,24 @@ class ViewItemController extends Controller
         ]);
     }
 
-
     /**
-     * Delete an inventory
+     * Delete inventory
      */
     public function destroy($id)
     {
-        // Try to find the inventory (non-consumable first)
-        $inventory = InventoryNonConsumable::find($id);
 
-        if ($inventory) {
-            $itemId = $inventory->item_id;
-            $inventory->delete();
-        } else {
-            $inventory = InventoryConsumable::findOrFail($id);
-            $itemId = $inventory->item_id;
-            $inventory->delete();
-        }
+        $inventory = Inventory::findOrFail($id);
 
-        // Decrement item quantity safely
+        $itemId = $inventory->item_id;
+
+        $inventory->delete();
+
         $item = Item::find($itemId);
+
         if ($item && $item->quantity > 0) {
-            $item->decrement('quantity'); // minus 1
+            $item->decrement('quantity');
         }
 
-        // Get updated inventories
         $viewItems = $this->getInventories($itemId);
 
         return response()->json([

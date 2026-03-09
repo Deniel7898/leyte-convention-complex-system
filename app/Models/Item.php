@@ -12,7 +12,6 @@ class Item extends Model
 
     protected $fillable = [
         'name',
-        'type',
         'description',
         'quantity',
         'picture',
@@ -22,6 +21,7 @@ class Item extends Model
         'updated_by',
     ];
 
+    // Relations
     public function category()
     {
         return $this->belongsTo(Category::class);
@@ -32,42 +32,37 @@ class Item extends Model
         return $this->belongsTo(Units::class);
     }
 
+    public function inventories()
+    {
+        return $this->hasMany(Inventory::class, 'item_id');
+    }
+
     public function qrCode()
     {
-        return $this->hasOne(QR_Code::class, 'inventory_non_consumable_id');
+        return $this->hasOne(QR_Code::class, 'inventory_id');
     }
 
-    public function inventoryConsumables()
+    /**
+     * Available inventories (not distributed or borrowed)
+     */
+    public function availableInventories()
     {
-        return $this->hasMany(InventoryConsumable::class, 'item_id')
+        return $this->hasMany(Inventory::class, 'item_id')
             ->whereDoesntHave('itemDistributions', function ($query) {
                 $query->whereIn('status', ['distributed', 'borrowed', 'partial', 'pending']);
             });
     }
 
-    public function inventoryNonConsumables()
-    {
-        return $this->hasMany(InventoryNonConsumable::class, 'item_id')
-            ->whereDoesntHave('itemDistributions', function ($query) {
-                $query->whereIn('status', ['distributed', 'borrowed', 'partial', 'pending']);
-            });
-    }
-
+    // Soft-delete cascading
     protected static function booted()
     {
-        // Soft-delete cascading
         static::deleting(function ($item) {
-            // Delete consumables
-            $item->inventoryConsumables->each->delete();
-
-            // Delete non-consumables
-            $item->inventoryNonConsumables->each->delete();
+            // Delete related inventories
+            $item->inventories->each->delete();
         });
 
-        // Optional: restore inventories when item is restored
         static::restoring(function ($item) {
-            $item->inventoryConsumables()->withTrashed()->get()->each->restore();
-            $item->inventoryNonConsumables()->withTrashed()->get()->each->restore();
+            $item->inventories()->withTrashed()->get()->each->restore();
         });
     }
 }

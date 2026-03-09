@@ -20,13 +20,7 @@
         <div class="row py-2 border-bottom">
             <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Item Name</div>
             <div class="col-8">{{ $inventory->item->name ?? 'N/A' }}</div>
-        </div>
-
-        <!-- Item Type -->
-        <div class="row py-2 border-bottom">
-            <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Item Type</div>
-            <div class="col-8">{{ isset($inventory) ? ($inventory->item->type == 0 ? 'Consumable' : 'Non-Consumable') : 'N/A' }}</div>
-        </div>
+        </div>  
 
         <!-- Unit -->
         <div class="row py-2 border-bottom">
@@ -89,9 +83,15 @@
         @if(isset($inventory) && ($inventory->item->type ?? 0) == 1)
         <div class="row py-2 border-bottom">
             <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Warranty Expires</div>
-            <div class="col-8">{{ isset($inventory->warranty_expires) ? \Carbon\Carbon::parse($inventory->warranty_expires)->format('Y-m-d') : 'N/A' }}</div>
+            <div class="col-8">
+                {{ $inventory && $inventory->warranty_expires 
+                    ? \Carbon\Carbon::parse($inventory->warranty_expires)->format('F j, Y') 
+                    : 'N/A' }}
+            </div>
         </div>
         @endif
+
+
 
         <!-- Recorded By -->
         <div class="row py-2 border-bottom">

@@ -164,6 +164,7 @@ $(function () {
         $('#type-filter, #status-filter, #categories-filter, #dist-type-filter').on('change', performSearch);
     });
 
+    // Return item  
     $(document).on('click', '.return-item', function () {
 
         let url = $(this).data('url');

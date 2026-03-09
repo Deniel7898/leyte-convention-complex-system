@@ -49,32 +49,6 @@
         </div>
 
         <div class="row">
-            <!-- Quantity -->
-            @if(!isset($inventory))
-            <div class="col-md-6 mb-3">
-                <label for="inventory-quantity" class="form-label">Quantity</label>
-                <input type="number" class="form-control" id="inventory-quantity" name="quantity" min="1" required>
-            </div>
-            @else
-            <input type="hidden" name="quantity" value="{{ $inventory->quantity }}">
-            @endif
-
-            <!-- Type -->
-            @if(!isset($inventory))
-            <div class="col-md-6 mb-3">
-                <label for="inventory-type" class="form-label">Item Type</label>
-                <select class="form-select" id="inventory-type" name="type" required>
-                    <option value="">Select type</option>
-                    <option value="0" {{ (isset($inventory) && $inventory->item->type == 0) ? 'selected' : '' }}>Consumable</option>
-                    <option value="1" {{ (isset($inventory) && $inventory->item->type == 1) ? 'selected' : '' }}>Non-Consumable</option>
-                </select>
-            </div>
-            @else
-            <input type="hidden" name="type" value="{{ $inventory->type }}">
-            @endif
-        </div>
-
-        <div class="row">
             <!-- Category -->
             @if(!isset($inventory))
             <div class="col-md-6 mb-3">
@@ -93,6 +67,19 @@
             <input type="hidden" name="category" value="{{ $inventory->category }}">
             @endif
 
+            <!-- Quantity -->
+            @if(!isset($inventory))
+            <div class="col-md-6 mb-3">
+                <label for="inventory-quantity" class="form-label">Quantity</label>
+                <input type="number" class="form-control" id="inventory-quantity" name="quantity" min="1" required>
+            </div>
+            @else
+            <input type="hidden" name="quantity" value="{{ $inventory->quantity }}">
+            @endif
+        </div>
+
+        <div class="row">
+
             <!-- Received Date -->
             @if(!isset($inventory))
             <div class="col-md-6 mb-3">
@@ -107,13 +94,6 @@
                     value="{{ isset($inventory) ? $inventory->received_date : date('Y-m-d') }}">
             </div>
             @endif
-        </div>
-
-        <!-- Warranty Expires -->
-        <div class="mb-3 non-consumable-fields"
-            style="{{ isset($inventory) && ($inventory->item->type ?? 0) == 1 ? '' : 'display:none;' }}">
-            <label for="warranty-expires" class="form-label">Warranty Expires</label>
-            <input type="date" class="form-control" id="warranty-expires" name="warranty_expires" value="{{ $inventory->warranty_expires ?? '' }}">
         </div>
 
         <!-- Description (Styled Like Normal Input But Scrollable) -->

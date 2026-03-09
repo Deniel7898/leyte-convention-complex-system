@@ -37,37 +37,6 @@
         </div>
 
         <div class="row">
-            <!-- Quantity -->
-            @if(!isset($item))
-            <div class="col-md-6 mb-3">
-                <label for="item-quantity" class="form-label">Quantity</label>
-                <input type="number"
-                    class="form-control"
-                    id="item-quantity"
-                    name="quantity"
-                    min="1"
-                    required>
-            </div>
-            @else
-            <input type="hidden" name="quantity" value="{{ $item->quantity }}">
-            @endif
-
-            <!-- Type -->
-            @if(!isset($item))
-            <div class="col-md-6 mb-3">
-                <label for="item-type" class="form-label">Item Type</label>
-                <select class="form-select" id="item-type" name="type" required>
-                    <option value="">Select type</option>
-                    <option value="0" {{ (isset($item) && $item->type == 0) ? 'selected' : '' }}>Consumable</option>
-                    <option value="1" {{ (isset($item) && $item->type == 1) ? 'selected' : '' }}>Non-Consumable</option>
-                </select>
-            </div>
-            @else
-            <input type="hidden" name="type" value="{{ $item->type }}">
-            @endif
-        </div>
-
-        <div class="row">
             <!-- Category -->
             <div class="col-md-6 mb-3">
                 <label for="item-category" class="form-label">Category</label>
@@ -82,6 +51,24 @@
                 </select>
             </div>
 
+            <!-- Quantity -->
+            @if(!isset($item))
+            <div class="col-md-6 mb-3">
+                <label for="item-quantity" class="form-label">Quantity</label>
+                <input type="number"
+                    class="form-control"
+                    id="item-quantity"
+                    name="quantity"
+                    min="1"
+                    required>
+            </div>
+            @else
+            <input type="hidden" name="quantity" value="{{ $item->quantity }}">
+            @endif
+        </div>
+
+        <div class="row">
+
             <!-- Received Date -->
             <div class="col-md-6 mb-3">
                 <label for="received-date" class="form-label">Received Date</label>
@@ -91,8 +78,8 @@
         </div>
 
         <!-- Warranty Expires -->
-        <div class="mb-3 non-consumable-fields" style="{{ isset($item) && $item->type == 1 ? '' : 'display:none;' }}">
-            <label for="warranty-expires" class="form-label">Warranty Expires</label>
+        <div class="mb-3 non-consumable-fields" style="{{ !isset($item) ? 'display:none;' : '' }}">
+            <label for="warranty-expires" class="form-label">Warranty / Expiry Date</label>
             <input type="date"
                 class="form-control"
                 id="warranty-expires"
@@ -185,24 +172,4 @@
             }
         });
     })();
-</script>
-
-<script>
-    function setupNonConsumableToggle() {
-        let typeSelect = document.getElementById('item-type');
-        let nonConsumableFields = document.querySelectorAll('.non-consumable-fields');
-
-        if (!typeSelect) return; // safety check
-
-        typeSelect.addEventListener('change', function() {
-            if (this.value === '1') {
-                nonConsumableFields.forEach(field => field.style.display = 'block');
-            } else {
-                nonConsumableFields.forEach(field => field.style.display = 'none');
-            }
-        });
-    }
-
-    // Call the function after the form is loaded
-    setupNonConsumableToggle();
 </script>
