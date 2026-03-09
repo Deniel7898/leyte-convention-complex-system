@@ -4,18 +4,6 @@
     <td>{{ $key + 1 }}</td>
     <td>{{ $viewItem->item->name ?? '--' }}</td>
     <td>
-        {{ $viewItem->received_date && $viewItem->received_date != '--'
-            ? \Carbon\Carbon::parse($viewItem->received_date)->format('M d, Y')
-                : '--' }}
-    </td>
-    <td>
-        @if(($viewItem->item?->type ?? 0) == 0)
-        <span class="badge bg-success-subtle text-success">Consumable</span>
-        @else
-        <span class="badge bg-primary-subtle text-primary">Non-Consumable</span>
-        @endif
-    </td>
-    <td>
         <p>{{ $viewItem->item->unit->name ?? '--' }}</p>
     </td>
     <td>
@@ -100,7 +88,11 @@
         });
     </script>
     <!-- End QR Picture clickable -->
-
+    <td>
+        {{ $viewItem->received_date && $viewItem->received_date != '--'
+            ? \Carbon\Carbon::parse($viewItem->received_date)->format('M d, Y')
+                : '--' }}
+    </td>
     <td>
         <p>
             {{ $viewItem->warranty_expires && $viewItem->warranty_expires != '--'

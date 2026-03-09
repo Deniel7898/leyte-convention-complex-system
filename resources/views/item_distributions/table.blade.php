@@ -5,20 +5,13 @@
         <p>{{ $loop->iteration }}</p>
     </td>
     <td>
-        <p>{{ $itemDistribution->item->name ?? '--' }}</p>
+        <p>{{ $itemDistribution->inventory->item->name ?? '--' }}</p>
     </td>
     <td>
-        @if(($itemDistribution->item->type ?? 0) == 0)
-        <span class="badge bg-success-subtle text-success">Consumable</span>
-        @else
-        <span class="badge bg-primary-subtle text-primary">Non-Consumable</span>
-        @endif
+        <p>{{ $itemDistribution->inventory->item->unit->name ?? '--' }}</p>
     </td>
     <td>
-        <p>{{ $itemDistribution->item->unit->name ?? '--' }}</p>
-    </td>
-    <td>
-        <p>{{ $itemDistribution->item->category->name ?? '--' }}</p>
+        <p>{{ $itemDistribution->inventory->item->category->name ?? '--' }}</p>
     </td>
     <td>
         {{ $itemDistribution->distribution_date && $itemDistribution->distribution_date != '--'
@@ -41,7 +34,7 @@
         </span>
     </td>
     <td>
-        <p>{{ $itemDistribution->qrCode->code ?? '--' }}</p>
+        <p>{{ $itemDistribution->inventory->qrCode->code ?? '--' }}</p>
     </td>
     <td>
         <p>{{ 1 }}</p>

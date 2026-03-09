@@ -58,13 +58,12 @@
                     <tr class="text-uppercase text-muted small">
                         <th>{{ __('#') }}</th>
                         <th>{{ __('Name') }}</th>
-                        <th>{{ __('Recieved Date') }}</th>
-                        <th>{{ __('Type') }}</th>
                         <th>{{ __('Unit') }}</th>
                         <th>{{ __('Category') }}</th>
                         <th>{{ __('Status') }}</th>
                         <th>{{ __('QR Code') }}</th>
                         <th class="text-center">{{ __('QR Picture') }}</th>
+                        <th>{{ __('Recieved Date') }}</th>
                         <th>{{ __('Warranty Expires') }}</th>
                         <th>{{ __('Description') }}</th>
                         <th class="text-center">{{ __('Actions') }}</th>
@@ -94,7 +93,7 @@
 
 <script>
     window.liveSearchUrl = @json(route('viewItem.liveSearch'));
-    window.currentItemId = @json($viewItem->id);
+    window.currentItemId = @json($viewItem-> id);
 </script>
 
 @endsection

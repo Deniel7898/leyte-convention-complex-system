@@ -19,7 +19,7 @@
                         <button type="button"
                             class="btn p-0 border-0 bg-transparent text-success complete-service"
                             data-url="{{ route('service_records.complete', $record->id) }}"
-                            data-item="{{ $record->item->item->name ?? 'N/A' }}"
+                            data-item="{{ $record->inventory->item->name ?? 'N/A' }}"
                             data-type="{{ $record->type }}"
                             data-qr="{{ $record->inventoryNonConsumable->qrCode->code ?? 'N/A' }}"
                             data-schedule="{{ \Carbon\Carbon::parse($record->schedule_date)->format('F d, Y') }}"
@@ -76,7 +76,7 @@
 
                 <!-- Card Body -->
                 <div class="px-3">
-                    <h6 class="fw-bold mb-0">{{ $record->item->item->name ?? 'No Item' }}</h6>
+                    <h6 class="fw-bold mb-0">{{ $record->inventory->item->name ?? 'No Item' }}</h6>
                     <p class="mb-1 text-muted small">{{ $record->description ?? 'No description' }}</p>
                     <hr class="my-1" />
                     <small class="d-flex justify-content-between">

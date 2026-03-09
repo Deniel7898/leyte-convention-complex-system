@@ -24,14 +24,6 @@
         </div>
 
         <div class="col-auto" style="min-width: 140px;">
-            <select id="type-filter" class="form-select">
-                <option>All Type</option>
-                <option>Consumable</option>
-                <option>Non-Consumable</option>
-            </select>
-        </div>
-
-        <div class="col-auto" style="min-width: 140px;">
             <select id="categories-filter" class="form-select">
                 <option value="All">All Category</option>
                 @foreach($categories as $category)
@@ -70,11 +62,10 @@
                     <tr class="text-uppercase text-muted small">
                         <th>{{ __('#') }}</th>
                         <th>{{ __('Name') }}</th>
-                        <th>{{ __('Type') }}</th>
-                        <th>{{ __('Quantity') }}</th>
-                        <th>{{ __('Remaining') }}</th>
                         <th>{{ __('Unit') }}</th>
                         <th>{{ __('Category') }}</th>
+                        <th>{{ __('Quantity') }}</th>
+                        <th>{{ __('Remaining') }}</th>
                         <th>{{ __('Status') }}</th>
                         <th>{{ __('Description') }}</th>
                         <th class="text-center">{{ __('Picture') }}</th>

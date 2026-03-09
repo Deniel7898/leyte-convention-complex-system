@@ -38,7 +38,6 @@ return new class extends Migration
         Schema::create('items', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
-            $table->tinyInteger('type')->default(0); // 0 = consumable, 1 = non-consumable
             $table->text('description')->nullable();
             $table->string('quantity')->default('1');
             $table->string('picture')->nullable();
@@ -50,19 +49,8 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-        // Inventory Consumable
-        Schema::create('inventory_consumable', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->date('received_date')->nullable();
-            $table->foreignUuid('item_id')->nullable()->constrained('items')->onDelete('cascade');
-            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->timestamps();
-            $table->softDeletes();
-        });
-
-        // Inventory Non-Consumable
-        Schema::create('inventory_non_consumable', function (Blueprint $table) {
+        // Inventory 
+        Schema::create('inventories', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->date('received_date')->nullable();
             $table->date('warranty_expires')->nullable();
@@ -84,8 +72,7 @@ return new class extends Migration
             $table->date('due_date')->nullable();
             $table->date('returned_date')->nullable();
             $table->enum('status', ['pending', 'distributed', 'partial', 'borrowed', 'returned'])->default('distributed');
-            $table->foreignUuid('inventory_consumable_id')->nullable()->constrained('inventory_consumable')->onDelete('set null');
-            $table->foreignUuid('inventory_non_consumable_id')->nullable()->constrained('inventory_non_consumable')->onDelete('set null');
+            $table->foreignUuid('inventory_id')->nullable()->constrained('inventories')->onDelete('set null');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
@@ -102,7 +89,7 @@ return new class extends Migration
             $table->date('completed_date')->nullable();
             $table->text('encharge_person')->nullable();
             $table->string('picture')->nullable();
-            $table->foreignUuid('inventory_non_consumable_id')->nullable()->constrained('inventory_non_consumable')->onDelete('set null');
+            $table->foreignUuid('inventory_id')->nullable()->constrained('inventories')->onDelete('set null');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
@@ -136,8 +123,7 @@ return new class extends Migration
         // QR Codes
         Schema::create('qr_codes', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('inventory_consumable_id')->nullable()->constrained('inventory_consumable')->onDelete('cascade');
-            $table->foreignUuid('inventory_non_consumable_id')->nullable()->constrained('inventory_non_consumable')->onDelete('cascade');
+            $table->foreignUuid('inventory_id')->nullable()->constrained('inventories')->onDelete('set null');
             $table->string('code')->unique();
             $table->string('qr_picture')->nullable();
             $table->enum('status', ['active', 'used', 'expired'])->default('active');
@@ -157,8 +143,7 @@ return new class extends Migration
         Schema::dropIfExists('qr_codes');
         Schema::dropIfExists('item_distributions');
         Schema::dropIfExists('service_records');
-        Schema::dropIfExists('inventory_non_consumable');
-        Schema::dropIfExists('inventory_consumable');
+        Schema::dropIfExists('inventories');
         Schema::dropIfExists('items_purchase_request');
         Schema::dropIfExists('purchase_request');
         Schema::dropIfExists('items');

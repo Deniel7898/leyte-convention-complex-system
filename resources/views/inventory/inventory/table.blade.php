@@ -3,26 +3,15 @@
  <tr class="text-start">
      <td>{{ $inventories->firstItem() + $loop->index }}</td>
      <td>{{ $inventory->item->name ?? '--' }}</td>
-     <td>
-         {{ $inventory->received_date && $inventory->received_date != '--'
-            ? \Carbon\Carbon::parse($inventory->received_date)->format('M d, Y')
-                : '--' }}
-     </td>
-     <td>
-         @if(($inventory->item?->type ?? 0) == 0)
-         <span class="badge bg-success-subtle text-success">
-             Consumable
-         </span>
-         @else
-         <span class="badge bg-primary-subtle text-primary">
-             Non-Consumable
-         </span>
-         @endif
-     </td>
      <td>{{ $inventory->item->unit->name ?? '--' }}</td>
      <td>
          <i class="bi bi-tag me-1"></i>
          {{ $inventory->item->category->name ?? '--' }}
+     </td>
+     <td>
+         {{ $inventory->received_date && $inventory->received_date != '--'
+            ? \Carbon\Carbon::parse($inventory->received_date)->format('M d, Y')
+                : '--' }}
      </td>
      <td>
          @php
@@ -97,12 +86,6 @@
          });
      </script>
      <!-- End QR Picture clickable -->
-
-     <td>
-         {{ $inventory->warranty_expires && $inventory->warranty_expires != '--'
-            ? \Carbon\Carbon::parse($inventory->warranty_expires)->format('M d, Y')
-                : '--' }}
-     </td>
      <td class="text-center">
          <div class="dropdown">
              <button class="btn p-0 border-0 bg-transparent text-gray" title="Actions" type="button" id="actionMenu{{ $inventory->id }}" data-bs-toggle="dropdown" aria-expanded="false">

@@ -8,19 +8,6 @@
         <p>{{ $item->name ?? '--' }}</p>
     </td>
     <td>
-        @if($item->type == 0)
-        <span class="badge bg-success-subtle text-success">Consumable</span>
-        @else
-        <span class="badge bg-primary-subtle text-primary">Non-Consumable</span>
-        @endif
-    </td>
-    <td>
-        <p>{{ $item->quantity ?? '--' }}</p>
-    </td>
-    <td>
-        <p>{{ $item->remaining ?? '--' }}</p>
-    </td>
-    <td>
         <p>{{ $item->unit->name ?? '--' }}</p>
     </td>
     <td>
@@ -31,6 +18,12 @@
             </svg>
             {{ $item->category->name ?? '--' }}
         </p>
+    </td>
+    <td>
+        <p>{{ $item->quantity ?? '--' }}</p>
+    </td>
+    <td>
+        <p>{{ $item->remaining ?? '--' }}</p>
     </td>
     <td>
         @if($item->is_available)
