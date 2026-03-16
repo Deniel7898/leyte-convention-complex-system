@@ -70,12 +70,10 @@
                         <th>{{ __('Item') }}</th>
                         <th>{{ __('Category') }}</th>
                         <th>{{ __('Service Type') }}</th>
-                        <th>{{ __('Qty') }}</th>
                         <th>{{ __('QR Code') }}</th>
                         <th>{{ __('Status') }}</th>
                         <th>{{ __('Schedule Date') }}</th>
-                        <th>{{ __('Description') }}</th>
-                        <th>{{ __('Encharge Person') }}</th>
+                        <th>{{ __('Technician') }}</th>
                         <th class="text-center">{{ __('Picture') }}</th>
                         <th>{{ __('Completed Date') }}</th>
                         <th class="text-center">{{ __('Actions') }}</th>

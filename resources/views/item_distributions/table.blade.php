@@ -4,14 +4,11 @@
     <td>
         <p>{{ $loop->iteration }}</p>
     </td>
+    <td>{{ $itemDistribution->inventory?->item->name ?? $itemDistribution->item?->name ?? '--' }}</td>
+    <td>{{ $itemDistribution->inventory?->item->category->name ?? $itemDistribution->item?->category->name ?? '--' }}</td>
+    <td>{{ $itemDistribution->inventory?->item->unit->name ?? $itemDistribution->item?->unit->name ?? '--' }}</td>
     <td>
-        <p>{{ $itemDistribution->inventory->item->name ?? '--' }}</p>
-    </td>
-    <td>
-        <p>{{ $itemDistribution->inventory->item->unit->name ?? '--' }}</p>
-    </td>
-    <td>
-        <p>{{ $itemDistribution->inventory->item->category->name ?? '--' }}</p>
+        <p>{{ $itemDistribution->quantity ?? 0 }}</p>
     </td>
     <td>
         {{ $itemDistribution->distribution_date && $itemDistribution->distribution_date != '--'
@@ -19,32 +16,63 @@
                 : '--' }}
     </td>
     <td>
-        @php
-        $type = $itemDistribution->type;
-        $typeClasses = [
-        0 => 'bg-primary-subtle text-primary',
-        1 => 'bg-warning-subtle text-orange', ];
+        <p>{{ $itemDistribution->type ?? '--' }}</p>
+    </td>
+    <td style="padding:0; margin:0; vertical-align:top; text-align:center">
+        @if(!empty($itemDistribution->inventory?->qrCode))
+        <img
+            src="{{ asset('storage/' . $itemDistribution->inventory->qrCode->qr_picture) }}"
+            alt="{{ $itemDistribution->inventory->qrCode->code }}"
+            class="clickable-image"
+            data-full="{{ asset('storage/' . $itemDistribution->inventory->qrCode->qr_picture) }}"
+            style="width:40px; height:auto; cursor:pointer;">
+        <br>
+        <small>{{ $itemDistribution->inventory->qrCode->code }}</small>
+        @else
+        <span class="text-muted">QR N/A</span>
+        @endif
+    </td>
 
-        $class = $typeClasses[$type] ?? 'bg-secondary-subtle text-secondary';
-        $label = $type === 0 ? 'Distribution' : ($type === 1 ? 'Borrow' : '--');
-        @endphp
+    <!-- Universal Lightbox (one per page) -->
+    <div id="universalLightbox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1050;">
+        <button id="universalLightboxClose" style="position:absolute; top:20px; right:20px; background:none;
+        border:none; color:white; font-size:2rem; cursor:pointer;">&times;</button>
+        <img id="universalLightboxImg" src="" style="max-width:90%; max-height:90%; border-radius:8px;">
+    </div>
 
-        <span class="badge {{ $class }}">
-            {{ $label }}
-        </span>
-    </td>
-    <td>
-        <p>{{ $itemDistribution->inventory->qrCode->code ?? '--' }}</p>
-    </td>
-    <td>
-        <p>{{ 1 }}</p>
-    </td>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const clickableImgs = document.querySelectorAll('.clickable-image');
+            const lightbox = document.getElementById('universalLightbox');
+            const lightboxImg = document.getElementById('universalLightboxImg');
+            const closeBtn = document.getElementById('universalLightboxClose');
+
+            clickableImgs.forEach(img => {
+                img.addEventListener('click', () => {
+                    lightboxImg.src = img.dataset.full;
+                    lightbox.style.display = 'flex';
+                });
+            });
+
+            const closeLightbox = () => {
+                lightbox.style.display = 'none';
+                lightboxImg.src = '';
+            };
+
+            closeBtn.addEventListener('click', closeLightbox);
+            lightbox.addEventListener('click', e => {
+                if (e.target === lightbox) closeLightbox();
+            });
+        });
+    </script>
     <td>
         @php
         $status = $itemDistribution->status ?? 'available';
 
         // Map statuses to badge classes
         $statusClasses = [
+        'completed' => 'bg-success-subtle text-success',
         'distributed' => 'bg-success-subtle text-success',
         'borrowed' => 'bg-warning-subtle text-orange',
         'partial' => 'bg-warning-subtle text-orange',
@@ -62,16 +90,13 @@
         </span>
     </td>
     <td>
-        <p>{{ $itemDistribution->description ?? '--' }}</p>
-    </td>
-    <td>
         {{ $itemDistribution->due_date && $itemDistribution->due_date != '--'
             ? \Carbon\Carbon::parse($itemDistribution->due_date)->format('M d, Y')
                 : '--' }}
     </td>
-    <!-- <td>
-        <p>{{ $itemDistribution->returned_date ?? '--' }}</p>
-    </td> -->
+    <td>
+        <p>{{ $itemDistribution->notes ?? '--' }}</p>
+    </td>
     <td class="text-center">
         <div class="dropdown">
             <!-- Return Item (only for borrowed) -->
@@ -79,12 +104,7 @@
             <button type="button"
                 title="Return Item"
                 class="btn p-0 border-0 bg-transparent text-success return-item"
-                data-url="{{ route('item_distributions.return', $itemDistribution->id) }}"
-                data-item="{{ $itemDistribution->item->name ?? 'N/A' }}"
-                data-qr="{{ $itemDistribution->qrCode->code ?? 'N/A' }}"
-                data-status="{{ $itemDistribution->status ?? 'N/A' }}"
-                data-description="{{ $itemDistribution->description ?? 'N/A' }}">
-
+                data-url="{{ route('item_distributions.return_form', $itemDistribution->id) }}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" fill="currentColor" class="bi bi-box-arrow-in-left" viewBox="0 0 16 16">
                     <path fill-rule="evenodd" d="M10 3.5a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 1 1 0v2A1.5 1.5 0 0 1 9.5 14h-8A1.5 1.5 0 0 1 0 12.5v-9A1.5 1.5 0 0 1 1.5 2h8A1.5 1.5 0 0 1 11 3.5v2a.5.5 0 0 1-1 0z" />
                     <path fill-rule="evenodd" d="M4.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H14.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708z" />
@@ -156,6 +176,6 @@
 @endforeach
 @else
 <tr>
-    <td colspan="15" class="text-center text-muted text-danger">{{ __('No Distribution found.') }}</td>
+    <td colspan="12" class="text-center py-3">{{ __('No Distribution found.') }}</td>
 </tr>
 @endif

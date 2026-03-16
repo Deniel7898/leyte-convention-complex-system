@@ -87,12 +87,14 @@ $(function () {
     //form submit
     $(document).on('submit', 'form', function (e) {
         e.preventDefault();
-        $('#loading-spinner').addClass('active');
 
         var form = $(this);
         var url = form.attr('action');
         var method = form.attr('method');
         var data = new FormData(this);
+        var page = form.find('input[name="page"]').val();
+
+        $('#loading-spinner').addClass('active');
 
         $.ajax({
             url: url,
@@ -101,14 +103,17 @@ $(function () {
             processData: false,
             contentType: false,
             success: function (response) {
-
-                $('#itemDistributions_table tbody').html(response.html);
+                if (page === 'inventory' && response.table_html) {
+                    // Update the main inventory table
+                    $('#inventories_table tbody').html(response.table_html);
+                } else if (page === 'items' && response.item_card_html && response.history_table_html) {
+                    // Update the item card and history table
+                    $('#item_card_container').html(response.item_card_html);
+                    $('#itemHistory_table tbody').html(response.history_table_html);
+                }
 
                 $('#itemDistributions_modal').modal('hide');
-
-                //Reset form fields
                 form[0].reset();
-
                 $('#loading-spinner').removeClass('active');
 
                 Swal.fire({
@@ -122,8 +127,25 @@ $(function () {
                 });
             },
             error: function (xhr) {
-                console.log(xhr.responseJSON);
                 $('#loading-spinner').removeClass('active');
+
+                console.log('Status:', xhr.status);
+                console.log('Response:', xhr.responseText); // <-- very important for 500
+
+                if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    let errors = xhr.responseJSON.errors;
+                    let msg = '';
+                    for (let key in errors) {
+                        msg += errors[key][0] + '\n';
+                    }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: msg,
+                        width: '400px',
+                        padding: '0.8rem'
+                    });
+                }
             }
         });
     });
@@ -164,69 +186,65 @@ $(function () {
         $('#type-filter, #status-filter, #categories-filter, #dist-type-filter').on('change', performSearch);
     });
 
-    // Return item  
-    $(document).on('click', '.return-item', function () {
+    $(document).on('click', '.return-item', function (e) {
+        e.preventDefault();
 
-        let url = $(this).data('url');
-        let itemName = $(this).data('item');
-        let qrCode = $(this).data('qr');
-        let distTypeValue = $(this).data('type');
-        let status = $(this).data('status');
-        let description = $(this).data('description');
+        let url = $(this).data('url'); // route to show the return form
+        $('#loading-spinner').addClass('active');
 
-        let serviceType = distTypeValue == 0 ? 'Distribution' : 'Borrow';
-
-        Swal.fire({
-            title: "Mark item as returned?",
-            html: `
-        <div style="text-align:left">
-            <p><strong>Item:</strong> ${itemName}</p>
-            <p><strong>Distribution Type:</strong> ${serviceType}</p>
-            <p><strong>QR Code:</strong> ${qrCode}</p>
-            <p><strong>Status:</strong> ${status}</p>
-            <p><strong>Description:</strong> ${description}</p>
-        </div>
-        `,
-            icon: "question",
-            showCancelButton: true,
-            confirmButtonColor: "#0d6efd", // blue for return
-            cancelButtonColor: "#6c757d",
-            confirmButtonText: "Yes, return it",
-            width: '400px',
-        }).then((result) => {
-
-            if (result.isConfirmed) {
-
-                $('#loading-spinner').addClass('active');
-
-                $.post(url, {
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                })
-                    .done(function (response) {
-                        // Update the table
-                        $('#itemDistributions_table tbody').html(response.html);
-
-                        Swal.fire({
-                            icon: "success",
-                            title: "Returned!",
-                            text: response.message || "Item successfully returned.",
-                            timer: 1500,
-                            showConfirmButton: false,
-                            width: '400px',
-                            padding: '0.8rem'
-                        });
-
-                    })
-                    .fail(function (xhr) {
-                        Swal.fire("Error!", "Something went wrong.", "error");
-                        console.error(xhr.responseText);
-                    })
-                    .always(function () {
-                        $('#loading-spinner').removeClass('active');
-                    });
-            }
-
+        $.get(url, function (response) {
+            $('#itemDistributions_modal .modal-content').html(response);
+            $('#itemDistributions_modal').modal('show');
+            $('#loading-spinner').removeClass('active');
+        }).fail(function () {
+            $('#loading-spinner').removeClass('active');
+            Swal.fire("Error!", "Could not load the return form.", "error");
         });
-
     });
+
+    // Submit Return Item Form via AJAX
+    $(document).on('submit', '#itemDistributions_modal form', function (e) {
+        e.preventDefault();
+
+        let form = $(this);
+        let url = form.attr('action');
+        let method = form.attr('method');
+        let data = new FormData(this);
+
+        $('#loading-spinner').addClass('active');
+
+        $.ajax({
+            url: url,
+            type: method,
+            data: data,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                // Update table
+                $('#itemDistributions_table tbody').html(response.table_html);
+
+                // Close modal
+                $('#itemDistributions_modal').modal('hide');
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Returned!',
+                    text: response.message || 'Item returned successfully.',
+                    timer: 1500,
+                    showConfirmButton: false,
+                    width: '400px',
+                    padding: '0.8rem'
+                });
+            },
+            error: function (xhr) {
+                console.error(xhr.responseJSON || xhr.responseText);
+                Swal.fire("Error!", "Could not return the item.", "error");
+            },
+            complete: function () {
+                $('#loading-spinner').removeClass('active');
+            }
+        });
+    });
+
+
 })

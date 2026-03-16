@@ -36,51 +36,17 @@
   }
 }
 
-/* Modern nav styling */
-.nav-modern {
-  background: #fff;
-  padding: 0.30rem 0.75rem;
-  /* reduced padding for smaller height */
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  /* lighter shadow */
-  display: flex;
-  gap: 0.5rem;
-  /* tighter spacing */
-  max-width: 450px;
-  margin-bottom: 0;
-  /* remove bottom margin */
-}
-
-.nav-modern a {
-  flex: 1;
-  text-align: center;
-  padding: 0.35rem 0;
-  /* smaller height */
-  border-radius: 0.5rem;
-  font-weight: 550;
-  font-size: 1rem;
-  /* slightly smaller font */
-  transition: all 0.3s ease;
-  text-decoration: none;
-  color: #495057;
-}
-
-.nav-modern a:hover {
-  background-color: hsl(237, 34%, 25%);
-  color: #fff;
-  transform: translateY(-1px);
-  /* subtle lift effect */
-}
-
-.nav-modern a.active {
-  background-color: rgb(43, 45, 87);
-  color: #fff;
-}
-
 /* Custom Table */
 #items_table tr th,
 #items-table-body tr td {
+  /* top/bottom | left/right */
+  padding: 1rem 1.5rem;
+  /* prevents text from breaking into multiple lines */
+  white-space: nowrap;
+}
+
+#history_container tr th,
+#history-table-body tr td {
   /* top/bottom | left/right */
   padding: 1rem 1.5rem;
   /* prevents text from breaking into multiple lines */

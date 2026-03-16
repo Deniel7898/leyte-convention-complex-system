@@ -79,7 +79,7 @@
         </div>
         @endforeach
     </div>
-</div>  
+</div>
 
 <div class="card shadow-sm border-0 rounded-4 card-styles mt-3">
     <div class="card-body p-0">
@@ -89,16 +89,15 @@
                     <tr class="text-uppercase text-muted small">
                         <th>{{ __('#') }}</th>
                         <th>{{ __('Item') }}</th>
-                        <th>{{ __('Unit') }}</th>
                         <th>{{ __('Category') }}</th>
+                        <th>{{ __('Unit') }}</th>
+                        <th>{{ __('Qty') }}</th>
                         <th>{{ __('Dist. Date') }}</th>
                         <th>{{ __('Dist. Type') }}</th>
-                        <th>{{ __('QR Code') }}</th>
-                        <th>{{ __('Qty') }}</th>
+                        <th class="text-center">{{ __('QR Code') }}</th>
                         <th>{{ __('Status') }}</th>
-                        <th>{{ __('Description') }}</th>
                         <th>{{ __('Due Date') }}</th>
-                        <!-- <th>{{ __('Returned Date') }}</th> -->
+                        <th>{{ __('Notes') }}</th>
                         <th class="text-center">{{ __('Actions') }}</th>
                     </tr>
                 </thead>

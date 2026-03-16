@@ -14,16 +14,12 @@
                     </span>
                     @endif
 
-                    <!-- Complete / Undo Buttons -->
+                    <!-- Complete Service -->
                     <div class="ms-auto text-center">
                         <button type="button"
+                            title="Complete Service"
                             class="btn p-0 border-0 bg-transparent text-success complete-service"
-                            data-url="{{ route('service_records.complete', $record->id) }}"
-                            data-item="{{ $record->inventory->item->name ?? 'N/A' }}"
-                            data-type="{{ $record->type }}"
-                            data-qr="{{ $record->inventoryNonConsumable->qrCode->code ?? 'N/A' }}"
-                            data-schedule="{{ \Carbon\Carbon::parse($record->schedule_date)->format('F d, Y') }}"
-                            data-person="{{ $record->encharge_person }}">
+                            data-url="{{ route('service_records.show_service', $record->id) }}">
                             <i class="bi bi-check-circle"></i>
                         </button>
 
