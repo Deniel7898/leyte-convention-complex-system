@@ -12,9 +12,13 @@ class Item extends Model
 
     protected $fillable = [
         'name',
+        'type',
         'description',
-        'quantity',
+        'total_stock',
+        'remaining',
         'picture',
+        'supplier',
+        'notes',
         'category_id',
         'unit_id',
         'created_by',
@@ -34,12 +38,12 @@ class Item extends Model
 
     public function inventories()
     {
-        return $this->hasMany(Inventory::class, 'item_id');
+        return $this->hasMany(Inventory::class, 'item_id', 'id');
     }
 
     public function qrCode()
     {
-        return $this->hasOne(QR_Code::class, 'inventory_id');
+        return $this->hasOne(QR_Code::class, 'inventory_id', 'id');
     }
 
     /**
@@ -57,12 +61,37 @@ class Item extends Model
     protected static function booted()
     {
         static::deleting(function ($item) {
-            // Delete related inventories
-            $item->inventories->each->delete();
+
+            foreach ($item->inventories as $inventory) {
+
+                // Delete distributions related to this inventory
+                $inventory->itemDistributions()->delete();
+
+                // Delete the inventory
+                $inventory->delete();
+            }
         });
 
         static::restoring(function ($item) {
-            $item->inventories()->withTrashed()->get()->each->restore();
+
+            foreach ($item->inventories()->withTrashed()->get() as $inventory) {
+
+                // Restore inventory
+                $inventory->restore();
+
+                // Restore distributions
+                $inventory->itemDistributions()->withTrashed()->restore();
+            }
         });
+    }
+
+    public function inventoryHistories()
+    {
+        return $this->hasMany(InventoryHistory::class, 'item_id');
+    }
+
+    public function serviceRecords()
+    {
+        return $this->hasMany(Service_Record::class, 'inventory_id', 'id');
     }
 }

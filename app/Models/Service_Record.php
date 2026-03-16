@@ -12,13 +12,16 @@ class Service_Record extends Model
     protected $table = 'service_records';
 
     protected $fillable = [
+        'type',
         'description',
         'quantity',
-        'schedule_date',
+        'service_date',
         'completed_date',
-        'encharge_person',
+        'technician',
+        'status',
+        'remarks',
         'picture',
-        'inventory_id', // single inventory reference
+        'inventory_id', 
         'created_by',
         'updated_by',
     ];

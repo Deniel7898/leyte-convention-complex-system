@@ -1,4 +1,7 @@
 $(function () {
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+    // Add Item
+    //////////////////////////////////////////////////////////////////////////////////////////////////
     //add button click
     $(document).on('click', '.add-inventory', function () {
         $('#loading-spinner').addClass('active');
@@ -100,7 +103,7 @@ $(function () {
             processData: false,
             contentType: false,
             success: function (response) {
-                $('#inventories_table tbody').html(response.html);
+                $('#inventories_table tbody').html(response.table_html);
 
                 // Close modal only if update
                 if ($('#inventories_modal').data('action') === 'update') {
@@ -133,7 +136,55 @@ $(function () {
         });
     });
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+    // Add Stock Item / Add Item Distribution
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+    $(document).on('click', '.add-stock, .add-itemDistribution, .add-service', function (e) {
+        e.preventDefault();
 
+        let button = $(this).closest('.add-itemDistribution, .add-stock, .add-service');
+        let url = button.data('url');
+        let itemId = button.data('item-id');
+        let type = button.data('type'); // distributed, issued, borrowed
+
+        $('#loading-spinner').addClass('active');
+
+        $('#inventories_modal').data('action', 'update');
+
+        $.get(url, { item_id: itemId, type: type }, function (response) {
+            // Insert modal content
+            $('#inventories_modal .modal-content').html(response);
+            $('#loading-spinner').removeClass('active');
+            $('#inventories_modal').modal('show');
+
+            // Wait a moment to ensure DOM exists
+            setTimeout(function () {
+                const $typeSelect = $('#itemDistribution-type');
+
+                // Set the type in the modal
+                if (type) {
+                    $typeSelect.val(type).trigger('change');
+                }
+
+                // Toggle quantity/unit fields based on type
+                if (type === 'issued') {
+                    $('#unitsSection').show();      // show unit selection
+                    $('#quantityWrapper').hide();   // hide quantity
+                } else if (type === 'distributed' || type === 'borrowed') {
+                    $('#unitsSection').hide();      // hide unit selection
+                    $('#quantityWrapper').show();   // show quantity
+                    $('#distributionQuantity').val(1); // default quantity 1
+                }
+
+                // Trigger change on item select to populate units if necessary
+                $('#itemSelect').trigger('change');
+            }, 50);
+        });
+    });
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+    // Search Item
+    //////////////////////////////////////////////////////////////////////////////////////////////////
     function performSearch() {
         let query = $('#inventory-search').val().trim();
         let type = $('#type-filter').val();

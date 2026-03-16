@@ -10,15 +10,26 @@ class Inventory extends Model
 {
     use HasUuids, SoftDeletes;
 
-    protected $table = 'inventories';
+    public $incrementing = false;   // Disable auto-increment
+    protected $keyType = 'string';  // Primary key is string (UUID)
 
     protected $fillable = [
         'received_date',
+        'date_assigned',
+        'due_date',
+        'status',
+        'holder',
+        'notes',
         'item_id',
-        'warranty_expires',
         'created_by',
         'updated_by',
     ];
+
+    // Use 'id' for route binding (the UUID)
+    public function getRouteKeyName()
+    {
+        return 'id';
+    }
 
     public function item()
     {
@@ -32,7 +43,7 @@ class Inventory extends Model
 
     public function qrCode()
     {
-        return $this->hasOne(QR_Code::class, 'inventory_id');
+        return $this->hasOne(QR_Code::class, 'inventory_id', 'id');
     }
 
     public function itemDistributions()
@@ -40,14 +51,35 @@ class Inventory extends Model
         return $this->hasMany(ItemDistribution::class, 'inventory_id');
     }
 
+    public function serviceRecords()
+    {
+        return $this->hasMany(Service_Record::class, 'inventory_id');
+    }
+
     protected static function booted()
     {
         static::deleting(function ($inventory) {
-            $inventory->qrCode?->delete(); // soft-delete QR code
+
+            // Delete QR Code
+            $inventory->qrCode?->delete();
+
+            // Delete related service records
+            $inventory->serviceRecords()->delete();
+
+            // Delete related item distributions
+            $inventory->itemDistributions()->delete();
         });
 
         static::restoring(function ($inventory) {
+
+            // Restore QR Code
             $inventory->qrCode()->withTrashed()->first()?->restore();
+
+            // Restore service records
+            $inventory->serviceRecords()->withTrashed()->restore();
+
+            // Restore item distributions
+            $inventory->itemDistributions()->withTrashed()->restore();
         });
     }
 }

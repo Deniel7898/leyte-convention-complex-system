@@ -13,14 +13,16 @@ class ItemDistribution extends Model
 
     protected $fillable = [
         'transaction_id',
-        'item_id',        // general item reference
-        'inventory_id',   // now points to unified inventory
-        'description',
+        'type',
+        'item_id',       
+        'inventory_id',   
         'quantity',
+        'department_or_borrower',
         'distribution_date',
         'due_date',
         'returned_date',
-        'status',         // pending, distributed, partial, borrowed, returned
+        'status',         
+        'notes',         
         'created_by',
         'updated_by',
     ];

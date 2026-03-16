@@ -1,4 +1,4 @@
-<form action="{{ isset($inventory) ? route('inventory.update', $inventory->id) : route('inventory.store') }}"
+<form action="{{ isset($inventory) ? route('items.update', $inventory->id) : route('inventory.store') }}"
     method="POST" enctype="multipart/form-data">
     @csrf
     @if(isset($item))
@@ -16,7 +16,7 @@
             <div class="col-md-6 mb-3">
                 <label for="item-name" class="form-label">Item Name</label>
                 <input type="text" class="form-control" id="item-name" name="name"
-                    value="{{ isset($item) ? $item->name : '' }}" required>
+                    value="{{ isset($item) ? $item->name : '' }}" required readonly>
                 <input type="hidden" name="page" value="items">
             </div>
 

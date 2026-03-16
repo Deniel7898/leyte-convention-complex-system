@@ -1,5 +1,5 @@
 <div class="modal-header" style="background-color: rgb(43, 45, 87);">
-    <h5 class="modal-title text-white">View Item Inventory</h5>
+    <h5 class="modal-title text-white">View Item</h5>
     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
 </div>
 
@@ -20,7 +20,7 @@
         <div class="row py-2 border-bottom">
             <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Item Name</div>
             <div class="col-8">{{ $inventory->item->name ?? 'N/A' }}</div>
-        </div>  
+        </div>
 
         <!-- Unit -->
         <div class="row py-2 border-bottom">
@@ -32,12 +32,6 @@
         <div class="row py-2 border-bottom">
             <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Category</div>
             <div class="col-8">{{ $inventory->item->category->name ?? 'N/A' }}</div>
-        </div>
-
-        <!-- Quantity -->
-        <div class="row py-2 border-bottom">
-            <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Quantity</div>
-            <div class="col-8">{{ 1 }}</div>
         </div>
 
         <!-- Item Status -->
@@ -79,19 +73,11 @@
 
         </div>
 
-        <!-- Warranty Expires (Non-Consumable Only) -->
-        @if(isset($inventory) && ($inventory->item->type ?? 0) == 1)
+        <!-- Holder/Deparment -->
         <div class="row py-2 border-bottom">
-            <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Warranty Expires</div>
-            <div class="col-8">
-                {{ $inventory && $inventory->warranty_expires 
-                    ? \Carbon\Carbon::parse($inventory->warranty_expires)->format('F j, Y') 
-                    : 'N/A' }}
-            </div>
+            <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Holder/Department</div>
+            <div class="col-8">{{ $inventory->holder ?? 'N/A' }}</div>
         </div>
-        @endif
-
-
 
         <!-- Recorded By -->
         <div class="row py-2 border-bottom">
