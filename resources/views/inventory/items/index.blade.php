@@ -18,11 +18,11 @@
                 <thead class="bg-light">
                     <tr class="text-uppercase text-muted small">
                         <th>#</th>
-                        <th>Status</th>
+                        <th class="text-center">QR Code</th>
                         <th>Holder / Borrower</th>
                         <th>Date Assigned</th>
                         <th>Due Date</th>
-                        <th class="text-center">QR Code</th>
+                        <th>Status</th>
                         <th>Notes</th>
                         <th class="text-center">Actions</th>
                     </tr>

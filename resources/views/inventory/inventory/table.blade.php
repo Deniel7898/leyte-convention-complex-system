@@ -64,31 +64,40 @@ background: rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index
          @endif
      </td>
 
-     <!-- Combined Lightbox Script -->
      <script>
          document.addEventListener('DOMContentLoaded', () => {
-             const clickableImgs = document.querySelectorAll('.clickable-image');
+
              const lightbox = document.getElementById('universalLightbox');
              const lightboxImg = document.getElementById('universalLightboxImg');
              const closeBtn = document.getElementById('universalLightboxClose');
-
-             clickableImgs.forEach(img => {
-                 img.addEventListener('click', () => {
-                     lightboxImg.src = img.dataset.full;
-                     lightbox.style.display = 'flex';
-                 });
-             });
 
              const closeLightbox = () => {
                  lightbox.style.display = 'none';
                  lightboxImg.src = '';
              };
 
-             closeBtn.addEventListener('click', closeLightbox);
+             document.addEventListener('click', (e) => {
 
-             lightbox.addEventListener('click', (e) => {
-                 if (e.target === lightbox) closeLightbox();
+                 // Open lightbox
+                 const img = e.target.closest('.clickable-image');
+                 if (img) {
+                     lightboxImg.src = img.dataset.full;
+                     lightbox.style.display = 'flex';
+                     return;
+                 }
+
+                 // Close button
+                 if (e.target === closeBtn) {
+                     closeLightbox();
+                 }
+
+                 // Click outside image
+                 if (e.target === lightbox) {
+                     closeLightbox();
+                 }
+
              });
+
          });
      </script>
      <td class="text-center">
@@ -147,7 +156,7 @@ background: rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index
                  <li>
                      <a href="{{ route('items.show', $inventory->id) }}" class="dropdown-item text-primary" title="View Item">
                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye w-4 h-4">
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye w-4 h-4 me-1">
                              <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
                              <circle cx="12" cy="12" r="3"></circle>
                          </svg>
@@ -159,7 +168,7 @@ background: rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index
                  <li>
                      <button type="button" class="dropdown-item text-gray edit" data-url="{{ route('inventory.edit', ['inventory' => $inventory->id]) }}" title="Edit Item">
                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-pen w-4 h-4">
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-pen w-4 h-4 me-1">
                              <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                              <path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"></path>
                          </svg>

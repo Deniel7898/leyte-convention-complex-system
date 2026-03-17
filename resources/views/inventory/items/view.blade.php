@@ -44,10 +44,9 @@
         $statusClasses = [
         'distributed' => 'bg-primary-subtle text-primary',
         'borrowed' => 'bg-warning-subtle text-orange',
-        'partial' => 'bg-warning-subtle text-orange',
-        'returned' => 'bg-info-subtle text-info',
+        'returned' => 'bg-success-subtle text-success',
         'received' => 'bg-success-subtle text-success',
-        'pending' => 'bg-secondary-subtle text-secondary',
+        'issued' => 'bg-primary-subtle text-primary',
         'available' => 'bg-success-subtle text-success',
         ];
 

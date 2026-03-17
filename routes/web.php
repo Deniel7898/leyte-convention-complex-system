@@ -6,10 +6,8 @@ use App\Http\Controllers\ItemsController;
 use App\Http\Controllers\InventoriesController;
 use App\Http\Controllers\ItemDistributionsController;
 use App\Http\Controllers\Service_RecordsController;
-use App\Http\Controllers\ViewItemController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Purchase_RequestsController;
-use App\Http\Controllers\QR_CodeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,6 +45,7 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 Route::get('/items/live-search', [ItemsController::class, 'liveSearch'])->name('items.liveSearch');
 Route::get('/inventory/live-search', [InventoriesController::class, 'liveSearch'])->name('inventory.liveSearch');
 Route::get('/item_distributions/live-search', [ItemDistributionsController::class, 'liveSearch'])->name('item_distributions.liveSearch');
+Route::get('/service_records/live-search', [Service_RecordsController::class, 'liveSearch'])->name('service_records.liveSearch');
 
 /*--------------------------------------------------------------------------
 // Inventory Routes 

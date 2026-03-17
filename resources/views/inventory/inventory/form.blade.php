@@ -12,12 +12,14 @@
 
     <div class="modal-body">
         <div class="row">
+            <!-- Hidden input for current page segment -->
+            <input type="hidden" name="page" id="currentPageInput" value="{{ request()->segment(1) ?? 'inventory' }}">
+            
             <!-- Item Name -->
             <div class="col-md-6 mb-3">
                 <label for="item-name" class="form-label">Item Name</label>
                 <input type="text" class="form-control" id="item-name" name="name"
                     value="{{ isset($item) ? $item->name : '' }}" required>
-                <input type="hidden" name="page" value="items">
             </div>
 
             <!-- Category -->

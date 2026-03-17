@@ -342,7 +342,7 @@ class InventoriesController extends Controller
             'description'   => 'nullable|string',
             'picture'       => 'nullable|image|max:2048',
             'received_date' => 'nullable|date',
-            'page'          => 'nullable|string|in:inventory,items',
+            'page'          => 'nullable|string',
         ]);
 
         $inventory = Inventory::with('item')->findOrFail($id);
@@ -370,7 +370,14 @@ class InventoriesController extends Controller
             'updated_by'   => Auth::id(),
         ]);
 
-        if ($request->page === 'items') {
+        if ($request->page === 'inventory') {
+
+            $inventories = $this->getInventories();
+            return response()->json([
+                'table_html' => view('inventory.inventory.table', compact('inventories'))->render(),
+                'message'    => 'Inventory updated successfully'
+            ]);
+        } elseif ($request->page === 'items') {
             $item->load('unit', 'category');
             $history = InventoryHistory::where('item_id', $item->id)->with(['creator', 'updater'])->orderByDesc('created_at')->get();
 
@@ -379,12 +386,6 @@ class InventoriesController extends Controller
                 'item_id'            => $item->id,
                 'history_table_html' => view('inventory.items.history_table', compact('item', 'history'))->render(),
                 'message'            => 'Item updated successfully'
-            ]);
-        } else if ($request->page === 'inventory') {
-            $inventories = $this->getInventories();
-            return response()->json([
-                'table_html' => view('inventory.inventory.table', compact('inventories'))->render(),
-                'message'    => 'Inventory updated successfully'
             ]);
         }
     }

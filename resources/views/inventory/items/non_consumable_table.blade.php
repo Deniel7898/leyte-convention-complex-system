@@ -3,19 +3,19 @@
 $status = strtolower($unit->status ?? 'available');
 $badgeClass = match($status) {
 'available' => 'bg-success-subtle text-success',
+<!-- Distribution -->
 'borrowed' => 'bg-warning-subtle text-orange',
-'maintenance' => 'bg-primary-subtle text-primary',
 'issued' => 'bg-primary-subtle text-primary',
-'under repair' => 'bg-danger-subtle text-danger',
+<!-- Service -->
+'maintenance' => 'bg-warning-subtle text-orange',
+'installation' => 'bg-primary-subtle text-primary',
+'inspection' => 'bg-info-subtle text-secondary',
+'under repair' => 'bg-warning-subtle text-orange',
 default => 'bg-secondary-subtle text-secondary',
 };
-@endphp
+
 <tr>
     <td>{{ $loop->iteration }}</td>
-    <td><span class="badge {{ $badgeClass }}">{{ ucfirst($unit->status ?? 'Available') }}</span></td>
-    <td>{{ $unit->holder ?? '--' }}</td>
-    <td>{{ $unit->date_assigned ?? '--'}}</td>
-    <td>{{ $unit->due_date ? \Carbon\Carbon::parse($unit->due_date)->format('m/d/Y') : '--' }}</td>
     <td style="padding:0; margin:0; vertical-align:top; text-align:center">
         @if($unit->qrCode)
         <img src="{{ asset('storage/' . $unit->qrCode->qr_picture) }}"
@@ -30,6 +30,10 @@ default => 'bg-secondary-subtle text-secondary',
         QR
         @endif
     </td>
+    <td>{{ $unit->holder ?? '--' }}</td>
+    <td>{{ $unit->date_assigned ?? '--'}}</td>
+    <td>{{ $unit->due_date ? \Carbon\Carbon::parse($unit->due_date)->format('m/d/Y') : '--' }}</td>
+    <td><span class="badge {{ $badgeClass }}">{{ ucfirst($unit->status ?? 'Available') }}</span></td>
     <td>{{ $unit->notes ?? '-' }}</td>
     <td class="text-center">
 
