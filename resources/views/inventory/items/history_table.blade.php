@@ -1,4 +1,6 @@
-<div class="card shadow-lg rounded-4 modern-card mt-4">
+
+ <p class="mt-4 fw-500" style="color: hsl(237, 34%, 30%);">Item History Table</p>
+ <div class="card shadow-lg rounded-4 modern-card">
     <div class="card-body p-0">
         <div class="table-responsive rounded-4">
 

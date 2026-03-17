@@ -37,7 +37,7 @@ default => 'bg-secondary-subtle text-secondary',
         <!-- Issue/Borrow Button -->
         <button type="button" title="Issue/Borrow Item"
             class="btn p-0 border-0 bg-transparent text-success me-2 add-itemDistribution"
-            data-url="{{ route('item_distributions.create') }}"
+            data-url="{{ route('item_distributions.create', $unit->id) }}"
             data-item-id="{{ $item->id }}"
             data-type="borrowed">
             <i class="bi bi-send"></i>

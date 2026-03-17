@@ -27,6 +27,7 @@
                     <option value="">Select category</option>
                     @foreach($categories as $category)
                     <option value="{{ $category->id }}"
+                        data-type="{{ $category->type }}"
                         {{ isset($item) && $item->category_id == $category->id ? 'selected' : '' }}>
                         {{ $category->name }}
                     </option>
@@ -144,4 +145,16 @@
             reader.readAsDataURL(file);
         }
     })();
+</script>
+<script>
+    document.getElementById('item-category').addEventListener('change', function() {
+        let selectedOption = this.options[this.selectedIndex];
+        let categoryType = selectedOption.getAttribute('data-type');
+
+        let typeSelect = document.getElementById('item-type');
+
+        if (categoryType) {
+            typeSelect.value = categoryType;
+        }
+    });
 </script>

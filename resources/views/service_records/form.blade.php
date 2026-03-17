@@ -11,37 +11,30 @@
     </div>
 
     <div class="modal-body">
-        <!-- Hidden input to pass current page segment -->
-        <input type="hidden" name="page" id="currentPageInput">
+        <!-- Hidden input for current page segment -->
+        <input type="hidden" name="page" id="currentPageInput" value="{{ request()->segment(1) ?? 'inventory' }}">
 
-        <script>
-            function setCurrentSegment() {
-                const pageInput = document.getElementById('currentPageInput');
-                if (pageInput) {
-                    const segments = window.location.pathname.replace(/^\/|\/$/g, '').split('/');
-                    const firstSegment = segments[0] || 'inventory'; // fallback if empty
-                    pageInput.value = firstSegment;
-                }
-            }
+        <div class="row">
+            <!-- Item Name & Available Stock -->
+            <div class="col-md-6 mb-1">
+                <label class="form-label fw-bold">Item</label>
+                <input type="text" class="form-control text-muted"
+                    value="{{ $selectedItem->name ?? '' }}" readonly>
+                <small class="text-muted">Available: {{ $selectedItem->remaining ?? 0 }}</small>
+                <input type="hidden" name="item_id" value="{{ $selectedItem->id ?? '' }}">
+                <input type="hidden" name="page" value="{{ $page ?? 'inventory' }}">
+            </div>
 
-            // Run immediately on page load
-            setCurrentSegment();
-
-            // If form is inside a Bootstrap modal, update on modal open
-            const modal = document.getElementById('myFormModal');
-            if (modal) {
-                modal.addEventListener('show.bs.modal', setCurrentSegment);
-            }
-        </script>
-
-        <!-- Item Name & Available Stock -->
-        <div class="mb-3">
-            <label class="form-label fw-bold">Item</label>
-            <input type="text" class="form-control text-muted"
-                value="{{ $selectedItem->name ?? '' }}" readonly>
-            <small class="text-muted">Available: {{ $selectedItem->remaining ?? 0 }}</small>
-            <input type="hidden" name="item_id" value="{{ $selectedItem->id ?? '' }}">
-            <input type="hidden" name="page" value="{{ $page ?? 'inventory' }}">
+            <!-- Service Type -->
+            <div class="col-md-6 mb-1">
+                <label for="service-record-type" class="form-label">Service Type</label>
+                <select class="form-select" id="service-record-type" name="type" required>
+                    <option value="">-- Select type --</option>
+                    <option value="maintenance" {{ (isset($service_record) && $service_record->type == 'maintenance') ? 'selected' : '' }}>Maintenance</option>
+                    <option value="installation" {{ (isset($service_record) && $service_record->type == 'installation') ? 'selected' : '' }}>Installation</option>
+                    <option value="inspection" {{ (isset($service_record) && $service_record->type == 'inspection') ? 'selected' : '' }}>Inspection</option>
+                </select>
+            </div>
         </div>
 
         <!-- Units Table (for non-consumables) -->
@@ -72,14 +65,15 @@
 
                         // Exclude if inventory has a distribution type of distributed or issued
                         $inDistribution = $inv->itemDistributions
-                        ->whereIn('type', ['distributed', 'issued'])
+                        ->whereIn('type', ['distributed'])
                         ->count() > 0;
 
-                        // Exclude if inventory status is borrowed
-                        $isBorrowed = strtolower($inv->status ?? '') === 'borrowed';
+                        // Check if status is borrowed or issued
+                        $status = strtolower($inv->status ?? '');
+                        $isBorrowedOrIssued = in_array($status, ['borrowed', 'issued']);
 
                         // Only include inventories that pass all checks
-                        return !$inService && !$inDistribution && !$isBorrowed;
+                        return !$inService && !$inDistribution && !$isBorrowedOrIssued;
                         });
                         @endphp
 
@@ -104,35 +98,24 @@
         </div>
 
         <div class="row">
-            <!-- Service Type -->
-            <div class="col-md-6 mb-3">
-                <label for="service-record-type" class="form-label">Service Type</label>
-                <select class="form-select" id="service-record-type" name="type" required>
-                    <option value="">-- Select type --</option>
-                    <option value="maintenance" {{ (isset($service_record) && $service_record->type == 'maintenance') ? 'selected' : '' }}>Maintenance</option>
-                    <option value="installation" {{ (isset($service_record) && $service_record->type == 'installation') ? 'selected' : '' }}>Installation</option>
-                    <option value="inspection" {{ (isset($service_record) && $service_record->type == 'inspection') ? 'selected' : '' }}>Inspection</option>
-                </select>
-            </div>
-
             <!-- Technician -->
             <div class="col-md-6 mb-3">
                 <label for="technician" class="form-label">Technician</label>
                 <input type="text" class="form-control" id="technician" name="technician"
                     value="{{ old('technician', $service_record->technician ?? '') }}" required>
             </div>
-        </div>
 
-        <!-- Service Date -->
-        <div class="mb-3">
-            <label for="service_date" class="form-label">Schedule Date</label>
-            <input type="date" class="form-control" id="service_date" name="service_date"
-                value="{{ old('service_date', isset($service_record) ? $service_record->service_date->format('Y-m-d') : date('Y-m-d')) }}" required>
+            <!-- Service Date -->
+            <div class="col-md-6 mb-3">
+                <label for="service_date" class="form-label">Schedule Date</label>
+                <input type="date" class="form-control" id="service_date" name="service_date"
+                    value="{{ old('service_date', isset($service_record) ? $service_record->service_date->format('Y-m-d') : date('Y-m-d')) }}" required>
+            </div>
         </div>
 
         <!-- Description -->
         <div class="mb-3">
-            <label for="description" class="form-label">Description</label>
+            <label for="description" class="form-label"> Service Description</label>
             <textarea class="form-control" id="description" name="description" rows="1"
                 required>{{ old('description', $service_record->description ?? '') }}</textarea>
         </div>

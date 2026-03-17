@@ -251,6 +251,7 @@ $(function () {
             }
         });
     });
+    
     // function performSearch() {
     //     let query = $('#item-search').val();
     //     let type = $('#type-filter').val();          // dropdown for type

@@ -19,15 +19,21 @@
         <p>{{ $itemDistribution->type ?? '--' }}</p>
     </td>
     <td style="padding:0; margin:0; vertical-align:top; text-align:center">
-        @if(!empty($itemDistribution->inventory?->qrCode))
+        @php
+        $qr = $itemDistribution->inventory?->qrCode
+        ?? $itemDistribution->inventory?->item?->qrCode
+        ?? null;
+        @endphp
+
+        @if(!empty($qr))
         <img
-            src="{{ asset('storage/' . $itemDistribution->inventory->qrCode->qr_picture) }}"
-            alt="{{ $itemDistribution->inventory->qrCode->code }}"
+            src="{{ asset('storage/' . $qr->qr_picture) }}"
+            alt="{{ $qr->code }}"
             class="clickable-image"
-            data-full="{{ asset('storage/' . $itemDistribution->inventory->qrCode->qr_picture) }}"
+            data-full="{{ asset('storage/' . $qr->qr_picture) }}"
             style="width:40px; height:auto; cursor:pointer;">
         <br>
-        <small>{{ $itemDistribution->inventory->qrCode->code }}</small>
+        <small>{{ $qr->code }}</small>
         @else
         <span class="text-muted">QR N/A</span>
         @endif
@@ -42,28 +48,31 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const clickableImgs = document.querySelectorAll('.clickable-image');
-            const lightbox = document.getElementById('universalLightbox');
-            const lightboxImg = document.getElementById('universalLightboxImg');
-            const closeBtn = document.getElementById('universalLightboxClose');
+        document.addEventListener('click', e => {
+            const target = e.target;
 
-            clickableImgs.forEach(img => {
-                img.addEventListener('click', () => {
-                    lightboxImg.src = img.dataset.full;
-                    lightbox.style.display = 'flex';
-                });
-            });
+            // Check if a clickable image was clicked
+            if (target.classList.contains('clickable-image')) {
+                const lightbox = document.getElementById('universalLightbox');
+                const lightboxImg = document.getElementById('universalLightboxImg');
+                lightboxImg.src = target.dataset.full;
+                lightbox.style.display = 'flex';
+            }
 
-            const closeLightbox = () => {
+            // Close lightbox if close button clicked
+            if (target.id === 'universalLightboxClose') {
+                const lightbox = document.getElementById('universalLightbox');
+                const lightboxImg = document.getElementById('universalLightboxImg');
                 lightbox.style.display = 'none';
                 lightboxImg.src = '';
-            };
+            }
 
-            closeBtn.addEventListener('click', closeLightbox);
-            lightbox.addEventListener('click', e => {
-                if (e.target === lightbox) closeLightbox();
-            });
+            // Close lightbox if background clicked
+            if (target.id === 'universalLightbox') {
+                const lightboxImg = document.getElementById('universalLightboxImg');
+                target.style.display = 'none';
+                lightboxImg.src = '';
+            }
         });
     </script>
     <td>
@@ -79,6 +88,7 @@
         'returned' => 'bg-success-subtle text-success',
         'pending' => 'bg-secondary-subtle text-secondary',
         'available' => 'bg-success-subtle text-success',
+        'issued' => 'bg-primary-subtle text-primary',
         ];
 
         // Get class for current status, fallback to secondary if unknown
@@ -100,7 +110,7 @@
     <td class="text-center">
         <div class="dropdown">
             <!-- Return Item (only for borrowed) -->
-            @if($itemDistribution->status === 'borrowed')
+            @if($itemDistribution->status === 'borrowed' || $itemDistribution->status === 'issued')
             <button type="button"
                 title="Return Item"
                 class="btn p-0 border-0 bg-transparent text-success return-item"
@@ -123,8 +133,13 @@
                 <li>
                     <button type="button"
                         title="Undo Completion"
-                        class="dropdown-item d-flex align-items-center text-warning edit"
-                        data-url="">
+                        class="dropdown-item d-flex align-items-center text-warning undo-completion"
+                        data-url="{{ route('item_distributions.undo', $itemDistribution->id) }}"
+                        data-item="{{ $itemDistribution->inventory->item->name ?? 'N/A' }}"
+                        data-qr="{{ $itemDistribution->inventory?->qrCode?->code ?? 'N/A' }}"
+                        data-schedule="{{ \Carbon\Carbon::parse($itemDistribution->distribution_date)->format('F d, Y') }}"
+                        data-person="{{ $itemDistribution->department_or_borrower }}"
+                        data-type="{{ $itemDistribution->type }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-arrow-counterclockwise me-2" viewBox="0 0 16 16">
                             <path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2z" />
                             <path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466" />

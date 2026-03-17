@@ -35,22 +35,18 @@
 
         <div class="col-auto">
             <div class="col-auto add-serviceRecord" data-url="{{route('service_records.create')}}">
-                <button class="btn px-4 text-white" style="background-color: hsl(237, 34%, 30%);" onmouseover="this.style.backgroundColor='hsl(237, 34%, 40%)'" onmouseout="this.style.backgroundColor='hsl(237, 34%, 30%)'">
+                <a href="{{ route('inventory.index') }}" class="btn px-4 text-white" style="background-color: hsl(237, 34%, 30%);" onmouseover="this.style.backgroundColor='hsl(237, 34%, 40%)'" onmouseout="this.style.backgroundColor='hsl(237, 34%, 30%)'">
                     + New Item Service
-                </button>
+                </a>
             </div>
         </div>
     </div>
-
-    <!-- <div class="text-muted small mt-2">
-        Showing 8 of 8 items
-    </div> -->
 </div>
 
 <!-- Service Record Cards (Pending Only) -->
-<div id="service-record-cards">
+<div id="service-record-cards" style="overflow-x: auto; white-space: nowrap; padding-top: 1rem;">
     @if($service_records->whereNull('completed_date')->count() > 0)
-    <div class="row g-3 pt-3" id="cards-row">
+    <div class="mb-1" id="cards-row" style="display: flex; flex-wrap: nowrap; gap: 0.1rem;">
         @foreach($service_records as $record)
         @if(is_null($record->completed_date))
         @include('service_records.card', ['record' => $record])

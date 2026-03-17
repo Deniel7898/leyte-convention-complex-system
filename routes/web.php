@@ -62,21 +62,15 @@ Route::resource('inventory', App\Http\Controllers\InventoriesController::class)-
 // Item Distributions Routes 
 --------------------------------------------------------------------------*/
 Route::resource('item_distributions', App\Http\Controllers\ItemDistributionsController::class)->middleware('auth'); // includes all CRUD routes for item distributions
-// Show the return form modal
-// Show return form
-Route::get('/item-distributions/{id}', [ItemDistributionsController::class, 'showReturnForm'])
-    ->name('item_distributions.return_form');
-
-// Submit the return
-Route::post('/item-distributions/{id}/return', [ItemDistributionsController::class, 'returnItem'])
-    ->name('item_distributions.returnItem');
+Route::get('/item-distributions/{id}', [ItemDistributionsController::class, 'showReturnForm'])->name('item_distributions.return_form');
+Route::post('/item-distributions/{id}/return', [ItemDistributionsController::class, 'returnItem'])->name('item_distributions.returnItem');
+Route::post('/item-distributions/{id}/undo', [ItemDistributionsController::class, 'undoCompletion'])->name('item_distributions.undo');
 
 /*--------------------------------------------------------------------------
 // Item Service Records Routes 
 --------------------------------------------------------------------------*/
 Route::resource('service_records', App\Http\Controllers\Service_RecordsController::class)->middleware('auth'); // includes all CRUD routes for item service records
-Route::get('/service/show-service/{id}', [Service_RecordsController::class, 'show_service'])
-    ->name('service_records.show_service');
+Route::get('/service/show-service/{id}', [Service_RecordsController::class, 'show_service'])->name('service_records.show_service');
 Route::post('/service/{id}/complete-service', [Service_RecordsController::class, 'complete_service'])->name('service_records.complete_service');
 Route::post('/service-records/{id}/undo', [Service_RecordsController::class, 'undoCompletion'])->name('service_records.undo');
 

@@ -9,7 +9,7 @@
     @include('inventory.items.item_card', ['item' => $item])
 </div>
 
-<!-- Item History Table -->
+<!-- Item Non-Consumable Table -->
 @if($item->type === 'non-consumable')
 <div class="card shadow-lg rounded-4 modern-card">
     <div class="card-body p-0">
@@ -37,7 +37,7 @@
 </div>
 @endif
 
-<!-- Universal Lightbox (one per page) -->
+<!-- Universal Lightbox -->
 <div id="universalLightbox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
     background: rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1050;">
     <button id="universalLightboxClose" style="position:absolute; top:20px; right:20px; background:none;
@@ -47,26 +47,33 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const clickableImgs = document.querySelectorAll('.clickable-image');
         const lightbox = document.getElementById('universalLightbox');
         const lightboxImg = document.getElementById('universalLightboxImg');
         const closeBtn = document.getElementById('universalLightboxClose');
 
-        clickableImgs.forEach(img => {
-            img.addEventListener('click', () => {
-                lightboxImg.src = img.dataset.full;
-                lightbox.style.display = 'flex';
-            });
+        // Open lightbox when any .clickable-image is clicked (event delegation)
+        document.body.addEventListener('click', (e) => {
+            if (e.target.classList.contains('clickable-image')) {
+                const fullSrc = e.target.dataset.full;
+                if (fullSrc) {
+                    lightboxImg.src = fullSrc;
+                    lightbox.style.display = 'flex';
+                }
+            }
         });
 
-        const closeLightbox = () => {
+        // Close lightbox with close button
+        closeBtn.addEventListener('click', () => {
             lightbox.style.display = 'none';
             lightboxImg.src = '';
-        };
+        });
 
-        closeBtn.addEventListener('click', closeLightbox);
-        lightbox.addEventListener('click', e => {
-            if (e.target === lightbox) closeLightbox();
+        // Close lightbox when clicking outside the image
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) {
+                lightbox.style.display = 'none';
+                lightboxImg.src = '';
+            }
         });
     });
 </script>
@@ -91,27 +98,23 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const toggleBtn = document.getElementById('toggle-history');
-        const nonContainer = document.getElementById('items_table')?.closest('.card'); // the whole card
-        const historyContainer = document.getElementById('history_container');
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('#toggle-history')) { // checks if clicked element or its parent is the button
+            const nonContainer = document.getElementById('items_table')?.closest('.card');
+            const historyContainer = document.getElementById('history_container');
 
-        if (toggleBtn && nonContainer && historyContainer) {
-            // Hide history initially
-            historyContainer.style.display = 'none';
+            if (!nonContainer || !historyContainer) return;
 
-            toggleBtn.addEventListener('click', function() {
-                const isNonVisible = nonContainer.style.display === 'none';
+            const isNonVisible = nonContainer.style.display === 'none';
 
-                // Toggle visibility
-                nonContainer.style.display = isNonVisible ? 'block' : 'none';
-                historyContainer.style.display = isNonVisible ? 'none' : 'block';
+            // Toggle visibility
+            nonContainer.style.display = isNonVisible ? 'block' : 'none';
+            historyContainer.style.display = isNonVisible ? 'none' : 'block';
 
-                // Update button text/icon
-                this.innerHTML = isNonVisible ?
-                    '<i class="bi bi-clock-history"></i> History' :
-                    '<i class="bi bi-arrow-left"></i> Back to Non-Consumable Items';
-            });
+            // Update button text/icon
+            e.target.closest('#toggle-history').innerHTML = isNonVisible ?
+                '<i class="bi bi-clock-history"></i> History' :
+                '<i class="bi bi-arrow-left"></i> Back to Items List';
         }
     });
 </script>

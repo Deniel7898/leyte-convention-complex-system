@@ -135,9 +135,9 @@ class ItemDistributionsController extends Controller
     private function getItemDistributions()
     {
         return ItemDistribution::with([
-            'inventory.item.unit',     
+            'inventory.item.unit',
             'inventory.item.category',
-            'inventory.qrCode',        
+            'inventory.qrCode',
         ])
             ->get()
             ->sortByDesc('created_at')
@@ -147,13 +147,23 @@ class ItemDistributionsController extends Controller
     /**
      * Index view
      */
+    /**
+     * Index view
+     */
     public function index()
     {
         $itemDistributions = $this->getItemDistributions();
         $categories = Category::all();
-        $itemDistributions_table = view('item_distributions.table', compact('itemDistributions'))->render();
 
-        return view('item_distributions.index', compact('itemDistributions_table', 'categories', 'itemDistributions'));
+        $itemDistributions_table = view('item_distributions.table', [
+            'itemDistributions' => $itemDistributions
+        ])->render();
+
+        return view('item_distributions.index', compact(
+            'itemDistributions',
+            'categories',
+            'itemDistributions_table'
+        ));
     }
 
     /**
@@ -183,7 +193,6 @@ class ItemDistributionsController extends Controller
     {
         $request->validate([
             'type' => 'required|in:distributed,borrowed,issued',
-            'status' => 'required|in:completed,borrowed,returned',
             'item_id' => 'required|exists:items,id',
             'inventory_ids' => 'nullable|array',
             'inventory_ids.*' => 'nullable|uuid|exists:inventories,id',
@@ -198,6 +207,17 @@ class ItemDistributionsController extends Controller
         $item = Item::findOrFail($request->item_id);
 
         DB::transaction(function () use ($request, $item) {
+
+            $type = $request->type;
+
+            // Map type → status
+            $status = match ($type) {
+                'distributed' => 'completed',
+                'issued'      => 'issued',
+                'borrowed'    => 'borrowed',
+                default       => $request->status,
+            };
+            
             $department = $request->department_or_borrower ?? 'Unknown';
 
             if ($item->type === 'consumable') {
@@ -215,7 +235,7 @@ class ItemDistributionsController extends Controller
                     'quantity' => $quantity,
                     'distribution_date' => $request->distribution_date ?? now(),
                     'due_date' => $request->due_date,
-                    'status' => $request->status,
+                    'status' => $status,
                     'item_id' => $item->id,
                     'inventory_id' => null,
                     'department_or_borrower' => $department,
@@ -251,7 +271,7 @@ class ItemDistributionsController extends Controller
                         'quantity' => 1,
                         'distribution_date' => $request->distribution_date ?? now(),
                         'due_date' => $request->due_date,
-                        'status' => $request->status,
+                        'status' => $status,
                         'item_id' => $item->id,
                         'inventory_id' => $inventory->id,
                         'department_or_borrower' => $department,
@@ -305,12 +325,11 @@ class ItemDistributionsController extends Controller
                 'item_id'                  => $item->id,
                 'message'                  => 'Distribution added successfully'
             ]);
-        } else if ($request->page === 'inventory') {
-
+        } elseif ($request->page === 'inventory') {
             $inventories = $this->getInventories();
             return response()->json([
                 'table_html' => view('inventory.inventory.table', compact('inventories'))->render(),
-                'message'    => 'Stock added successfully'
+                'message'    => 'Inventory updated successfully',
             ]);
         }
     }
@@ -431,10 +450,13 @@ class ItemDistributionsController extends Controller
             'status' => 'nullable',
             'item_id' => 'nullable',
             'department_or_borrower' => 'nullable|string',
+            'page' => 'nullable|string',
         ]);
 
         // Find the item distribution
         $distribution = ItemDistribution::with('inventory.item')->findOrFail($id);
+        $item = $distribution->inventory->item ?? null;
+        $inventory = $distribution->inventory;
 
         // Update the record
         $distribution->update([
@@ -446,10 +468,16 @@ class ItemDistributionsController extends Controller
             'updated_by' => Auth::id(),
         ]);
 
-        // Optional: update inventory status if needed
-        if ($distribution->inventory) {
-            $distribution->inventory->update([
-                'status' => null
+        // Reset inventory status
+        if ($inventory) {
+            // Increment remaining on the inventory item
+            if ($item) {
+                $item->increment('remaining', 1); // increment remaining by 1
+            }
+
+            // Reset status
+            $inventory->update([
+                'status' => 'available',
             ]);
         }
 
@@ -465,13 +493,60 @@ class ItemDistributionsController extends Controller
             ]);
         }
 
-        // Refresh the item distributions table
-        $itemDistributions = ItemDistribution::latest()->get();
+        // Response based on page
+        if ($request->page === 'items') {
+            $item->load('unit', 'category', 'inventories.qrCode');
+
+            $history = InventoryHistory::where('item_id', $item->id)
+                ->with(['creator', 'updater'])
+                ->orderByDesc('created_at')
+                ->get();
+
+            // Return the non-consumable table partial
+            $nonConsumableTableHtml = view('inventory.items.non_consumable_table', compact('item'))->render();
+
+            return response()->json([
+                'item_card_html'           => view('inventory.items.item_card', compact('item'))->render(),
+                'history_table_html'       => view('inventory.items.history_table', compact('item', 'history'))->render(),
+                'non_consumable_table_html' => $nonConsumableTableHtml,
+                'item_id'                  => $item->id,
+                'message'                  => 'Distribution added successfully'
+            ]);
+        } else if ($request->page === 'item-distributions') { // Refresh the item distributions table
+            $itemDistributions = ItemDistribution::latest()->get();
+
+            return response()->json([
+                'distribution_id' => $distribution->id,
+                'table_html' => view('item_distributions.table', compact('itemDistributions'))->render(),
+                'message' => 'Item returned successfully!',
+            ]);
+        }
+    }
+
+    public function undoCompletion(string $id)
+    {
+        $record = ItemDistribution::findOrFail($id);
+
+        $record->update([
+            'status'         => 'in progress',
+            'completed_date' => null,
+            'updated_by'     => Auth::id(),
+        ]);
+
+        Inventory::where('id', $record->inventory_id)
+            ->update(['status' => $record->type]);
+
+        $item_distributions = ItemDistribution::with([
+            'inventory.item.unit',
+            'inventory.item.category',
+            'inventory.qrCode'
+        ])->latest()->get();
 
         return response()->json([
-            'distribution_id' => $distribution->id,
-            'table_html' => view('item_distributions.table', compact('itemDistributions'))->render(),
-            'message' => 'Item returned successfully!',
+            'record_id'  => $record->id,
+            'cards_html' => view('item_distributions.card', ['record' => $record])->render(),
+            'table_html' => view('item_distributions.table', compact('item_distributions'))->render(),
+            'message'    => 'Service completion undone successfully',
         ]);
     }
 }

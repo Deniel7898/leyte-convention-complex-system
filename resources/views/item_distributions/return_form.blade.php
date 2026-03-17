@@ -12,6 +12,8 @@
     </div>
 
     <div class="modal-body">
+        <!-- Hidden input for current page segment -->
+        <input type="hidden" name="page" id="currentPageInput" value="{{ request()->segment(1) ?? 'inventory' }}">
 
         <!-- Item Name -->
         <div class="mb-3">

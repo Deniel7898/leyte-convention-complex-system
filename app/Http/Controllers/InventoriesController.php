@@ -392,17 +392,52 @@ class InventoriesController extends Controller
     /**
      * DELETE
      */
-    public function destroy(Request $request, string $id)
+    public function destroy(string $id)
     {
-        $inventory = Inventory::findOrFail($id);
+        // Find the inventory record
+        $inventory = Inventory::with('item')->findOrFail($id);
         $item = $inventory->item;
 
+        if ($item) {
+            // Decrement stock safely, but not below 0
+            $item->decrement('total_stock', 1);
+            $item->decrement('remaining', 1);
+        }
+
+        // Optional: log history for deletion
+        if ($item) {
+            InventoryHistory::create([
+                'item_id'    => $item->id,
+                'action'     => 'deleted',           // mark as deleted
+                'quantity'   => 1,
+                'notes'      => 'Non-consumable item deleted',
+                'created_by' => Auth::id(),
+                'updated_by' => Auth::id(),
+            ]);
+        }
+
+        // Delete the inventory record
         $inventory->delete();
 
-        $inventories = $this->getInventories();
+        // Reload item relations
+        $item->load('unit', 'category', 'inventories.qrCode');
+
+        // Get updated history
+        $history = InventoryHistory::where('item_id', $item->id)
+            ->with(['creator', 'updater'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        // Render updated non-consumable table
+        $nonConsumableTableHtml = view('inventory.items.non_consumable_table', compact('item'))->render();
+
+        // Return updated HTML + message
         return response()->json([
-            'table_html' => view('inventory.inventory.table', compact('inventories'))->render(),
-            'message'    => 'Inventory deleted successfully'
+            'item_card_html'            => view('inventory.items.item_card', compact('item'))->render(),
+            'history_table_html'        => view('inventory.items.history_table', compact('item', 'history'))->render(),
+            'non_consumable_table_html' => $nonConsumableTableHtml,
+            'item_id'                   => $item->id,
+            'message'                   => 'Inventory deleted successfully'
         ]);
     }
 }
