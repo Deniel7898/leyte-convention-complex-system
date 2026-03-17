@@ -44,28 +44,31 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const clickableImgs = document.querySelectorAll('.clickable-image');
-            const lightbox = document.getElementById('universalLightbox');
-            const lightboxImg = document.getElementById('universalLightboxImg');
-            const closeBtn = document.getElementById('universalLightboxClose');
+        document.addEventListener('click', e => {
+            const target = e.target;
 
-            clickableImgs.forEach(img => {
-                img.addEventListener('click', () => {
-                    lightboxImg.src = img.dataset.full;
-                    lightbox.style.display = 'flex';
-                });
-            });
+            // Open lightbox if a clickable image is clicked
+            if (target.classList.contains('clickable-image')) {
+                const lightbox = document.getElementById('universalLightbox');
+                const lightboxImg = document.getElementById('universalLightboxImg');
+                lightboxImg.src = target.dataset.full;
+                lightbox.style.display = 'flex';
+            }
 
-            const closeLightbox = () => {
+            // Close lightbox if close button clicked
+            if (target.id === 'universalLightboxClose') {
+                const lightbox = document.getElementById('universalLightbox');
+                const lightboxImg = document.getElementById('universalLightboxImg');
                 lightbox.style.display = 'none';
                 lightboxImg.src = '';
-            };
+            }
 
-            closeBtn.addEventListener('click', closeLightbox);
-            lightbox.addEventListener('click', e => {
-                if (e.target === lightbox) closeLightbox();
-            });
+            // Close lightbox if background clicked
+            if (target.id === 'universalLightbox') {
+                const lightboxImg = document.getElementById('universalLightboxImg');
+                target.style.display = 'none';
+                lightboxImg.src = '';
+            }
         });
     </script>
     <td>
@@ -92,7 +95,7 @@
         <img src="{{ asset('storage/' . $service_record->picture) }}"
             alt="{{ $service_record->inventory->item->name ?? 'N/A' }}"
             width="50"
-            class="clickable-img"
+            class="clickable-image"
             style="cursor: pointer;"
             data-full="{{ asset('storage/' . $service_record->picture) }}">
         @else

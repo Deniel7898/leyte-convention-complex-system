@@ -12,28 +12,8 @@
      </div>
 
      <div class="modal-body">
-         <!-- Hidden input to pass current page segment -->
-         <input type="hidden" name="page" id="currentPageInput">
-
-         <script>
-             function setCurrentSegment() {
-                 const pageInput = document.getElementById('currentPageInput');
-                 if (pageInput) {
-                     const segments = window.location.pathname.replace(/^\/|\/$/g, '').split('/');
-                     const firstSegment = segments[0] || 'inventory'; // fallback if empty
-                     pageInput.value = firstSegment;
-                 }
-             }
-
-             // Run immediately on page load
-             setCurrentSegment();
-
-             // If form is inside a Bootstrap modal, update on modal open
-             const modal = document.getElementById('myFormModal');
-             if (modal) {
-                 modal.addEventListener('show.bs.modal', setCurrentSegment);
-             }
-         </script>
+         <!-- Hidden input for current page segment -->
+         <input type="hidden" name="page" id="currentPageInput" value="{{ request()->segment(1) ?? 'inventory' }}">
 
          <!-- Received Date -->
          <div class="mb-3">

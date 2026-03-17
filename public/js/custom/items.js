@@ -21,26 +21,21 @@ $(function () {
         }
     }
 
-    // ⚡ NEW: showModal helper to open any Bootstrap modal safely
+    // Helper to open modal safely
     function showModal(modalId) {
         const modalEl = document.getElementById(modalId);
         if (!modalEl) return;
 
-        // Create a new Bootstrap modal instance and show it
         const bsModal = new bootstrap.Modal(modalEl);
         bsModal.show();
     }
 
-    // Example: attach listener for your main modal
-    attachModalListener('myFormModal');
-
-    // Call it for your main modal
-    attachModalListener('myFormModal');
+    // Attach listener
+    attachModalListener('items_modal');
 
     //////////////////////////////////////////////////////////////////////////////////////////////////
     // Form Submit & Edit Item
     //////////////////////////////////////////////////////////////////////////////////////////////////
-    //edit button click
     $(document).on('click', '.edit, .edit-non-consumable, .complete-service, .show-return', function () {
         $('#loading-spinner').addClass('active');
 
@@ -149,9 +144,6 @@ $(function () {
         let itemId = button.data('item-id');
         let type = button.data('type'); // distributed, issued, borrowed
 
-        // Attach the listener safely
-        attachModalListener('items_modal');
-
         $('#loading-spinner').addClass('active');
 
         // Determine which modal to use
@@ -174,33 +166,18 @@ $(function () {
                 $('#loading-spinner').removeClass('active');
                 $(modalSelector).modal('show');
 
-                // Items modal adjustments (for add-stock/add-itemDistribution)
+                // Trigger type and item select handlers to properly show/hide fields
                 if (modalSelector === '#items_modal') {
                     setTimeout(function () {
-                        const $typeSelect = $('#itemDistribution-type');
-
-                        if (type) $typeSelect.val(type).trigger('change');
-
-                        if (type === 'issued') {
-                            $('#unitsSection').show();
-                            $('#quantityWrapper').hide();
-                        } else if (type === 'distributed') {
-                            $('#unitsSection').hide();
-                            $('#quantityWrapper').show();
-                            $('#distributionQuantity').val(1);
-                        } else if (type === 'borrowed') {
-                            $('#unitsSection').hide();
-                            $('#quantityWrapper').hide();
-                            $('#distributionQuantity').val(1);
-                            $('#unitSelect').prop('selectedIndex', 0);
+                        if (type) {
+                            $('#itemDistribution-type').val(type).trigger('change');
                         }
-
                         $('#itemSelect').trigger('change');
                     }, 50);
                 }
             },
             error: function (xhr) {
-                console.error(xhr.responseText); // debug
+                console.error(xhr.responseText);
                 $('#loading-spinner').removeClass('active');
                 Swal.fire({
                     icon: 'error',
@@ -213,57 +190,8 @@ $(function () {
         });
     });
 
-
-
-
-
-
-
-
-
-
-
-
-    //add button click
-    // $(document).on('click', '.add-item', function () {
-    //     $('#loading-spinner').addClass('active');
-
-    //     // When opening modal for add
-    //     $('#items_modal').data('action', 'add');
-
-    //     url = $(this).data('url');
-    //     $.ajax({
-    //         url: url,
-    //         type: 'GET',
-    //         success: function (response) {
-    //             $('#items_modal .modal-content').html(response);
-    //             $('#loading-spinner').removeClass('active'); // hide
-    //             $('#items_modal').modal('show');
-    //         }
-    //     })
-    // })
-
-    //edit button click
-    // $(document).on('click', '.edit-item', function () {
-    //     $('#loading-spinner').addClass('active');
-
-    //     // When opening modal for update
-    //     $('#items_modal').data('action', 'update');
-
-    //     url = $(this).data('url');
-    //     $.ajax({
-    //         url: url,
-    //         type: 'GET',
-    //         success: function (response) {
-    //             $('#items_modal .modal-content').html(response);
-    //             $('#loading-spinner').removeClass('active'); // hide
-    //             $('#items_modal').modal('show');
-    //         }
-    //     })
-    // })
-
     //delete button click
-    $(document).on('click', '.delete', function () {
+    $(document).on('click', '.delete-item', function () {
         let url = $(this).data('url');
 
         Swal.fire({
@@ -298,6 +226,73 @@ $(function () {
                         }).then(() => {
                             // Redirect to inventory page
                             window.location.href = response.redirect;
+                        });
+                    },
+                    error: function (xhr) {
+                        Swal.fire("Error!", "Something went wrong.", "error");
+                        console.error(xhr.responseText);
+                    },
+                    complete: function () {
+                        $('#loading-spinner').removeClass('active');
+                    }
+                });
+            }
+        });
+    });
+
+    //delete button click
+    $(document).on('click', '.delete', function () {
+        let url = $(this).data('url');
+
+        Swal.fire({
+            title: "Are you sure?",
+            text: "This action cannot be undone!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#6c757d",
+            confirmButtonText: "Yes, delete",
+            width: '400px',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#loading-spinner').addClass('active');
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content'),
+                        _method: 'DELETE'
+                    },
+                    success: function (response) {
+                        // Update item card
+                        if (response.item_card_html) {
+                            $('#items_cards_container').html(response.item_card_html);
+                        }
+
+                        // Update history table
+                        if (response.history_table_html) {
+                            $('#history_container').html(response.history_table_html);
+                        }
+
+                        // Update non-consumable items table
+                        if (response.non_consumable_table_html) {
+                            $('#items-table-body').html(response.non_consumable_table_html);
+                        }
+
+                        // Update inventory table if returned
+                        if (response.table_html) {
+                            $('#inventories_table tbody').html(response.table_html);
+                        }
+
+                        Swal.fire({
+                            title: "Deleted!",
+                            text: response.message,
+                            icon: "success",
+                            timer: 1000,
+                            showConfirmButton: false,
+                            width: '400px',
+                            padding: '0.8rem'
                         });
                     },
                     error: function (xhr) {

@@ -1,4 +1,38 @@
 $(function () {
+    //////////////////////////////////////////////////////////////////
+    // Safe modal helper + dynamic listener
+    //////////////////////////////////////////////////////////////////
+
+    // Function to set the hidden page input
+    function setCurrentSegment() {
+        const pageInput = document.getElementById('currentPageInput');
+        if (pageInput) {
+            const segments = window.location.pathname.replace(/^\/|\/$/g, '').split('/');
+            pageInput.value = segments[0] || 'inventory';
+        }
+    }
+
+    // Function to safely attach listener to modal open
+    function attachModalListener(modalId) {
+        const modalEl = document.getElementById(modalId);
+        if (modalEl && !modalEl.dataset.listenerAttached) {
+            modalEl.addEventListener('show.bs.modal', setCurrentSegment);
+            modalEl.dataset.listenerAttached = "true";
+        }
+    }
+
+    // Helper to open modal safely
+    function showModal(modalId) {
+        const modalEl = document.getElementById(modalId);
+        if (!modalEl) return;
+
+        const bsModal = new bootstrap.Modal(modalEl);
+        bsModal.show();
+    }
+
+    // Attach listener
+    attachModalListener('inventories_modal');
+
     //////////////////////////////////////////////////////////////////////////////////////////////////
     // Add Item
     //////////////////////////////////////////////////////////////////////////////////////////////////

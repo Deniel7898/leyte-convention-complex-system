@@ -234,8 +234,7 @@ class ItemsController extends Controller
                 'item_id'                  => $item->id,
                 'message'                  => 'Distribution added successfully'
             ]);
-        }
-        if ($request->page === 'inventory') {
+        } else if ($request->page === 'inventory') {
             $inventories = $this->getInventories($item->id);
 
             return response()->json([

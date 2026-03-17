@@ -38,12 +38,12 @@ class Item extends Model
 
     public function inventories()
     {
-        return $this->hasMany(Inventory::class, 'item_id', 'id');
+        return $this->hasMany(Inventory::class, 'item_id');
     }
 
     public function qrCode()
     {
-        return $this->hasOne(QR_Code::class, 'inventory_id', 'id');
+        return $this->hasOne(QR_Code::class, 'item_id', 'id');
     }
 
     /**

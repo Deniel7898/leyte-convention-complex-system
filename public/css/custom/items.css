@@ -52,3 +52,17 @@
   /* prevents text from breaking into multiple lines */
   white-space: nowrap;
 }
+
+.custom-btn {
+  color: hsl(237, 34%, 30%) !important;
+  background-color: transparent;
+  border: 1px solid hsl(237, 34%, 30%);
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.custom-btn:hover {
+  color: white !important;
+  background-color: hsl(237, 34%, 30%);
+  border-color: hsl(237, 34%, 30%);
+}

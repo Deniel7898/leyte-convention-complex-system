@@ -1,16 +1,20 @@
-<div class="col-md-3" id="service-card-{{ $record->id }}">
+<div id="service-card-{{ $record->id }}" style="flex: 0 0 260px; margin-right: 1rem;">
     <div class="card shadow-sm rounded-3 pt-2 mb-1 h-100 border-0 card-styles">
         <div class="d-flex align-items-start">
             <div class="flex-grow-1">
                 <div class="d-flex justify-content-between align-items-center mb-1 px-2">
                     <!-- Service Type Badge -->
-                    @if($record->type == 0)
+                    @if($record->type == 'maintenance')
                     <span class="badge bg-warning-subtle text-orange">
-                        <i class="bi bi-tools text-orange me-2" style="font-size: 15px;"></i>Maintenance
+                        <i class="bi bi-tools text-orange me-2" style="font-size: 14px;"></i>Maintenance
                     </span>
-                    @elseif($record->type == 1)
+                    @elseif($record->type == 'installation')
                     <span class="badge bg-primary-subtle text-primary">
-                        <i class="bi bi-box-seam text-primary me-2" style="font-size: 15px;"></i>Installation
+                        <i class="bi bi-box-seam text-primary me-2" style="font-size: 14px;"></i>Installation
+                    </span>
+                      @elseif($record->type == 'inspection')
+                    <span class="badge bg-primary-subtle text-primary">
+                        <i class="bi bi-box-seam text-primary me-2" style="font-size: 14px;"></i>Inspection
                     </span>
                     @endif
 

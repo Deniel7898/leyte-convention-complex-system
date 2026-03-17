@@ -73,7 +73,7 @@ return new class extends Migration
         Schema::create('inventory_history', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('item_id')->nullable()->constrained('items')->onDelete('cascade');
-            $table->enum('action', ['added stock', 'added unit', 'distributed', 'borrowed', 'issued', 'returned', 'maintenance', 'installation', 'inspection', 'service completed'])->nullable();
+            $table->enum('action', ['added stock', 'added unit', 'distributed', 'borrowed', 'issued', 'returned', 'maintenance', 'installation', 'inspection', 'service completed', 'deleted'])->nullable();
             $table->integer('quantity');
             $table->text('notes')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
@@ -92,7 +92,7 @@ return new class extends Migration
             $table->date('distribution_date')->nullable();
             $table->date('due_date')->nullable();
             $table->date('returned_date')->nullable();
-            $table->enum('status', ['completed', 'borrowed', 'returned'])->nullable();
+            $table->enum('status', ['completed', 'borrowed', 'returned', 'issued'])->nullable();
             $table->foreignUuid('item_id')->nullable()->constrained('items')->onDelete('cascade');
             $table->foreignUuid('inventory_id')->nullable()->constrained('inventories')->onDelete('cascade');
             $table->text('notes')->nullable();

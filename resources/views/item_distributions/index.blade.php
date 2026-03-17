@@ -30,34 +30,19 @@
             <select id="dist-type-filter" class="form-select">
                 <option>All Dist. Type</option>
                 <option>Distribution</option>
+                <option>Issue</option>
                 <option>Borrow</option>
             </select>
         </div>
 
-        <div class="col-auto" style="min-width: 140px;">
-            <select id="status-filter" class="form-select">
-                <option>All Status</option>
-                <option>Distributed</option>
-                <option>Borrowed</option>
-                <option>Partial</option>
-                <option>Pending</option>
-                <option>Returned</option>
-                <option>Received</option>
-            </select>
-        </div>
-
         <div class="col-auto">
-            <div class="col-auto add-itemDistribution" data-url="{{route('item_distributions.create')}}">
-                <button class="btn px-4 text-white" style="background-color: hsl(237, 34%, 30%);" onmouseover="this.style.backgroundColor='hsl(237, 34%, 40%)'" onmouseout="this.style.backgroundColor='hsl(237, 34%, 30%)'">
+            <div class="col-auto">
+                <a href="{{ route('inventory.index') }}" class="btn px-4 text-white" style="background-color: hsl(237, 34%, 30%);" onmouseover="this.style.backgroundColor='hsl(237, 34%, 40%)'" onmouseout="this.style.backgroundColor='hsl(237, 34%, 30%)'">
                     + New Distribution
-                </button>
+                </a>
             </div>
         </div>
     </div>
-
-    <!-- <div class="text-muted small mt-2">
-        Showing 8 of 8 items
-    </div> -->
 </div>
 
 <!-- Item Distribution Cards -->
@@ -71,12 +56,10 @@
     ->groupBy('transaction_id');
     @endphp
 
-    <div class="row g-3 pt-3" id="cards-row">
+    <div id="cards-row" style="overflow-x: auto; white-space: nowrap; padding-top: 1rem; display: flex; flex-wrap: nowrap; gap: 0.1rem;">
         @foreach($transactions as $transactionId => $distributions)
         @php $item = $distributions->first(); @endphp
-        <div class="col-md-3" id="item-card-{{ $item->id }}">
-            @include('item_distributions.card', ['item' => $item])
-        </div>
+        @include('item_distributions.card', ['item' => $item])
         @endforeach
     </div>
 </div>
@@ -117,15 +100,6 @@
         </div>
     </div>
 </div>
-
-<!-- View Modal -->
-<!-- <div class="modal fade" id="items_modal_view" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content modal-view">
-           
-        </div>
-    </div>
-</div> -->
 
 <!-- Loading Spinner -->
 <div id="loading-spinner">

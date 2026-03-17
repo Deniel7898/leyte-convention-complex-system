@@ -247,4 +247,72 @@ $(function () {
     });
 
 
+    // undo completion click
+    $(document).on('click', '.undo-completion', function () {
+
+        let url = $(this).data('url');
+        let itemName = $(this).data('item');
+        let qrCode = $(this).data('qr');
+        let scheduleDate = $(this).data('schedule');
+        let person = $(this).data('person');
+        let serviceTypeValue = $(this).data('type');
+
+        let serviceType = serviceTypeValue == 0
+            ? 'Maintenance'
+            : 'Installation';
+
+        Swal.fire({
+            title: "Undo completion?",
+            html: `
+        <div style="text-align:left">
+            <p><strong>Item:</strong> ${itemName}</p>
+            <p><strong>Service Type:</strong> ${serviceType}</p>
+            <p><strong>QR Code:</strong> ${qrCode}</p>
+            <p><strong>Schedule Date:</strong> ${scheduleDate}</p>
+            <p><strong>In-Charge:</strong> ${person}</p>
+        </div>
+        `,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#ffc107",
+            cancelButtonColor: "#6c757d",
+            confirmButtonText: "Yes, undo it",
+            width: '400px',
+        }).then((result) => {
+
+            if (result.isConfirmed) {
+
+                $('#loading-spinner').addClass('active');
+
+                $.post(url, {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                })
+                    .done(function (response) {
+
+                        // Add card if undo
+                        $('#cards-row').prepend(response.cards_html);
+                        // Update table
+                        $('#itemDistributions_table tbody').html(response.table_html);
+
+                        Swal.fire({
+                            icon: "success",
+                            title: "Updated!",
+                            text: response.message,
+                            timer: 1200,
+                            showConfirmButton: false,
+                            width: '400px',
+                            padding: '0.8rem'
+                        });
+                    })
+                    .fail(function (xhr) {
+                        Swal.fire("Error!", "Something went wrong.", "error");
+                        console.log(xhr.responseText);
+                    })
+                    .always(function () {
+                        $('#loading-spinner').removeClass('active');
+                    });
+            }
+        });
+    });
+
 })

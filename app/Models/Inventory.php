@@ -43,7 +43,7 @@ class Inventory extends Model
 
     public function qrCode()
     {
-        return $this->hasOne(QR_Code::class, 'inventory_id', 'id');
+        return $this->hasOne(QR_Code::class, 'inventory_id');
     }
 
     public function itemDistributions()
