@@ -21,24 +21,36 @@ class DatabaseSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'admin@example.com'],
             [
-                'name' => 'Admin',
+                'last_name' => 'Administrator',
+                'first_name' => 'System',
+                'middle_name' => 'A',
                 'password' => Hash::make('admin123'),
+                'role' => 'admin',
+                'status' => true
             ]
         );
 
         User::updateOrCreate(
             ['email' => 'user1@example.com'],
             [
-                'name' => 'User One',
+                'last_name' => 'Doe',
+                'first_name' => 'John',
+                'middle_name' => 'D',
                 'password' => Hash::make('password123'),
+                'role' => 'staff',
+                'status' => true
             ]
         );
 
         User::updateOrCreate(
             ['email' => 'user2@example.com'],
             [
-                'name' => 'User Two',
+                'last_name' => 'Smith',
+                'first_name' => 'Jane',
+                'middle_name' => 'S',
                 'password' => Hash::make('password123'),
+                'role' => 'staff',
+                'status' => true
             ]
         );
 
@@ -63,7 +75,7 @@ class DatabaseSeeder extends Seeder
                 ]
             );
         }
-        
+
         // ----------------------
         // CATEGORIES
         // ----------------------
