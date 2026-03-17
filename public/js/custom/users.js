@@ -129,6 +129,8 @@ $(function () {
 
                 $('#loading-spinner').removeClass('active');
 
+                console.log(xhr.responseText); // ✅ ADD THIS (VERY IMPORTANT)
+
                 if (xhr.status === 422) {
                     var errors = xhr.responseJSON.errors;
                     var errorMessage = '';
@@ -141,6 +143,13 @@ $(function () {
                         icon: 'error',
                         title: 'Validation Error',
                         html: errorMessage
+                    });
+                } else {
+                    // ✅ HANDLE 500 ERROR HERE
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Server Error',
+                        text: 'Something went wrong. Check console/logs.'
                     });
                 }
             }

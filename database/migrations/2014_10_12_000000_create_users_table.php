@@ -12,14 +12,14 @@ return new class extends Migration
             $table->id();
             $table->string('last_name')->nullable();
             $table->string('first_name')->nullable();
-            $table->string('middle_name', 1)->nullable();
+            $table->string('middle_name')->nullable();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('role', ['admin', 'staff'])->default('staff');
             $table->string('phone')->nullable();
             $table->date('birthday')->nullable();
-            $table->string('place')->nullable();
+            $table->string('address')->nullable();
             $table->string('profile_photo')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->rememberToken();
