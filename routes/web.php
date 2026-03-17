@@ -46,7 +46,6 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 --------------------------------------------------------------------------*/
 Route::get('/items/live-search', [ItemsController::class, 'liveSearch'])->name('items.liveSearch');
 Route::get('/inventory/live-search', [InventoriesController::class, 'liveSearch'])->name('inventory.liveSearch');
-Route::get('/qr_codes/live-search', [QR_CodeController::class, 'liveSearch'])->name('qr_codes.liveSearch');
 Route::get('/item_distributions/live-search', [ItemDistributionsController::class, 'liveSearch'])->name('item_distributions.liveSearch');
 
 /*--------------------------------------------------------------------------
@@ -79,7 +78,6 @@ Route::post('/service-records/{id}/undo', [Service_RecordsController::class, 'un
 --------------------------------------------------------------------------*/
 Route::resource('categories', App\Http\Controllers\CategoriesController::class)->middleware('auth'); // includes all CRUD routes for categories
 Route::resource('units', App\Http\Controllers\UnitsController::class)->middleware('auth'); // includes all CRUD routes for units
-Route::resource('qr_codes', App\Http\Controllers\QR_CodeController::class)->middleware('auth'); // includes all CRUD routes for QR codes
 
 /*--------------------------------------------------------------------------
 // Purchase Requests Routes 
