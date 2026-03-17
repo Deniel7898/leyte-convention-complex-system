@@ -1,96 +1,85 @@
 @extends('layouts.app')
 
-@section('page_title', 'Inventory Management')
+@section('page_title', 'Item Details')
 
 @section('content')
 
-<!-- Modern Navigation -->
-<nav class="nav-modern mt-15 mb-3">
-    <a href="{{ route('inventory.index') }}" class="{{ request()->routeIs('inventory.*') ? '' : '' }}">{{ __('Inventory') }}</a>
-    <a href="{{ route('items.index') }}" class="{{ request()->routeIs('items.*') ? 'active' : '' }}">{{ __('Items') }}</a>
-</nav>
-
-<div class="p-3 bg-white border rounded-3">
-    <div class="row align-items-center gx-3">
-        <div class="col">
-            <div class="input-group">
-                <span class="input-group-text bg-light border-end-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
-                    </svg>
-                </span>
-                <input type="search" id="item-search" class="form-control" placeholder="Search by item name or QR ID...">
-            </div>
-        </div>
-
-        <div class="col-auto" style="min-width: 140px;">
-            <select id="type-filter" class="form-select">
-                <option>All Type</option>
-                <option>Consumable</option>
-                <option>Non-Consumable</option>
-            </select>
-        </div>
-
-        <div class="col-auto" style="min-width: 140px;">
-            <select id="categories-filter" class="form-select">
-                <option value="All">All Category</option>
-                @foreach($categories as $category)
-                <option value="{{ $category->id }}">{{ $category->name }}</option>
-                @endforeach
-            </select>
-        </div>
-
-        <div class="col-auto" style="min-width: 140px;">
-            <select id="status-filter" class="form-select">
-                <option>All Status</option>
-                <option>Available</option>
-                <option>Not Available</option>
-            </select>
-        </div>
-
-        <div class="col-auto">
-            <div class="col-auto add-item" data-url="{{route('items.create')}}">
-                <button class="btn px-4 text-white" style="background-color: hsl(237, 34%, 30%);" onmouseover="this.style.backgroundColor='hsl(237, 34%, 40%)'" onmouseout="this.style.backgroundColor='hsl(237, 34%, 30%)'">
-                    + Add Item
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- <div class="text-muted small mt-2">
-        Showing 8 of 8 items
-    </div> -->
+<!-- Include the Item Card  -->
+<div id="items_cards_container">
+    @include('inventory.items.item_card', ['item' => $item])
 </div>
 
-<div class="card shadow-sm border-0 rounded-4 card-styles mt-3">
+<!-- Item Non-Consumable Table -->
+@if($item->type === 'non-consumable')
+<div class="card shadow-lg rounded-4 modern-card">
     <div class="card-body p-0">
         <div class="table-responsive rounded-4">
-            <table class="table align-middle table-hover" id="items_table">
+            <table class="table align-middle table-hover mb-0" id="items_table">
                 <thead class="bg-light">
                     <tr class="text-uppercase text-muted small">
-                        <th>{{ __('#') }}</th>
-                        <th>{{ __('Name') }}</th>
-                        <th>{{ __('Type') }}</th>
-                        <th>{{ __('Quantity') }}</th>
-                        <th>{{ __('Remaining') }}</th>
-                        <th>{{ __('Unit') }}</th>
-                        <th>{{ __('Category') }}</th>
-                        <th>{{ __('Status') }}</th>
-                        <th>{{ __('Description') }}</th>
-                        <th class="text-center">{{ __('Picture') }}</th>
-                        <th class="text-center">{{ __('Actions') }}</th>
+                        <th>#</th>
+                        <th class="text-center">QR Code</th>
+                        <th>Holder / Borrower</th>
+                        <th>Date Assigned</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Notes</th>
+                        <th class="text-center">Actions</th>
                     </tr>
                 </thead>
-                <tbody id="items-table-body" class="text-muted small">
-                    {!!$items_table!!}
+                <tbody class="text-muted small" id="items-table-body">
+                    <!-- Include non consumable items table -->
+                    @include('inventory.items.non_consumable_table')
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+@endif
+
+<!-- Universal Lightbox -->
+<div id="universalLightbox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1050;">
+    <button id="universalLightboxClose" style="position:absolute; top:20px; right:20px; background:none;
+        border:none; color:white; font-size:2rem; cursor:pointer;">&times;</button>
+    <img id="universalLightboxImg" src="" style="max-width:90%; max-height:90%; border-radius:8px;">
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const lightbox = document.getElementById('universalLightbox');
+        const lightboxImg = document.getElementById('universalLightboxImg');
+        const closeBtn = document.getElementById('universalLightboxClose');
+
+        // Open lightbox when any .clickable-image is clicked (event delegation)
+        document.body.addEventListener('click', (e) => {
+            if (e.target.classList.contains('clickable-image')) {
+                const fullSrc = e.target.dataset.full;
+                if (fullSrc) {
+                    lightboxImg.src = fullSrc;
+                    lightbox.style.display = 'flex';
+                }
+            }
+        });
+
+        // Close lightbox with close button
+        closeBtn.addEventListener('click', () => {
+            lightbox.style.display = 'none';
+            lightboxImg.src = '';
+        });
+
+        // Close lightbox when clicking outside the image
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) {
+                lightbox.style.display = 'none';
+                lightboxImg.src = '';
+            }
+        });
+    });
+</script>
 
 <!-- Modal -->
-<div class="modal fade" id="items_modal" tabindex="-1" aria-hidden="true">
+<div class="modal modal-large fade index 02" id="items_modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
 
@@ -103,8 +92,31 @@
     <div class="spinner"></div>
 </div>
 
+<!-- Consumable Item History -->
+<div id="history_container">
+    @include('inventory.items.history_table', ['item' => $item, 'history' => $history])
+</div>
+
 <script>
-    window.liveSearchUrl = "{{ route('items.liveSearch') }}";
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('#toggle-history')) { // checks if clicked element or its parent is the button
+            const nonContainer = document.getElementById('items_table')?.closest('.card');
+            const historyContainer = document.getElementById('history_container');
+
+            if (!nonContainer || !historyContainer) return;
+
+            const isNonVisible = nonContainer.style.display === 'none';
+
+            // Toggle visibility
+            nonContainer.style.display = isNonVisible ? 'block' : 'none';
+            historyContainer.style.display = isNonVisible ? 'none' : 'block';
+
+            // Update button text/icon
+            e.target.closest('#toggle-history').innerHTML = isNonVisible ?
+                '<i class="bi bi-clock-history"></i> History' :
+                '<i class="bi bi-arrow-left"></i> Back to Items List';
+        }
+    });
 </script>
 
 @endsection

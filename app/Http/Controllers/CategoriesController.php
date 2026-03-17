@@ -5,39 +5,37 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Pagination\Paginator;
 
 class CategoriesController extends Controller
 {
     /**
-     * Helper: Get paginated categories table with items count
+     * Helper: Get paginated categories cards with inventory count
      */
-    private function getCategoriesTable($perPage = 10)
+    private function getCategoriesCards($perPage = 12)
     {
-        // Eager load items count for performance
-        $categories = Category::withCount(['inventoryConsumables', 'inventoryNonConsumables'])->paginate(10);
+        $categories = Category::withCount('inventories')
+            ->orderBy('created_at', 'desc') // newest first
+            ->paginate($perPage);
 
-        // Render the table or cards partial with this data
-        return view('reference.categories.table', compact('categories'))->render();
+        return view('reference.categories.cards', compact('categories'))->render();
     }
 
     /**
-     * Display a listing of the resource.
+     * Display a listing of categories
      */
     public function index()
     {
-        // Eager load items count here as well
-       $categories = Category::withCount(['inventoryConsumables', 'inventoryNonConsumables'])->paginate(10);
+        $categories = Category::withCount('inventories')
+            ->orderBy('created_at', 'desc') // newest first
+            ->paginate(12);
 
         return view('reference.categories.index', [
             'categories' => $categories,
-            'categories_table' => view('reference.categories.table', compact('categories'))->render(),
         ]);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Show create form (modal)
      */
     public function create()
     {
@@ -45,12 +43,13 @@ class CategoriesController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created category
      */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'type' => 'nullable|in:consumable,non-consumable',
             'description' => 'nullable|string',
         ]);
 
@@ -59,19 +58,11 @@ class CategoriesController extends Controller
 
         Category::create($validated);
 
-        return $this->getCategoriesTable();
+        return $this->getCategoriesCards();
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
+     * Show edit form (modal)
      */
     public function edit(string $id)
     {
@@ -80,12 +71,13 @@ class CategoriesController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update an existing category
      */
     public function update(Request $request, string $id)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'type' => 'nullable|in:consumable,non-consumable',
             'description' => 'nullable|string',
         ]);
 
@@ -93,17 +85,17 @@ class CategoriesController extends Controller
 
         Category::where('id', $id)->update($validated);
 
-        return $this->getCategoriesTable();
+        return $this->getCategoriesCards();
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Delete a category
      */
     public function destroy(string $id)
     {
         $category = Category::findOrFail($id);
         $category->delete();
 
-        return $this->getCategoriesTable();
+        return $this->getCategoriesCards();
     }
 }

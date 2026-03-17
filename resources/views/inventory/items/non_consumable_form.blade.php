@@ -1,4 +1,4 @@
-<form action="{{ isset($inventory) ? route('inventory.update', $inventory->id) : route('inventory.store') }}"
+<form action="{{ isset($inventory) ? route('items.update', $inventory->id) : route('inventory.store') }}"
     method="POST" enctype="multipart/form-data">
     @csrf
     @if(isset($item))
@@ -12,14 +12,12 @@
 
     <div class="modal-body">
         <div class="row">
-            <!-- Hidden input for current page segment -->
-            <input type="hidden" name="page" id="currentPageInput" value="{{ request()->segment(1) ?? 'inventory' }}">
-            
             <!-- Item Name -->
             <div class="col-md-6 mb-3">
                 <label for="item-name" class="form-label">Item Name</label>
                 <input type="text" class="form-control" id="item-name" name="name"
-                    value="{{ isset($item) ? $item->name : '' }}" required>
+                    value="{{ isset($item) ? $item->name : '' }}" required readonly>
+                <input type="hidden" name="page" value="items">
             </div>
 
             <!-- Category -->
@@ -29,7 +27,6 @@
                     <option value="">Select category</option>
                     @foreach($categories as $category)
                     <option value="{{ $category->id }}"
-                        data-type="{{ $category->type }}"
                         {{ isset($item) && $item->category_id == $category->id ? 'selected' : '' }}>
                         {{ $category->name }}
                     </option>
@@ -147,16 +144,4 @@
             reader.readAsDataURL(file);
         }
     })();
-</script>
-<script>
-    document.getElementById('item-category').addEventListener('change', function() {
-        let selectedOption = this.options[this.selectedIndex];
-        let categoryType = selectedOption.getAttribute('data-type');
-
-        let typeSelect = document.getElementById('item-type');
-
-        if (categoryType) {
-            typeSelect.value = categoryType;
-        }
-    });
 </script>
