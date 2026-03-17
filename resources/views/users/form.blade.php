@@ -62,8 +62,8 @@
             </div>
             <div class="col-md-6">
                 <div class="mb-3">
-                    <label for="place" class="form-label">Place</label>
-                    <input type="text" class="form-control" id="place" name="place" value="{{ $user->place ?? '' }}">
+                    <label for="address" class="form-label">Address</label>
+                    <input type="text" class="form-control" id="address" name="address" value="{{ $user->address ?? '' }}">
                 </div>
             </div>
         </div>

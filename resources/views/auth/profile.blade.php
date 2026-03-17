@@ -27,19 +27,6 @@
                 @method('PATCH')
 
                 <div class="row">
-                    <div class="col-12">
-                        <div class="input-style-1">
-                            <label for="name">{{ __('Name') }}</label>
-                            <input type="text" @error('name') class="form-control is-invalid" @enderror name="name"
-                                id="name" placeholder="{{ __('Name') }}"
-                                value="{{ old('name', auth()->user()->name) }}" required>
-                            @error('name')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                            @enderror
-                        </div>
-                    </div>
                     <!-- end col -->
                     <div class="col-12 col-md-4">
                         <div class="input-style-1">
@@ -145,7 +132,7 @@
                             <input type="file" @error('profile_photo') class="form-control is-invalid" @enderror name="profile_photo"
                                 id="profile_photo" accept="image/*">
                             @if(auth()->user()->profile_photo)
-                                <small class="text-muted">Current: <a href="{{ asset('storage/' . auth()->user()->profile_photo) }}" target="_blank">View Image</a></small>
+                            <small class="text-muted">Current: <a href="{{ asset('storage/' . auth()->user()->profile_photo) }}" target="_blank">View Image</a></small>
                             @endif
                             @error('profile_photo')
                             <span class="invalid-feedback" role="alert">
