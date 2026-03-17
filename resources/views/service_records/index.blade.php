@@ -32,14 +32,6 @@
                 <option>Not Available</option>
             </select>
         </div>
-
-        <div class="col-auto">
-            <div class="col-auto add-serviceRecord" data-url="{{route('service_records.create')}}">
-                <a href="{{ route('inventory.index') }}" class="btn px-4 text-white" style="background-color: hsl(237, 34%, 30%);" onmouseover="this.style.backgroundColor='hsl(237, 34%, 40%)'" onmouseout="this.style.backgroundColor='hsl(237, 34%, 30%)'">
-                    + New Item Service
-                </a>
-            </div>
-        </div>
     </div>
 </div>
 
