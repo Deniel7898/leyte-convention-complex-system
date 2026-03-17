@@ -3,16 +3,17 @@
 $status = strtolower($unit->status ?? 'available');
 $badgeClass = match($status) {
 'available' => 'bg-success-subtle text-success',
-<!-- Distribution -->
+// Distribution
 'borrowed' => 'bg-warning-subtle text-orange',
 'issued' => 'bg-primary-subtle text-primary',
-<!-- Service -->
+// Service
 'maintenance' => 'bg-warning-subtle text-orange',
 'installation' => 'bg-primary-subtle text-primary',
 'inspection' => 'bg-info-subtle text-secondary',
 'under repair' => 'bg-warning-subtle text-orange',
 default => 'bg-secondary-subtle text-secondary',
 };
+@endphp
 
 <tr>
     <td>{{ $loop->iteration }}</td>
