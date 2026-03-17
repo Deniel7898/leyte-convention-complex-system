@@ -110,7 +110,7 @@ return new class extends Migration
             $table->date('service_date')->nullable();
             $table->date('completed_date')->nullable();
             $table->string('technician')->nullable();
-            $table->enum('status', ['scheduled', 'in progress', 'completed', 'cancelled'])->nullable();
+            $table->enum('status', ['scheduled', 'under repair', 'completed', 'cancelled'])->nullable();
             $table->string('picture')->nullable();
             $table->text('remarks')->nullable();
             $table->foreignUuid('inventory_id')->nullable()->constrained('inventories')->onDelete('cascade');

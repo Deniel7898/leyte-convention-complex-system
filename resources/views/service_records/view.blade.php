@@ -10,11 +10,12 @@
         @php
         $serviceType = $service_record->type ?? null;
         $badgeClasses = [
-        0 => 'bg-warning-subtle text-warning', // Maintenance
-        1 => 'bg-primary-subtle text-primary', // Installation
+        'maintenance' => 'bg-warning-subtle text-warning', // Maintenance
+        'installation' => 'bg-primary-subtle text-primary', // Installation
+        'inspection' => 'bg-primary-subtle text-primary', // Inspection
         ];
         $badgeClass = $badgeClasses[$serviceType] ?? 'bg-secondary-subtle text-secondary';
-        $serviceLabel = $serviceType === 0 ? 'Maintenance' : ($serviceType === 1 ? 'Installation' : 'N/A');
+        $serviceLabel = $serviceType === 'maintenance' ? 'Maintenance' : ($serviceType === 'installation' ? 'Installation' : ($serviceType === 'inspection' ? 'Inspection' : 'N/A'));
         @endphp
 
         <div class="row py-2 border-bottom">
@@ -29,19 +30,19 @@
         <!-- Selected Item -->
         <div class="row py-2 border-bottom">
             <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Item Name</div>
-            <div class="col-8">{{ $service_record->inventoryNonConsumable->item->name ?? 'N/A' }}</div>
+            <div class="col-8">{{ $service_record->inventory->item->name ?? 'N/A' }}</div>
         </div>
 
         <!-- Unit -->
         <div class="row py-2 border-bottom">
             <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Unit</div>
-            <div class="col-8">{{ $service_record->item->item->unit->name ?? 'N/A' }}</div>
+            <div class="col-8">{{ $service_record->inventory->item->unit->name ?? 'N/A' }}</div>
         </div>
 
         <!-- Category -->
         <div class="row py-2 border-bottom">
             <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Category</div>
-            <div class="col-8">{{ $service_record->item->item->category->name ?? 'N/A' }}</div>
+            <div class="col-8">{{ $service_record->inventory->category->item->name ?? 'N/A' }}</div>
         </div>
 
         <!-- Quantity -->
@@ -66,7 +67,7 @@
         <div class="row py-2 border-bottom">
             <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Item QR Code</div>
             <div class="col-8">
-                <span class="px-2 rounded border bg-light">{{ $service_record->item->qrCode->code ?? 'N/A' }}</span>
+                <span class="px-2 rounded border bg-light">{{ $service_record->inventory->qrCode->code ?? 'N/A' }}</span>
             </div>
 
         </div>
@@ -75,8 +76,8 @@
         <div class="row py-2 border-bottom">
             <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Schedule Date</div>
             <div class="col-8">
-                {{ isset($service_record) && $service_record->schedule_date
-            ? \Carbon\Carbon::parse($service_record->schedule_date)->format('F j, Y')
+                {{ isset($service_record) && $service_record->service_date
+            ? \Carbon\Carbon::parse($service_record->service_date)->format('F j, Y')
             : 'N/A' }}
             </div>
         </div>
@@ -90,7 +91,7 @@
         <!-- Person in Charge -->
         <div class="row py-2 border-bottom">
             <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Person in Charge</div>
-            <div class="col-8">{{ $service_record->encharge_person ?? 'N/A' }}</div>
+            <div class="col-8">{{ $service_record->technician ?? 'N/A' }}</div>
         </div>
 
         <!-- Completed Date (only if exists) -->
@@ -124,8 +125,8 @@
             </div>
 
             <div class="col-6 d-flex justify-content-center mt-2">
-                @if(isset($service_record->item->qrCode?->qr_picture) && $service_record->item->qrCode->qr_picture)
-                <img src="{{ asset('storage/' . $service_record->item->qrCode->qr_picture) }}"
+                @if(isset($service_record->inventory->qrCode?->qr_picture) && $service_record->inventory->qrCode->qr_picture)
+                <img src="{{ asset('storage/' . $service_record->inventory->qrCode->qr_picture) }}"
                     class="img-fluid rounded clickableImage"
                     style="max-height: 180px; cursor: pointer;"
                     alt="{{ $service_record->name }} QR Code">

@@ -22,7 +22,6 @@
                     value="{{ $selectedItem->name ?? '' }}" readonly>
                 <small class="text-muted">Available: {{ $selectedItem->remaining ?? 0 }}</small>
                 <input type="hidden" name="item_id" value="{{ $selectedItem->id ?? '' }}">
-                <input type="hidden" name="page" value="{{ $page ?? 'inventory' }}">
             </div>
 
             <!-- Service Type -->
