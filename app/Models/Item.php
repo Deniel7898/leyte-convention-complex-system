@@ -14,14 +14,18 @@ class Item extends Model
         'name',
         'type',
         'description',
-        'quantity',
+        'total_stock',
+        'remaining',
         'picture',
+        'supplier',
+        'notes',
         'category_id',
         'unit_id',
         'created_by',
         'updated_by',
     ];
 
+    // Relations
     public function category()
     {
         return $this->belongsTo(Category::class);
@@ -32,42 +36,62 @@ class Item extends Model
         return $this->belongsTo(Units::class);
     }
 
+    public function inventories()
+    {
+        return $this->hasMany(Inventory::class, 'item_id');
+    }
+
     public function qrCode()
     {
-        return $this->hasOne(QR_Code::class, 'inventory_non_consumable_id');
+        return $this->hasOne(QR_Code::class, 'item_id', 'id');
     }
 
-    public function inventoryConsumables()
+    /**
+     * Available inventories (not distributed or borrowed)
+     */
+    public function availableInventories()
     {
-        return $this->hasMany(InventoryConsumable::class, 'item_id')
+        return $this->hasMany(Inventory::class, 'item_id')
             ->whereDoesntHave('itemDistributions', function ($query) {
                 $query->whereIn('status', ['distributed', 'borrowed', 'partial', 'pending']);
             });
     }
 
-    public function inventoryNonConsumables()
-    {
-        return $this->hasMany(InventoryNonConsumable::class, 'item_id')
-            ->whereDoesntHave('itemDistributions', function ($query) {
-                $query->whereIn('status', ['distributed', 'borrowed', 'partial', 'pending']);
-            });
-    }
-
+    // Soft-delete cascading
     protected static function booted()
     {
-        // Soft-delete cascading
         static::deleting(function ($item) {
-            // Delete consumables
-            $item->inventoryConsumables->each->delete();
 
-            // Delete non-consumables
-            $item->inventoryNonConsumables->each->delete();
+            foreach ($item->inventories as $inventory) {
+
+                // Delete distributions related to this inventory
+                $inventory->itemDistributions()->delete();
+
+                // Delete the inventory
+                $inventory->delete();
+            }
         });
 
-        // Optional: restore inventories when item is restored
         static::restoring(function ($item) {
-            $item->inventoryConsumables()->withTrashed()->get()->each->restore();
-            $item->inventoryNonConsumables()->withTrashed()->get()->each->restore();
+
+            foreach ($item->inventories()->withTrashed()->get() as $inventory) {
+
+                // Restore inventory
+                $inventory->restore();
+
+                // Restore distributions
+                $inventory->itemDistributions()->withTrashed()->restore();
+            }
         });
+    }
+
+    public function inventoryHistories()
+    {
+        return $this->hasMany(InventoryHistory::class, 'item_id');
+    }
+
+    public function serviceRecords()
+    {
+        return $this->hasMany(Service_Record::class, 'inventory_id', 'id');
     }
 }

@@ -19,7 +19,7 @@
             </div>
             <div class="col-md-6">
                 <div class="mb-3">
-                    <label for="middle_name" class="form-label">Middle Initial</label>
+                    <label for="middle_name" class="form-label">Middle Name</label>
                     <input type="text" class="form-control" id="middle_name" name="middle_name" value="{{ $user->middle_name ?? '' }}">
                 </div>
             </div>
@@ -91,6 +91,6 @@
 
     <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="submit" class="btn text-white" style="background-color: rgb(43, 45, 87);">Save Item</button>
     </div>
 </form>
