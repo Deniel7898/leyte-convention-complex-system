@@ -29,7 +29,8 @@ Auth::routes();
 Route::get('/dashboard', function () {return view('dashboard');})->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
-    Route::get('users', [UserController::class, 'index'])->name('users.index');
+    Route::resource('users', App\Http\Controllers\UserController::class)->middleware('auth'); 
+    Route::post('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
