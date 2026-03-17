@@ -13,11 +13,11 @@
                         <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
                     </svg>
                 </span>
-                <input type="search" id="item-search" class="form-control" placeholder="Search by item name or QR ID...">
+                <input type="search" id="service-search" class="form-control" placeholder="Search by item name or QR ID...">
             </div>
         </div>
 
-         <div class="col-auto" style="min-width: 140px;">
+        <div class="col-auto" style="min-width: 140px;">
             <select id="type-filter" class="form-select">
                 <option>All Service Type</option>
                 <option>Maintenance</option>
@@ -32,19 +32,20 @@
                 <option>Not Available</option>
             </select>
         </div>
-
-        <div class="col-auto">
-            <div class="col-auto add-serviceRecord" data-url="{{route('service_records.create')}}">
-                <button class="btn px-4 text-white" style="background-color: hsl(237, 34%, 30%);" onmouseover="this.style.backgroundColor='hsl(237, 34%, 40%)'" onmouseout="this.style.backgroundColor='hsl(237, 34%, 30%)'">
-                    + New Item Service
-                </button>
-            </div>
-        </div>
     </div>
+</div>
 
-    <!-- <div class="text-muted small mt-2">
-        Showing 8 of 8 items
-    </div> -->
+<!-- Service Record Cards (Pending Only) -->
+<div id="service-record-cards" style="overflow-x: auto; white-space: nowrap; padding-top: 1rem;">
+    @if($service_records->whereNull('completed_date')->count() > 0)
+    <div class="mb-1" id="cards-row" style="display: flex; flex-wrap: nowrap; gap: 0.1rem;">
+        @foreach($service_records as $record)
+        @if(is_null($record->completed_date))
+        @include('service_records.card', ['record' => $record])
+        @endif
+        @endforeach
+    </div>
+    @endif
 </div>
 
 <div class="card shadow-sm border-0 rounded-4 card-styles mt-3">
@@ -55,17 +56,14 @@
                     <tr class="text-uppercase text-muted small">
                         <th>{{ __('#') }}</th>
                         <th>{{ __('Item') }}</th>
-                        <th>{{ __('Unit') }}</th>
                         <th>{{ __('Category') }}</th>
                         <th>{{ __('Service Type') }}</th>
                         <th>{{ __('QR Code') }}</th>
-                        <th>{{ __('Qty') }}</th>
-                        <th>{{ __('Description') }}</th>
+                        <th>{{ __('Status') }}</th>
                         <th>{{ __('Schedule Date') }}</th>
-                        <th>{{ __('Completed Date') }}</th>
-                        <th>{{ __('Encharge Person') }}</th>
+                        <th>{{ __('Technician') }}</th>
                         <th class="text-center">{{ __('Picture') }}</th>
-                        <th>{{ __('Remarks') }}</th>
+                        <th>{{ __('Completed Date') }}</th>
                         <th class="text-center">{{ __('Actions') }}</th>
                     </tr>
                 </thead>
@@ -86,22 +84,13 @@
     </div>
 </div>
 
-<!-- View Modal -->
-<div class="modal fade" id="items_modal_view" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content modal-view">
-            <!-- Your modal header, body, footer here -->
-        </div>
-    </div>
-</div>
-
 <!-- Loading Spinner -->
 <div id="loading-spinner">
     <div class="spinner"></div>
 </div>
 
-<!-- <script>
-    window.liveSearchUrl = "{{ route('items.liveSearch') }}";
-</script> -->
+<script>
+    window.liveSearchUrl = "{{ route('service_records.liveSearch') }}";
+</script>
 
 @endsection

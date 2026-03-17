@@ -6,187 +6,107 @@ use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Models\Units;
 use App\Models\Item;
-use App\Models\InventoryConsumable;
-use App\Models\InventoryNonConsumable;
+use App\Models\Inventory;
 use App\Models\QR_Code;
+use App\Models\InventoryHistory;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Facades\Storage;
 use BaconQrCode\Writer;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
-use BaconQrCode\Renderer\Image\SvgImageBackEnd; // already imported
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 
 class InventoriesController extends Controller
 {
     /**
-     * Live Search for Inventory with filters and pagination
+     * LIVE SEARCH
      */
     public function liveSearch(Request $request)
     {
         $searchTerm = $request->input('query', '');
-        $typeFilter = $request->input('type', null);
-        $statusFilter = $request->input('status', null);
         $categoryFilter = $request->input('category', null);
 
-        // Get all inventories (unpaginated)
-        $inventories = $this->getAllInventories();
+        $query = Item::with(['category', 'unit', 'inventories.qrCode'])->orderByDesc('id');
 
-        // Apply text search
-        if (!empty($searchTerm)) {
-            $searchLower = strtolower($searchTerm);
-
-            $inventories = $inventories->filter(function ($inventory) use ($searchTerm, $searchLower) {
-                if (!$inventory->item) return false;
-                $match = false;
-
-                // Item name
-                if (stripos($inventory->item->name, $searchTerm) !== false) {
-                    $match = true;
-                }
-
-                // Received date
-                if (!empty($inventory->received_date) && $inventory->received_date != '--') {
-                    try {
-                        $formattedReceived = Carbon::parse($inventory->received_date)->format('M d, Y');
-                        if (stripos($formattedReceived, $searchTerm) !== false) $match = true;
-                    } catch (\Exception $e) {
-                    }
-                }
-
-                // Warranty date
-                if (!empty($inventory->warranty_expires) && $inventory->warranty_expires != '--') {
-                    try {
-                        $formattedWarranty = Carbon::parse($inventory->warranty_expires)->format('M d, Y');
-                        if (stripos($formattedWarranty, $searchTerm) !== false) $match = true;
-                    } catch (\Exception $e) {
-                    }
-                }
-
-                // Type keywords
-                if (in_array($searchLower, ['consumable', 'con']) && $inventory->item->type == 0) $match = true;
-                if (in_array($searchLower, ['non-consumable', 'non', 'non consumable']) && $inventory->item->type == 1) $match = true;
-
-                // Status keywords
-                if (in_array($searchLower, ['available', 'avail']) && strtolower($inventory->distribution_status) === 'available') $match = true;
-                if (
-                    in_array($searchLower, ['distributed', 'borrowed', 'pending', 'partial', 'returned', 'received']) &&
-                    strtolower($inventory->distribution_status) === $searchLower
-                ) $match = true;
-
-                // Unit name
-                if ($inventory->item->unit && stripos($inventory->item->unit->name, $searchTerm) !== false) $match = true;
-
-                // Category name
-                if ($inventory->item->category && stripos($inventory->item->category->name, $searchTerm) !== false) $match = true;
-
-                // QR code
-                if (!empty($inventory->qrCode->code) && stripos($inventory->qrCode->code, $searchTerm) !== false) $match = true;
-
-                return $match;
-            });
-        }
-
-        // Apply type filter
-        if (!empty($typeFilter) && strtolower($typeFilter) !== 'all type') {
-            $inventories = $inventories->filter(function ($inventory) use ($typeFilter) {
-                if (!$inventory->item) return false;
-                if (strtolower($typeFilter) === 'consumable') return $inventory->item->type == 0;
-                if (strtolower($typeFilter) === 'non-consumable') return $inventory->item->type == 1;
-                return true;
-            });
-        }
-
-        // Apply status filter
-        if (!empty($statusFilter) && strtolower($statusFilter) !== 'all status') {
-            $statusFilterLower = strtolower($statusFilter);
-            $inventories = $inventories->filter(function ($inventory) use ($statusFilterLower) {
-                return $inventory->distribution_status && strtolower($inventory->distribution_status) === $statusFilterLower;
-            });
-        }
-
-        // Apply category filter
         if (!empty($categoryFilter) && strtolower($categoryFilter) !== 'all') {
-            $inventories = $inventories->filter(function ($inventory) use ($categoryFilter) {
-                return $inventory->item && $inventory->item->category && $inventory->item->category->id == $categoryFilter;
+            $query->whereHas('category', function ($q) use ($categoryFilter) {
+                $q->where('id', $categoryFilter);
             });
         }
 
-        // Reset keys after filtering
-        $inventories = $inventories->values();
+        if (!empty($searchTerm)) {
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'like', "%{$searchTerm}%")
+                    ->orWhereHas('category', fn($q2) => $q2->where('name', 'like', "%{$searchTerm}%"))
+                    ->orWhereHas('unit', fn($q3) => $q3->where('name', 'like', "%{$searchTerm}%"))
+                    ->orWhereHas('inventories.qrCode', fn($q4) => $q4->where('code', 'like', "%{$searchTerm}%"));
+            });
+        }
 
-        // Manual pagination
-        $perPage = 20; // Change per page if needed
+        $items = $query->get()->map(function ($item) {
+            $item->qrCodes = $item->inventories->pluck('qrCode')->filter();
+            $item->received_date = $item->inventories->first()?->received_date ?? '--';
+            return $item;
+        });
+
+        $perPage = 20;
         $currentPage = Paginator::resolveCurrentPage() ?: 1;
-        $currentItems = $inventories->slice(($currentPage - 1) * $perPage, $perPage)->values();
+        $currentItems = $items->slice(($currentPage - 1) * $perPage, $perPage)->values();
 
-        $paginatedInventories = new LengthAwarePaginator(
+        $paginatedItems = new LengthAwarePaginator(
             $currentItems,
-            $inventories->count(),
+            $items->count(),
             $perPage,
             $currentPage,
             ['path' => Paginator::resolveCurrentPath()]
         );
 
-        // Return the table view
-        return view('inventory.inventory.table', ['inventories' => $paginatedInventories]);
+        return view('inventory.inventory.table', ['inventories' => $paginatedItems]);
     }
 
     /**
-     * Helper: Get all inventories (Consumable + Non-Consumable)
-     * No pagination, useful for search and filtering
+     * GET ALL INVENTORIES
      */
     private function getAllInventories()
     {
-        $consumables = InventoryConsumable::with(['item', 'qrCode', 'itemDistributions'])
+        return Inventory::with(['item', 'qrCode', 'itemDistributions'])
             ->get()
-            ->map(function ($c) {
-                $c->inventory_type = 'Consumable';
-                $c->warranty_expires = '--';
-                $c->item_name = $c->item->name ?? '--';
-                $c->distribution_status = $c->itemDistributions->isEmpty()
+            ->map(function ($inventory) {
+                $inventory->inventory_type = ($inventory->item && $inventory->item->type == 0) ? 'Consumable' : 'Non-Consumable';
+                $inventory->item_name = $inventory->item->name ?? '--';
+                $inventory->warranty_expires = ($inventory->item && $inventory->item->type == 0) ? '--' : null;
+                $inventory->distribution_status = $inventory->itemDistributions->isEmpty()
                     ? 'Available'
-                    : $c->itemDistributions->last()->status ?? 'Available';
-                return $c;
-            });
-
-        $nonConsumables = InventoryNonConsumable::with(['item', 'qrCode', 'itemDistributions'])
-            ->get()
-            ->map(function ($n) {
-                $n->inventory_type = 'Non-Consumable';
-                $n->warranty_expires = $n->warranty_expires ?? '--';
-                $n->item_name = $n->item->name ?? '--';
-                $n->distribution_status = $n->itemDistributions->isEmpty()
-                    ? 'Available'
-                    : $n->itemDistributions->last()->status ?? 'Available';
-                return $n;
-            });
-
-        // Combine both and sort by received_date descending
-        return $consumables->concat($nonConsumables)
+                    : $inventory->itemDistributions->last()->status ?? 'Available';
+                return $inventory;
+            })
             ->sortByDesc('received_date')
             ->values();
     }
 
     /**
-     * Helper: Get paginated inventories (Consumable + Non-Consumable)
+     * PAGINATED INVENTORIES
      */
     private function getInventories($perPage = 20)
     {
-        // Get all inventories first
-        $allInventories = $this->getAllInventories();
+        $allItems = Item::with(['category', 'unit', 'inventories.qrCode'])->get()->map(function ($item) {
+            $item->inventory_type = $item->type === 'consumable' ? 'Consumable' : 'Non-Consumable';
+            $item->item_name = $item->name;
+            $item->qrCodes = $item->inventories->pluck('qrCode')->filter();
+            $item->received_date = $item->inventories->first()?->received_date ?? '--';
+            return $item;
+        })->sortByDesc('created_at')->values();
 
-        // Manual pagination
         $currentPage = Paginator::resolveCurrentPage() ?: 1;
-        $currentItems = $allInventories->slice(($currentPage - 1) * $perPage, $perPage)->values();
+        $currentItems = $allItems->slice(($currentPage - 1) * $perPage, $perPage)->values();
 
         return new LengthAwarePaginator(
             $currentItems,
-            $allInventories->count(),
+            $allItems->count(),
             $perPage,
             $currentPage,
             ['path' => Paginator::resolveCurrentPath()]
@@ -194,23 +114,19 @@ class InventoriesController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * INDEX
      */
     public function index()
     {
-        // Paginate inventories instead of getting all
         $inventories = $this->getInventories();
-
         $categories = Category::all();
-
-        // Pass the paginated inventories to the table view
         $inventories_table = view('inventory.inventory.table', compact('inventories'))->render();
 
         return view('inventory.inventory.index', compact('inventories_table', 'categories', 'inventories'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * CREATE
      */
     public function create()
     {
@@ -220,24 +136,22 @@ class InventoriesController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * STORE
      */
     public function store(Request $request)
     {
-        // Validate the request
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'type' => 'required|integer|in:0,1',
-            'category_id' => 'required|integer',
-            'quantity' => 'required|integer|min:1',
-            'unit_id' => 'required|integer',
-            'description' => 'nullable|string',
-            'picture' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
+            'name'          => 'required|string|max:255',
+            'category_id'   => 'required|integer|exists:categories,id',
+            'type'          => 'required|in:consumable,non-consumable',
+            'unit_id'       => 'nullable|integer|exists:units,id',
+            'total_stock'   => 'required|integer|min:0',
+            'supplier'      => 'nullable|string|max:255',
+            'description'   => 'nullable|string',
+            'picture'       => 'nullable|image|max:2048',
             'received_date' => 'nullable|date',
-            'warranty_expires' => 'nullable|date', // For non-consumable
         ]);
 
-        // Handle picture upload
         if ($request->hasFile('picture')) {
             $picture = $request->file('picture');
             $pictureName = time() . '_' . uniqid() . '.' . $picture->getClientOriginalExtension();
@@ -245,194 +159,286 @@ class InventoriesController extends Controller
             $validated['picture'] = 'items/' . $pictureName;
         }
 
-        $validated['created_by'] = Auth::id();
-        $validated['updated_by'] = Auth::id();
+        $item = Item::create([
+            'name'        => $validated['name'],
+            'type'        => $validated['type'],
+            'category_id' => $validated['category_id'],
+            'unit_id'     => $validated['unit_id'] ?? null,
+            'total_stock' => $validated['total_stock'],
+            'remaining'   => $validated['total_stock'],
+            'description' => $validated['description'] ?? null,
+            'supplier'    => $validated['supplier'] ?? null,
+            'picture'     => $validated['picture'] ?? null,
+            'created_by'  => Auth::id(),
+            'updated_by'  => Auth::id(),
+        ]);
 
-        // Save the new item and get it in a variable
-        $item = Item::create($validated);
-
-        $datetime = date('Ymd');
+        // Generate QR codes and inventory records
+        $datetime = date('ymd');
         $prefix = strtoupper(substr($item->name, 0, 1));
 
-        $lastQrToday = QR_Code::where('code', 'like', "LCC-{$prefix}{$datetime}-%")
-            ->orderByDesc('code')
-            ->first();
+        if ($item->type === 'non-consumable' && $item->total_stock > 0) {
+            $lastQrToday = QR_Code::where('code', 'like', "LCC-{$prefix}{$datetime}-%")->orderByDesc('code')->first();
+            $lastSequence = $lastQrToday ? (int) explode('-', $lastQrToday->code)[2] : 0;
 
-        $lastSequence = 0;
-        if ($lastQrToday) {
-            $parts = explode('-', $lastQrToday->code);
-            $lastSequence = (int) end($parts);
-        }
+            for ($i = 0; $i < $item->total_stock; $i++) {
+                $lastSequence++;
+                $sequence = str_pad($lastSequence, 3, '0', STR_PAD_LEFT);
+                $qrCodeValue = "LCC-{$prefix}{$datetime}-{$sequence}";
+                $qrImagePath = 'qrcodes/' . $qrCodeValue . '.svg';
 
-        // Loop once per quantity
-        for ($i = 0; $i < $item->quantity; $i++) {
-            $lastSequence++;
-            $sequence = str_pad($lastSequence, 3, '0', STR_PAD_LEFT);
-            $qrCodeValue = 'LCC-' . $prefix . $datetime . '-' . $sequence;
-            $qrImageName = $qrCodeValue . '.svg'; // .svg now
-            $qrImagePath = 'qrcodes/' . $qrImageName;
+                $renderer = new ImageRenderer(new RendererStyle(200), new SvgImageBackEnd());
+                $writer = new Writer($renderer);
+                Storage::disk('public')->put($qrImagePath, $writer->writeString($qrCodeValue));
 
-            // Use Svg backend for QR generation
-            $renderer = new ImageRenderer(
-                new RendererStyle(200), // QR size
-                new SvgImageBackEnd()
-            );
-            $writer = new Writer($renderer);
-
-            Storage::disk('public')->put($qrImagePath, $writer->writeString($qrCodeValue));
-
-            if ($item->type == 0) {
-                $consumable = InventoryConsumable::create([
-                    'id' => Str::uuid(),
-                    'item_id' => $item->id,
-                    'received_date' => $request->received_date,
-                    'created_by' => Auth::id(),
-                    'updated_by' => Auth::id(),
+                $inventory = Inventory::create([
+                    'id'           => Str::uuid(),
+                    'item_id'      => $item->id,
+                    'received_date' => $request->received_date ?? now(),
+                    'created_by'   => Auth::id(),
+                    'updated_by'   => Auth::id(),
                 ]);
 
                 QR_Code::create([
-                    'code' => $qrCodeValue,
-                    'qr_picture' => $qrImagePath,
-                    'inventory_consumable_id' => $consumable->id,
-                    'status' => QR_Code::STATUS_USED,
-                    'created_by' => Auth::id(),
-                    'updated_by' => Auth::id(),
-                ]);
-            } else {
-                $nonConsumable = InventoryNonConsumable::create([
-                    'id' => Str::uuid(),
-                    'item_id' => $item->id,
-                    'received_date' => $request->received_date,
-                    'warranty_expires' => $request->warranty_expires,
-                    'created_by' => Auth::id(),
-                    'updated_by' => Auth::id(),
-                ]);
-
-                QR_Code::create([
-                    'code' => $qrCodeValue,
-                    'qr_picture' => $qrImagePath,
-                    'inventory_non_consumable_id' => $nonConsumable->id,
-                    'status' => QR_Code::STATUS_USED,
-                    'created_by' => Auth::id(),
-                    'updated_by' => Auth::id(),
+                    'code'         => $qrCodeValue,
+                    'qr_picture'   => $qrImagePath,
+                    'inventory_id' => $inventory->id,
+                    'status'       => QR_Code::STATUS_USED,
+                    'created_by'   => Auth::id(),
+                    'updated_by'   => Auth::id(),
                 ]);
             }
+        } elseif ($item->type === 'consumable') {
+            $lastQrToday = QR_Code::where('code', 'like', "LCC-{$prefix}{$datetime}-%")->orderByDesc('code')->first();
+            $lastSequence = $lastQrToday ? (int) explode('-', $lastQrToday->code)[2] : 0;
+            $lastSequence++;
+            $sequence = str_pad($lastSequence, 3, '0', STR_PAD_LEFT);
+            $qrCodeValue = "LCC-{$prefix}{$datetime}-{$sequence}";
+            $qrImagePath = 'qrcodes/' . $qrCodeValue . '.svg';
+
+            $renderer = new ImageRenderer(new RendererStyle(200), new SvgImageBackEnd());
+            $writer = new Writer($renderer);
+            Storage::disk('public')->put($qrImagePath, $writer->writeString($qrCodeValue));
+
+            Inventory::create([
+                'id'           => Str::uuid(),
+                'item_id'      => $item->id,
+                'received_date' => $request->received_date ?? now(),
+                'created_by'   => Auth::id(),
+                'updated_by'   => Auth::id(),
+            ]);
+
+            QR_Code::create([
+                'code'         => $qrCodeValue,
+                'qr_picture'   => $qrImagePath,
+                'inventory_id' => $item->inventories->last()->id ?? null,
+                'status'       => QR_Code::STATUS_USED,
+                'created_by'   => Auth::id(),
+                'updated_by'   => Auth::id(),
+            ]);
         }
 
-        // Get all inventories (consumables + non-consumables)
         $inventories = $this->getInventories();
-
-        // Return the table partial with inventories
         return response()->json([
-            'html' => view('inventory.inventory.table', compact('inventories'))->render(),
-            'message' => 'Item added successfully',
+            'table_html' => view('inventory.inventory.table', compact('inventories'))->render(),
+            'message'    => 'Item added successfully'
         ]);
     }
 
     /**
-     * Display the specified resource.
+     * Add Stock
+     */
+    public function show_stock(Request $request)
+    {
+        $items = Item::all();
+        $selectedItem = $request->item_id ? Item::find($request->item_id) : null;
+        return view('inventory.inventory.add_stock_form', compact('items', 'selectedItem'));
+    }
+
+    public function add_stock(Request $request)
+    {
+        $request->validate([
+            'item_id'  => 'required|exists:items,id',
+            'quantity' => 'required|integer|min:1',
+            'notes'    => 'nullable|string|max:255',
+            'page'     => 'nullable|string|in:inventory,items',
+        ]);
+
+        $item = Item::findOrFail($request->item_id);
+        $item->increment('total_stock', $request->quantity);
+        $item->increment('remaining', $request->quantity);
+
+        InventoryHistory::create([
+            'item_id'   => $item->id,
+            'action'    => 'added stock',
+            'quantity'  => $request->quantity,
+            'notes'     => $request->notes,
+            'created_by' => Auth::id(),
+            'updated_by' => Auth::id(),
+        ]);
+
+        // Same logic as update: return updated item card + history table
+        if ($request->page === 'items') {
+            $item->load('unit', 'category');
+            $history = InventoryHistory::where('item_id', $item->id)
+                ->with(['creator', 'updater'])
+                ->orderByDesc('created_at')
+                ->get();
+
+            return response()->json([
+                'item_card_html'     => view('inventory.items.item_card', compact('item'))->render(),
+                'item_id'            => $item->id,
+                'history_table_html' => view('inventory.items.history_table', compact('item', 'history'))->render(),
+                'message'            => 'Stock added successfully'
+            ]);
+        } else if ($request->page === 'inventory') {
+
+            $inventories = $this->getInventories();
+            return response()->json([
+                'table_html' => view('inventory.inventory.table', compact('inventories'))->render(),
+                'message'    => 'Stock added successfully'
+            ]);
+        }
+    }
+
+    /**
+     * SHOW
      */
     public function show(string $id)
     {
-        //
+        $categories = Category::all();
+        $units = Units::all();
+        $inventory = Inventory::with('item', 'users')->findOrFail($id);
+        $inventoryType = ($inventory->item->type == 0) ? 'consumable' : 'non-consumable';
+
+        return view('inventory.items.view', compact('inventory', 'categories', 'units', 'inventoryType'));
     }
 
     /**
-     * Show the form for editing the specified inventory.
+     * EDIT
      */
-    public function edit($id)
+    public function edit(string $id)
     {
         $categories = Category::all();
         $units = Units::all();
+        $item = Item::findOrFail($id);
+        $inventory = Inventory::where('item_id', $item->id)->first();
 
-        // Try to find the inventory in consumable or non-consumable tables
-        $inventory = InventoryConsumable::with('item')->find($id);
-        $inventoryType = 'consumable';
-
-        if (!$inventory) {
-            $inventory = InventoryNonConsumable::with('item')->findOrFail($id);
-            $inventoryType = 'non-consumable';
-        }
-
-        return view('inventory.inventory.form', compact('inventory', 'categories', 'units', 'inventoryType'));
+        return view('inventory.inventory.form', compact('item', 'categories', 'units', 'inventory'));
     }
 
     /**
-     * Update the specified resource in storage.
+     * UPDATE
      */
     public function update(Request $request, string $id)
     {
         $validated = $request->validate([
+            'name'          => 'required|string|max:255',
+            'category_id'   => 'required|integer|exists:categories,id',
+            'type'          => 'nullable|in:consumable,non-consumable',
+            'unit_id'       => 'nullable|integer|exists:units,id',
+            'total_stock'   => 'nullable|integer|min:0',
+            'supplier'      => 'nullable|string|max:255',
+            'description'   => 'nullable|string',
+            'picture'       => 'nullable|image|max:2048',
             'received_date' => 'nullable|date',
-            'warranty_expires' => 'nullable|date',
+            'page'          => 'nullable|string',
         ]);
 
-        // Try consumable first
-        try {
-            $inventory = InventoryConsumable::with('item')->findOrFail($id);
-            $isNonConsumable = false;
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            $inventory = InventoryNonConsumable::with('item')->findOrFail($id);
-            $isNonConsumable = true;
+        $inventory = Inventory::with('item')->findOrFail($id);
+        $item = $inventory->item;
+
+        $item->update([
+            'name'        => $validated['name'],
+            'category_id' => $validated['category_id'],
+            'type'        => $validated['type'] ?? $item->type,
+            'unit_id'     => $validated['unit_id'] ?? $item->unit_id,
+            'description' => $validated['description'] ?? $item->description,
+            'supplier'    => $validated['supplier'] ?? $item->supplier,
+            'updated_by'  => Auth::id(),
+        ]);
+
+        if ($request->hasFile('picture')) {
+            $picture = $request->file('picture');
+            $pictureName = time() . '_' . uniqid() . '.' . $picture->getClientOriginalExtension();
+            $picture->storeAs('items', $pictureName, 'public');
+            $item->update(['picture' => 'items/' . $pictureName]);
         }
 
-        // Always update received_date for both
-        $updateData = [
-            'received_date' => $validated['received_date'] ?? null,
-            'updated_by' => Auth::id(),
-        ];
+        $inventory->update([
+            'received_date' => $validated['received_date'] ?? $inventory->received_date,
+            'updated_by'   => Auth::id(),
+        ]);
 
-        // Add warranty only if non-consumable
-        if ($isNonConsumable) {
-            $updateData['warranty_expires'] = $validated['warranty_expires'] ?? null;
+        if ($request->page === 'inventory') {
+
+            $inventories = $this->getInventories();
+            return response()->json([
+                'table_html' => view('inventory.inventory.table', compact('inventories'))->render(),
+                'message'    => 'Inventory updated successfully'
+            ]);
+        } elseif ($request->page === 'items') {
+            $item->load('unit', 'category');
+            $history = InventoryHistory::where('item_id', $item->id)->with(['creator', 'updater'])->orderByDesc('created_at')->get();
+
+            return response()->json([
+                'item_card_html'     => view('inventory.items.item_card', compact('item'))->render(),
+                'item_id'            => $item->id,
+                'history_table_html' => view('inventory.items.history_table', compact('item', 'history'))->render(),
+                'message'            => 'Item updated successfully'
+            ]);
         }
-
-        $inventory->update($updateData);
-
-        // Update item updated_by
-        $inventory->item->update([
-            'updated_by' => Auth::id(),
-        ]);
-
-        $inventories = $this->getInventories();
-
-        return response()->json([
-            'html' => view('inventory.inventory.table', compact('inventories'))->render(),
-            'message' => 'Inventory updated successfully',
-        ]);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * DELETE
      */
     public function destroy(string $id)
     {
-        // Try to find in consumables first
-        $inventoryConsumable = InventoryConsumable::find($id);
-        $inventoryNonConsumable = InventoryNonConsumable::find($id);
+        // Find the inventory record
+        $inventory = Inventory::with('item')->findOrFail($id);
+        $item = $inventory->item;
 
-        if ($inventoryConsumable) {
-            $itemId = $inventoryConsumable->item_id;
-            $inventoryConsumable->delete();
-        } elseif ($inventoryNonConsumable) {
-            $itemId = $inventoryNonConsumable->item_id;
-            $inventoryNonConsumable->delete();
-        } else {
-            return response()->json(['error' => 'Inventory not found'], 404);
+        if ($item) {
+            // Decrement stock safely, but not below 0
+            $item->decrement('total_stock', 1);
+            $item->decrement('remaining', 1);
         }
 
-        // Decrement item quantity safely
-        $item = Item::find($itemId);
-        if ($item && $item->quantity > 0) {
-            $item->decrement('quantity');
+        // Optional: log history for deletion
+        if ($item) {
+            InventoryHistory::create([
+                'item_id'    => $item->id,
+                'action'     => 'deleted',           // mark as deleted
+                'quantity'   => 1,
+                'notes'      => 'Non-consumable item deleted',
+                'created_by' => Auth::id(),
+                'updated_by' => Auth::id(),
+            ]);
         }
 
-        // Get all inventories (consumables + non-consumables)
-        $inventories = $this->getInventories();
+        // Delete the inventory record
+        $inventory->delete();
 
+        // Reload item relations
+        $item->load('unit', 'category', 'inventories.qrCode');
+
+        // Get updated history
+        $history = InventoryHistory::where('item_id', $item->id)
+            ->with(['creator', 'updater'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        // Render updated non-consumable table
+        $nonConsumableTableHtml = view('inventory.items.non_consumable_table', compact('item'))->render();
+
+        // Return updated HTML + message
         return response()->json([
-            'html' => view('inventory.inventory.table', compact('inventories'))->render(),
-            'message' => 'Inventory deleted successfully',
+            'item_card_html'            => view('inventory.items.item_card', compact('item'))->render(),
+            'history_table_html'        => view('inventory.items.history_table', compact('item', 'history'))->render(),
+            'non_consumable_table_html' => $nonConsumableTableHtml,
+            'item_id'                   => $item->id,
+            'message'                   => 'Inventory deleted successfully'
         ]);
     }
 }

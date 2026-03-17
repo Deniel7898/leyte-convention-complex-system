@@ -1,48 +1,40 @@
 $(function () {
 
-    //add button click
+    // Helper: get current page for pagination
+    function getCurrentPage() {
+        return new URLSearchParams(window.location.search).get('page') || 1;
+    }
+
+    // Open Add Category Modal
     $(document).on('click', '.add-category', function () {
         $('#loading-spinner').addClass('active');
-
-        // When opening modal for add
         $('#categories_modal').data('action', 'add');
 
-        url = $(this).data('url');
-        $.ajax({
-            url: url,
-            type: 'GET',
-            success: function (response) {
-                $('#categories_modal .modal-content').html(response);
-                $('#loading-spinner').removeClass('active'); // hide
-                $('#categories_modal').modal('show');
-            }
-        })
-    })
+        let url = $(this).data('url');
+        $.get(url, function (response) {
+            $('#categories_modal .modal-content').html(response);
+            $('#loading-spinner').removeClass('active');
+            $('#categories_modal').modal('show');
+        });
+    });
 
-    //edit button click
+    // Open Edit Category Modal
     $(document).on('click', '.edit', function () {
         $('#loading-spinner').addClass('active');
-
-        // When opening modal for update
         $('#categories_modal').data('action', 'update');
 
-        url = $(this).data('url');
-        $.ajax({
-            url: url,
-            type: 'GET',
-            success: function (response) {
-                $('#categories_modal .modal-content').html(response);
-                $('#loading-spinner').removeClass('active'); // hide
-                $('#categories_modal').modal('show');
-            }
-        })
-    })
+        let url = $(this).data('url');
+        $.get(url, function (response) {
+            $('#categories_modal .modal-content').html(response);
+            $('#loading-spinner').removeClass('active');
+            $('#categories_modal').modal('show');
+        });
+    });
 
-    //delete button click
+    // Delete Category
     $(document).on('click', '.delete', function () {
         let url = $(this).data('url');
 
-        //Sweet ALert
         Swal.fire({
             title: "Are you sure?",
             text: "This action cannot be undone!",
@@ -51,7 +43,7 @@ $(function () {
             confirmButtonColor: "#d33",
             cancelButtonColor: "#6c757d",
             confirmButtonText: "Yes, delete",
-            width: '400px',
+            width: '400px'
         }).then((result) => {
             if (result.isConfirmed) {
                 $('#loading-spinner').addClass('active');
@@ -61,10 +53,11 @@ $(function () {
                     _method: 'DELETE'
                 })
                     .done(function (response) {
-                        $('#categories_table tbody').html(response);
+                        $('#categories_cards').html(response);
+
                         Swal.fire({
                             title: "Deleted!",
-                            text: "The record has been removed.",
+                            text: "Category has been removed.",
                             icon: "success",
                             timer: 1000,
                             showConfirmButton: false,
@@ -83,20 +76,16 @@ $(function () {
         });
     });
 
-    //form submit (only for modal forms)
+    // Modal Form Submit (Add/Update)
     $(document).on('submit', '#categories_modal form', function (e) {
         e.preventDefault();
         $('#loading-spinner').addClass('active');
-        var form = $(this);
-        var url = form.attr('action');
-        var method = form.attr('method') || 'POST';
 
-        // If HTML form uses method spoofing (<input name="_method">), send as POST so _method is preserved in serialized data
-        if (form.find('input[name="_method"]').length) {
-            method = 'POST';
-        }
-
-        var data = form.serialize();
+        let form = $(this);
+        let url = form.attr('action');
+        let method = form.attr('method') || 'POST';
+        if (form.find('input[name="_method"]').length) method = 'POST';
+        let data = form.serialize();
 
         $.ajax({
             url: url + '?page=' + getCurrentPage(),
@@ -105,36 +94,32 @@ $(function () {
             dataType: 'html'
         })
             .done(function (response) {
-                $('#categories_table tbody').html(response);
+                $('#categories_cards').html(response);
 
-                // Hide modal only if it's an update
                 if ($('#categories_modal').data('action') === 'update') {
                     $('#categories_modal').modal('hide');
                 }
 
-                form.find('input[type="text"], textarea').val('');
-                $('#loading-spinner').removeClass('active'); // hide
+                form[0].reset();
+                $('#loading-spinner').removeClass('active');
 
-                //Sweet Alert
                 Swal.fire({
                     icon: 'success',
                     title: 'Success!',
-                    text: 'Data saved successfully!',
+                    text: 'Category saved successfully!',
                     showConfirmButton: false,
                     timer: 1500,
                     width: '400px',
-                    padding: '0.8rem',
-                    timerProgressBar: false
+                    padding: '0.8rem'
                 });
             })
             .fail(function (xhr) {
                 $('#loading-spinner').removeClass('active');
-                var message = 'Something went wrong.';
+                let message = 'Something went wrong.';
                 try {
-                    var json = JSON.parse(xhr.responseText);
+                    let json = JSON.parse(xhr.responseText);
                     if (json.message) message = json.message;
                 } catch (e) {
-                    // not JSON
                     if (xhr.responseText) message = xhr.responseText;
                 }
                 Swal.fire({
@@ -147,8 +132,4 @@ $(function () {
             });
     });
 
-    //Get the Current Page for pagination
-    function getCurrentPage() {
-        return new URLSearchParams(window.location.search).get('page') || 1;
-    }
-})
+});

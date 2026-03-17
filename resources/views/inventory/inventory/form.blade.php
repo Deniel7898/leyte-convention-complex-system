@@ -1,176 +1,127 @@
 <form action="{{ isset($inventory) ? route('inventory.update', $inventory->id) : route('inventory.store') }}"
-    method="POST"
-    enctype="multipart/form-data">
-
+    method="POST" enctype="multipart/form-data">
     @csrf
-    @if(isset($inventory))
+    @if(isset($item))
     @method('PUT')
     @endif
 
-    <div class="modal-header" style=" background-color: rgb(43, 45, 87);">
-        <h5 class="modal-title text-white">{{ isset($inventory) ? 'Edit' : 'Add' }} Inventory</h5>
+    <div class="modal-header" style="background-color: rgb(43, 45, 87);">
+        <h5 class="modal-title text-white">{{ isset($item) ? 'Edit' : 'Add' }} Item</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
     </div>
 
     <div class="modal-body">
         <div class="row">
+            <!-- Hidden input for current page segment -->
+            <input type="hidden" name="page" id="currentPageInput" value="{{ request()->segment(1) ?? 'inventory' }}">
+            
             <!-- Item Name -->
-            @if(!isset($inventory))
             <div class="col-md-6 mb-3">
-                <label for="inventory-name" class="form-label">Item Name</label>
-                <input type="text" class="form-control" id="inventory-name" name="name" value="{{ isset($inventory) ? $inventory->item->name : '' }}"
-                    {{ isset($inventory) ? 'readonly' : '' }} required>
+                <label for="item-name" class="form-label">Item Name</label>
+                <input type="text" class="form-control" id="item-name" name="name"
+                    value="{{ isset($item) ? $item->name : '' }}" required>
             </div>
-            @else
-            <div class="mb-3">
-                <label for="inventory-name" class="form-label">Item Name</label>
-                <input type="text" class="form-control" id="inventory-name" name="name" value="{{ isset($inventory) ? $inventory->item->name : '' }}"
-                    {{ isset($inventory) ? 'readonly' : '' }} required>
-            </div>
-            @endif
 
-            <!-- Unit -->
-            @if(!isset($inventory))
-            <div class="col-md-6 mb-3">
-                <label for="inventory-unit" class="form-label">Unit</label>
-                <select class="form-select" id="inventory-unit" name="unit_id" required>
-                    <option value="">Select Unit</option>
-                    @foreach ($units as $unit)
-                    <option value="{{ $unit->id }}"
-                        {{ (isset($inventory) && $inventory->unit_id == $unit->id) ? 'selected' : '' }}>
-                        {{ $unit->name }}
-                    </option>
-                    @endforeach
-                </select>
-            </div>
-            @else
-            <input type="hidden" name="unit" value="{{ $inventory->unit }}">
-            @endif
-        </div>
-
-        <div class="row">
-            <!-- Quantity -->
-            @if(!isset($inventory))
-            <div class="col-md-6 mb-3">
-                <label for="inventory-quantity" class="form-label">Quantity</label>
-                <input type="number" class="form-control" id="inventory-quantity" name="quantity" min="1" required>
-            </div>
-            @else
-            <input type="hidden" name="quantity" value="{{ $inventory->quantity }}">
-            @endif
-
-            <!-- Type -->
-            @if(!isset($inventory))
-            <div class="col-md-6 mb-3">
-                <label for="inventory-type" class="form-label">Item Type</label>
-                <select class="form-select" id="inventory-type" name="type" required>
-                    <option value="">Select type</option>
-                    <option value="0" {{ (isset($inventory) && $inventory->item->type == 0) ? 'selected' : '' }}>Consumable</option>
-                    <option value="1" {{ (isset($inventory) && $inventory->item->type == 1) ? 'selected' : '' }}>Non-Consumable</option>
-                </select>
-            </div>
-            @else
-            <input type="hidden" name="type" value="{{ $inventory->type }}">
-            @endif
-        </div>
-
-        <div class="row">
             <!-- Category -->
-            @if(!isset($inventory))
             <div class="col-md-6 mb-3">
-                <label for="inventory-category" class="form-label">Category</label>
-                <select class="form-select" id="inventory-category" name="category_id" required>
+                <label for="item-category" class="form-label">Category</label>
+                <select class="form-select" id="item-category" name="category_id" required>
                     <option value="">Select category</option>
                     @foreach($categories as $category)
                     <option value="{{ $category->id }}"
-                        {{ (isset($inventory) && $inventory->category_id == $category->id) ? 'selected' : '' }}>
+                        data-type="{{ $category->type }}"
+                        {{ isset($item) && $item->category_id == $category->id ? 'selected' : '' }}>
                         {{ $category->name }}
                     </option>
                     @endforeach
                 </select>
             </div>
-            @else
-            <input type="hidden" name="category" value="{{ $inventory->category }}">
-            @endif
 
-            <!-- Received Date -->
-            @if(!isset($inventory))
+            <!-- Type -->
+            @if(!isset($item))
             <div class="col-md-6 mb-3">
-                <label for="received-date" class="form-label">Received Date</label>
-                <input type="date" class="form-control" id="received-date" name="received_date"
-                    value="{{ isset($inventory) ? $inventory->received_date : date('Y-m-d') }}">
-            </div>
-            @else
-            <div class="mb-3">
-                <label for="received-date" class="form-label">Received Date</label>
-                <input type="date" class="form-control" id="received-date" name="received_date"
-                    value="{{ isset($inventory) ? $inventory->received_date : date('Y-m-d') }}">
+                <label for="item-type" class="form-label">Type</label>
+                <select class="form-select" id="item-type" name="type" required>
+                    <option value="">Select Type</option>
+                    <option value="consumable" {{ isset($item) && $item->type === 'consumable' ? 'selected' : '' }}>Consumable</option>
+                    <option value="non-consumable" {{ isset($item) && $item->type === 'non-consumable' ? 'selected' : '' }}>Non-Consumable</option>
+                </select>
             </div>
             @endif
-        </div>
 
-        <!-- Warranty Expires -->
-        <div class="mb-3 non-consumable-fields"
-            style="{{ isset($inventory) && ($inventory->item->type ?? 0) == 1 ? '' : 'display:none;' }}">
-            <label for="warranty-expires" class="form-label">Warranty Expires</label>
-            <input type="date" class="form-control" id="warranty-expires" name="warranty_expires" value="{{ $inventory->warranty_expires ?? '' }}">
-        </div>
+            <!-- Unit -->
+            <div class="col-md-6 mb-3">
+                <label for="item-unit" class="form-label">Unit</label>
+                <select class="form-select" id="item-unit" name="unit_id">
+                    <option value="">Select unit</option>
+                    @foreach($units as $unit)
+                    <option value="{{ $unit->id }}" {{ isset($item) && $item->unit_id == $unit->id ? 'selected' : '' }}>
+                        {{ $unit->name }}
+                    </option>
+                    @endforeach
+                </select>
+            </div>
 
-        <!-- Description (Styled Like Normal Input But Scrollable) -->
-        <div class="mb-3">
-            @if(!isset($inventory))
-            <label for="inventory-description" class="form-label">Description: (optional)</label>
-            <textarea class="form-control" id="inventory-description" name="description" rows="2" style="resize: none; overflow-y: auto; max-height: 80px;">{{ isset($inventory) ? $inventory->description : '' }}</textarea>
-            @else
-            <input type="hidden" name="description" value="{{ $inventory->description }}">
+            <!-- Total Stock -->
+            @if(!isset($item))
+            <div class="col-md-6 mb-3">
+                <label for="item-total-stock" class="form-label">Quantity</label>
+                <input type="number" class="form-control" id="item-total-stock" name="total_stock"
+                    value="{{ isset($item) ? $item->total_stock : '' }}" min="0">
+            </div>
             @endif
-        </div>
 
-        <!-- Simple Picture Upload -->
-        <div class="mb-3">
-            @if(!isset($inventory))
-            <label class="form-label">Item Picture</label>
-            <div class="border rounded p-3 text-center"
-                id="picture-dropzone"
-                style="cursor: pointer; min-height: 150px; display: flex; align-inventory: center; justify-content: center;">
+            <!-- Supplier -->
+            <div class="col-md-6 mb-3">
+                <label for="item-supplier" class="form-label">Supplier</label>
+                <input type="text" class="form-control" id="item-supplier" name="supplier"
+                    value="{{ isset($item) ? $item->supplier : '' }}">
+            </div>
 
-                <input type="file" id="inventory-picture" name="picture" accept="image/*" onchange="previewPicture(event)" style="display:none;">
+            <!-- Description (full width) -->
+            <div class="col-12 mb-3">
+                <label for="item-description" class="form-label">Description</label>
+                <textarea class="form-control" id="item-description" name="description" rows="2"
+                    style="resize: none; overflow-y: auto; max-height: 80px;">{{ isset($item) ? $item->description : '' }}</textarea>
+            </div>
 
-                <img id="picture-preview"
-                    src="{{ isset($inventory) && $inventory->picture ? asset('storage/' . $inventory->picture) : '' }}"
-                    class="img-fluid rounded" style="max-height: 120px; {{ isset($inventory) && $inventory->picture ? '' : 'display:none;' }}">
-
-                <div id="picture-placeholder"
-                    class="text-muted" style="{{ isset($inventory) && $inventory->picture ? 'display:none;' : '' }}">
-                    Click or drag to upload picture
+            <!-- Picture Upload (full width) -->
+            <div class="col-12 mb-3">
+                <label class="form-label">Item Picture</label>
+                <div class="border rounded p-3 text-center" id="picture-dropzone"
+                    style="cursor: pointer; min-height: 150px; display: flex; align-items: center; justify-content: center;">
+                    <input type="file" id="item-picture" name="picture" accept="image/*" style="display:none;">
+                    <img id="picture-preview"
+                        src="{{ isset($item) && $item->picture ? asset('storage/' . $item->picture) : '' }}"
+                        class="img-fluid rounded" style="max-height: 120px; {{ isset($item) && $item->picture ? '' : 'display:none;' }}">
+                    <div id="picture-placeholder"
+                        class="text-muted" style="{{ isset($item) && $item->picture ? 'display:none;' : '' }}">
+                        Click or drag to upload picture
+                    </div>
                 </div>
             </div>
-            @else
-            <input type="hidden" name="picture" value="{{ $inventory->picture }}">
-            @endif
         </div>
+
+        <input type="hidden" name="created_by" value="{{ isset($item) ? $item->created_by : auth()->id() }}">
+        <input type="hidden" name="updated_by" value="{{ auth()->id() }}">
     </div>
 
     <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="submit" class="btn text-white" style=" background-color: rgb(43, 45, 87);">Save Item</button>
+        <button type="submit" class="btn text-white" style="background-color: rgb(43, 45, 87);">Save Item</button>
     </div>
 </form>
 
 <script>
     (function() {
-        // Everything inside this IIFE is local
         const dropzone = document.getElementById('picture-dropzone');
-        const inputFile = document.getElementById('inventory-picture');
+        const inputFile = document.getElementById('item-picture');
         const preview = document.getElementById('picture-preview');
         const placeholder = document.getElementById('picture-placeholder');
 
-        if (!dropzone) return; // safety check
+        if (!dropzone) return;
 
-        // Click opens file dialog
         dropzone.addEventListener('click', () => inputFile.click());
-
-        // Drag & Drop
         dropzone.addEventListener('dragover', e => e.preventDefault());
         dropzone.addEventListener('drop', e => {
             e.preventDefault();
@@ -180,7 +131,12 @@
             }
         });
 
-        // Preview function
+        inputFile.addEventListener('change', () => {
+            if (inputFile.files.length > 0) {
+                previewFile(inputFile.files[0]);
+            }
+        });
+
         function previewFile(file) {
             const reader = new FileReader();
             reader.onload = e => {
@@ -190,32 +146,17 @@
             }
             reader.readAsDataURL(file);
         }
-
-        // Input change event
-        inputFile.addEventListener('change', () => {
-            if (inputFile.files.length > 0) {
-                previewFile(inputFile.files[0]);
-            }
-        });
     })();
 </script>
-
 <script>
-    function setupNonConsumableToggle() {
-        let typeSelect = document.getElementById('inventory-type');
-        let nonConsumableFields = document.querySelectorAll('.non-consumable-fields');
+    document.getElementById('item-category').addEventListener('change', function() {
+        let selectedOption = this.options[this.selectedIndex];
+        let categoryType = selectedOption.getAttribute('data-type');
 
-        if (!typeSelect) return; // safety check
+        let typeSelect = document.getElementById('item-type');
 
-        typeSelect.addEventListener('change', function() {
-            if (this.value === '1') {
-                nonConsumableFields.forEach(field => field.style.display = 'block');
-            } else {
-                nonConsumableFields.forEach(field => field.style.display = 'none');
-            }
-        });
-    }
-
-    // Call the function after the form is loaded
-    setupNonConsumableToggle();
+        if (categoryType) {
+            typeSelect.value = categoryType;
+        }
+    });
 </script>

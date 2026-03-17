@@ -266,7 +266,7 @@
 
             <div class="row g-3">
                 <div class="col-lg-4 col-md-6">
-                    <a href="{{ route('items.index') }}" class="quick-action-box primary text-decoration-none">
+                    <a href="{{ route('inventory.index') }}" class="quick-action-box primary text-decoration-none">
                         <div class="icon text-primary">
                             <i class="bi bi-box-seam"></i>
                         </div>
@@ -359,7 +359,6 @@
                 <div class="progress" style="height:6px;">
                     <div class="progress-bar bg-info" style="width:40%"></div>
                 </div>
-
             </div>
         </div>
     </div>
@@ -387,7 +386,7 @@
 
                 <li>
                     <div><strong>Backup Service</strong></div>
-                    <span class="badge bg-warning-subtle text-warning">Processing</span>
+                    <span class="badge bg-warning-subtle text-orange">Processing</span>
                 </li>
 
                 <li>
