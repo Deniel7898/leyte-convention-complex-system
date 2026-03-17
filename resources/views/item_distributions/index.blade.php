@@ -34,14 +34,6 @@
                 <option>Borrow</option>
             </select>
         </div>
-
-        <div class="col-auto">
-            <div class="col-auto">
-                <a href="{{ route('inventory.index') }}" class="btn px-4 text-white" style="background-color: hsl(237, 34%, 30%);" onmouseover="this.style.backgroundColor='hsl(237, 34%, 40%)'" onmouseout="this.style.backgroundColor='hsl(237, 34%, 30%)'">
-                    + New Distribution
-                </a>
-            </div>
-        </div>
     </div>
 </div>
 
