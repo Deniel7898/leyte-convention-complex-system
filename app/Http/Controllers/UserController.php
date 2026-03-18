@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Auth\Events\Registered;
 
 class UserController extends Controller
 {
@@ -22,7 +23,7 @@ class UserController extends Controller
     {
         return view('users.form');
     }
-    
+
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -45,23 +46,31 @@ class UserController extends Controller
         }
 
         $data = $validator->validated();
+
+        // 🔐 Hash password
         $data['password'] = Hash::make($data['password']);
         $data['status'] = 'active';
 
+        // 📸 Upload profile photo
         if ($request->hasFile('profile_photo')) {
             $data['profile_photo'] = $request->file('profile_photo')
                 ->store('profile_photos', 'public');
         }
 
-        User::create($data);
+        // 👤 Create user
+        $user = User::create($data);
 
+        // 🔥 Send email verification
+        event(new Registered($user));
+
+        // 🔄 Reload users list
         $users = User::orderByRaw("CASE WHEN role = 'admin' THEN 1 ELSE 0 END")
             ->orderBy('created_at', 'desc')
             ->get();
 
         return response()->json([
             'html' => view('users.table', compact('users'))->render(),
-            'message' => 'User created successfully',
+            'message' => 'User created successfully. Verification email sent.',
         ]);
     }
 

@@ -8,7 +8,8 @@ use App\Http\Controllers\ItemDistributionsController;
 use App\Http\Controllers\Service_RecordsController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Purchase_RequestsController;
-
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Auth\VerificationController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -21,14 +22,38 @@ use App\Http\Controllers\Purchase_RequestsController;
 */
 
 Route::get('/', function () {
-    return view('/auth.login');
+    return view('auth.login');
 });
 
-Auth::routes();
+Auth::routes(['verify' => true]); // includes all verification routes
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/verify', function () {
+    return view('auth.verify');
+})->middleware('auth')->name('verification.hold');
+
+Route::post('/email/resend', [VerificationController::class, 'resend'])
+    ->middleware('auth')
+    ->name('verification.resend');
+
+Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
+    ->middleware(['signed'])
+    ->name('verification.verify');
+
+Route::middleware('auth')->get('/check-verification-status', function (Illuminate\Http\Request $request) {
+    $user = $request->user();
+    return response()->json([
+        'verified' => $user->hasVerifiedEmail()
+    ]);
+});
+
+// web.php
+Route::get('/verification/success', function () {
+    return view('auth/verification-success'); // Blade template
+})->name('verification.success');
+
+Route::get('/home', function () {
+    return view('home');
+})->middleware(['auth', 'verified'])->name('home');
 
 Route::middleware('auth')->group(function () {
     Route::resource('users', App\Http\Controllers\UserController::class)->middleware('auth'); // includes all CRUD routes for users
@@ -37,6 +62,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
+// Optional
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
@@ -36,5 +38,18 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
+    }
+
+    /**
+     * The user has been authenticated.
+     */
+    protected function authenticated(Request $request, $user)
+    {
+        if (is_null($user->email_verified_at) && $user->role !== 'admin') {
+            return redirect()->route('verification.hold');
+        }
+
+        // Verified users go to dashboard
+        return redirect()->intended('/home');
     }
 }

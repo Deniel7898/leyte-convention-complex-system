@@ -11,6 +11,9 @@ services:
       - .:/var/www/html
     depends_on:
       - db
+      - mailpit   # 👈 add this
+    networks:
+      - app-network
 
   db:
     image: mysql:8
@@ -24,6 +27,8 @@ services:
       - "3307:3306"
     volumes:
       - dbdata:/var/lib/mysql
+    networks:
+      - app-network
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -35,6 +40,21 @@ services:
       PMA_HOST: db
       PMA_USER: root
       PMA_PASSWORD: root
+    networks:
+      - app-network
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: mailpit
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+    networks:
+      - app-network
 
 volumes:
   dbdata:
+
+networks:
+  app-network:
+    driver: bridge

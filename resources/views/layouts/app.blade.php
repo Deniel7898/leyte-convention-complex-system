@@ -113,7 +113,9 @@
                                     data-bs-toggle="dropdown"
                                     aria-expanded="false">
                                     <div class="profile-info me-2">
-                                        <h6 class="mb-0">{{ Auth::user()->name }}</h6>
+                                        @auth
+                                        <h6 class="mb-0">{{ Auth::user()->last_name }}</h6>
+                                        @endauth
                                     </div>
                                     <i class="lni lni-chevron-down"></i>
                                 </button>

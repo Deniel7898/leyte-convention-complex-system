@@ -12,8 +12,28 @@
         height: 100%;
         background: url('{{ asset('images/home_bg/palo_capitol.jpg') }}') center/cover no-repeat;
         filter: brightness(0.8) blur(5px);
-        /* darken & blur */
         z-index: -1;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .dashboard-btn {
+        display: inline-block;
+        padding: 10px 25px;
+        background-color: #4A90E2;
+        /* adjust to your theme */
+        color: #fff;
+        font-weight: bold;
+        border-radius: 5px;
+        text-decoration: none;
+        transition: background 0.3s;
+    }
+
+    .dashboard-btn:hover {
+        background-color: #357ABD;
+        /* slightly darker on hover */
     }
 </style>
 
@@ -26,11 +46,24 @@
         </div>
 
         <!-- Real-time date -->
-        <p id="current-date" style="font-size:14px;  color: hsl(237, 34%, 26%); margin-bottom:10px;"></p>
+        <p id="current-date" style="font-size:14px; color: hsl(237, 34%, 26%); margin-bottom:10px;"></p>
 
         <h2 class="title">LCC Monitoring System</h2>
-        <p class="subtitle">Leyte Convention Complex - Please sign in to continue</p>
+        <p class="subtitle">
+            Leyte Convention Complex -
+            @if(auth()->check())
+            You are already logged in
+            @else
+            Please sign in to continue
+            @endif
+        </p>
 
+        <!-- Check if user is logged in -->
+        @if(auth()->check() && (auth()->user()->role === 'admin' || auth()->user()->hasVerifiedEmail()))
+        <div class="form-group text-center">
+            <a href="{{ route('home') }}" class="login-btn dashboard-btn">Go to Dashboard</a>
+        </div>
+        @else
         <form method="POST" action="{{ route('login') }}">
             @csrf
 
@@ -48,6 +81,8 @@
 
             <button type="submit" class="login-btn">Sign In</button>
         </form>
+        @endauth
     </div>
 </div>
+
 @endsection
