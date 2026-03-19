@@ -26,6 +26,7 @@ class ItemsController extends Controller
     public function index()
     {
         $items = $this->getItems();
+        
         return view('inventory.items.index', compact('items'));
     }
 

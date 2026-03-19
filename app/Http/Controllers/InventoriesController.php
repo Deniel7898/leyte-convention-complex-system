@@ -194,6 +194,7 @@ class InventoriesController extends Controller
                 $inventory = Inventory::create([
                     'id'           => Str::uuid(),
                     'item_id'      => $item->id,
+                    'status' => 'available',
                     'received_date' => $request->received_date ?? now(),
                     'created_by'   => Auth::id(),
                     'updated_by'   => Auth::id(),
@@ -208,6 +209,16 @@ class InventoriesController extends Controller
                     'updated_by'   => Auth::id(),
                 ]);
             }
+            // Log history
+            InventoryHistory::create([
+                'item_id' => $item->id,
+                'action' => 'item created',
+                'quantity' => $request->total_stock,
+                'notes' => $request->description,
+                'created_by' => Auth::id(),
+                'updated_by' => Auth::id(),
+            ]);
+            
         } elseif ($item->type === 'consumable') {
             $lastQrToday = QR_Code::where('code', 'like', "LCC-{$prefix}{$datetime}-%")->orderByDesc('code')->first();
             $lastSequence = $lastQrToday ? (int) explode('-', $lastQrToday->code)[2] : 0;
@@ -235,6 +246,16 @@ class InventoriesController extends Controller
                 'status'       => QR_Code::STATUS_USED,
                 'created_by'   => Auth::id(),
                 'updated_by'   => Auth::id(),
+            ]);
+
+            // Log history
+            InventoryHistory::create([
+                'item_id' => $item->id,
+                'action' => 'item created',
+                'quantity' => $request->total_stock,
+                'notes' => $request->description,
+                'created_by' => Auth::id(),
+                'updated_by' => Auth::id(),
             ]);
         }
 

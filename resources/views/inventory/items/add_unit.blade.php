@@ -45,11 +45,13 @@
          @endif
 
          <!-- Date Assigned -->
+         @if(isset($inventory))
          <div class="mb-3">
              <label class="form-label">Date Assigned</label>
              <input type="date" class="form-control" name="date_assigned"
                  value="{{ old('date_assigned', $itemDistribution->date_assigned ?? date('Y-m-d')) }}" required>
          </div>
+         @endif
 
          <!-- Notes -->
          <div class="mb-3">

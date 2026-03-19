@@ -81,7 +81,7 @@
         <!-- Recorded By -->
         <div class="row py-2 border-bottom">
             <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Recorded By</div>
-            <div class="col-8" style="white-space: pre-wrap;">{{ $inventory->users->name ?? 'N/A' }}</div>
+            <div class="col-8" style="white-space: pre-wrap;">{{ $inventory->users->last_name ?? 'N/A' }}</div>
         </div>
 
         <!-- Description -->

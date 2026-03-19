@@ -14,6 +14,9 @@
         <!-- Hidden input for current page segment -->
         <input type="hidden" name="page" id="currentPageInput" value="{{ request()->segment(1) ?? 'inventory' }}">
 
+        <!-- Hidden input for service ID -->
+        <input type="hidden" name="service_id" value="{{ $service_record->id ?? '' }}">
+
         <div class="row">
             <!-- Item Name & Available Stock -->
             <div class="col-md-6 mb-1">
@@ -37,6 +40,7 @@
         </div>
 
         <!-- Units Table (for non-consumables) -->
+        @if(!isset($service_record) && !empty($selectedItem) && optional($selectedItem->inventories)->count() > 0 && empty($quickAction))
         <div class="mb-3" id="unitsSection">
             <label class="form-label fw-bold">Select Units</label>
             <div class="border rounded shadow-sm" style="max-height: 200px; overflow-y:auto; background-color:#f9f9f9;">
@@ -95,6 +99,9 @@
                 </table>
             </div>
         </div>
+        @elseif(!isset($service_record) && !empty($selectedItem) && $selectedInventory)
+        <input type="hidden" name="inventory_ids[]" value="{{ $inventory->id }}">
+        @endif
 
         <div class="row">
             <!-- Technician -->
@@ -108,7 +115,7 @@
             <div class="col-md-6 mb-3">
                 <label for="service_date" class="form-label">Schedule Date</label>
                 <input type="date" class="form-control" id="service_date" name="service_date"
-                    value="{{ old('service_date', isset($service_record) ? $service_record->service_date->format('Y-m-d') : date('Y-m-d')) }}" required>
+                    value="{{ old('service_date', isset($service_record) ? \Carbon\Carbon::parse($service_record->service_date)->format('Y-m-d') : date('Y-m-d')) }}" required>
             </div>
         </div>
 

@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class Item extends Model
 {
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     use HasUuids, SoftDeletes;
 
     protected $fillable = [

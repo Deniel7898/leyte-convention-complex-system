@@ -58,7 +58,18 @@
                 @if(isset($service_record) && $service_record->completed_date)
                 <span class="badge bg-success-subtle text-success">Completed!</span>
                 @else
-                <span class="badge bg-warning-subtle text-warning">Pending!</span>
+                @php
+                // Optional: map status to a bootstrap color
+                $statusColors = [
+                'scheduled' => 'bg-primary-subtle text-primary',
+                'under repair' => 'bg-warning-subtle text-orange',
+                'cancelled' => 'bg-danger-subtle text-danger',
+                ];
+
+                $status = $service_record->status ?? 'pending';
+                $badgeClass = $statusColors[$status] ?? 'bg-secondary-subtle text-secondary';
+                @endphp
+                <span class="badge {{ $badgeClass }}">{{ ucfirst($status) }}</span>
                 @endif
             </div>
         </div>

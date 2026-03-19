@@ -14,6 +14,9 @@
             <!-- Hidden input for current page segment -->
             <input type="hidden" name="page" id="currentPageInput" value="{{ request()->segment(1) ?? 'inventory' }}">
 
+            <!-- Hidden input for service ID -->
+            <input type="hidden" name="distribution_id" value="{{ $itemDistribution->id ?? '' }}">
+
             <div class="row">
                 <!-- Item Name & Available Stock -->
                 <div class="col-md-6 mb-1">
@@ -69,7 +72,7 @@
             @if(($selectedItem->type ?? '') === 'consumable')
             <div class="mb-3" id="quantityWrapper">
                 <label class="form-label">Enter quantity</label>
-                <input  
+                <input
                     type="number"
                     class="form-control"
                     name="quantity"
@@ -105,10 +108,11 @@
             });
             }
 
-            $singleInventory = $availableInventories->count() === 1 ? $availableInventories->first() : null;
+            $inventoriesCount = $availableInventories->count();
+            $singleInventory = $inventoriesCount === 1 ? $availableInventories->first() : null;
 
             // Only show units table if more than one inventory is available
-            $showUnitsTable = ($selectedItem->type ?? '') !== 'consumable' && (!$singleInventory || (isset($itemDistribution) && $availableInventories->count() > 1));
+            $showUnitsTable = ($selectedItem->type ?? '') !== 'consumable' && $inventoriesCount > 0 && !empty($selectedItem) && optional($selectedItem->inventories)->count() > 0 && empty($quickAction);
             @endphp
 
             @if($showUnitsTable)
@@ -152,6 +156,8 @@
                     </table>
                 </div>
             </div>
+            @elseif(isset($selectedItem) && $selectedItem->inventories->first())
+            <input type="hidden" name="inventory_ids[]" value="{{ $selectedItem->inventories->first()->id }}">
             @endif
 
             <div class="row">

@@ -172,21 +172,24 @@ class ItemDistributionsController extends Controller
 
     public function create(Request $request)
     {
-        // Get all items with their inventories and unit
+        // Get all items with inventories and unit
         $items = Item::with(['unit', 'inventories.qrCode'])->get();
 
         // Get all categories
         $categories = Category::all();
 
-        // Fetch the selected item properly if item_id is provided
+        // Fetch the selected item if item_id is provided
         $selectedItem = null;
         if ($request->has('item_id')) {
             $selectedItem = Item::with(['unit', 'inventories.qrCode'])
                 ->find($request->item_id);
         }
 
-        // Return the modal form view
-        return view('item_distributions.form', compact('items', 'selectedItem', 'categories'));
+        // Quick action flag (from table button)
+        $quickAction = $request->has('quick') && $request->quick == 1;
+
+        // Return the service record form view
+        return view('item_distributions.form', compact('items', 'selectedItem', 'categories', 'quickAction'));
     }
 
     public function store(Request $request)
@@ -217,7 +220,7 @@ class ItemDistributionsController extends Controller
                 'borrowed'    => 'borrowed',
                 default       => $request->status,
             };
-            
+
             $department = $request->department_or_borrower ?? 'Unknown';
 
             if ($item->type === 'consumable') {
@@ -365,30 +368,85 @@ class ItemDistributionsController extends Controller
     public function update(Request $request, string $id)
     {
         $request->validate([
-            'type' => 'required|in:0,1',
-            'inventory_ids' => 'required|array|min:1',
-            'inventory_ids.*' => 'string',
-            'status' => 'required|in:completed,borrowed,returned',
-            'description' => 'nullable|string',
+            'type' => 'required|in:distributed,issued,borrowed',
+            'inventory_ids' => 'nullable|array',
+            'inventory_ids.*' => 'nullable|uuid|exists:inventories,id',
+            'quantity' => 'nullable|integer|min:1',
+            'department_or_borrower' => 'required|string|max:255',
             'distribution_date' => 'nullable|date',
             'due_date' => 'nullable|date',
+            'notes' => 'nullable|string',
+            'status' => 'nullable|in:completed,borrowed,returned',
         ]);
 
-        DB::transaction(function () use ($request, $id) {
-            $existingDistribution = ItemDistribution::findOrFail($id);
-            $inventoryId = $request->inventory_ids[0];
-            $inventory = Inventory::findOrFail($inventoryId);
+        $distribution = ItemDistribution::findOrFail($id);
+        $item = $distribution->item;
 
-            $existingDistribution->update([
-                'type' => $request->type,
-                'description' => $request->description,
-                'quantity' => 1,
-                'distribution_date' => $request->distribution_date ?? now(),
-                'due_date' => $request->due_date,
-                'status' => $request->status,
-                'inventory_id' => $inventory->id,
-                'updated_by' => Auth::id(),
-            ]);
+        DB::transaction(function () use ($request, $distribution, $item) {
+            $type = $request->type;
+            $status = $request->status ?? match ($type) {
+                'distributed' => 'completed',
+                'issued' => 'issued',
+                'borrowed' => 'borrowed',
+            };
+
+            if ($item->type === 'consumable') {
+                // Revert old distributed quantity
+                $item->increment('remaining', $distribution->quantity);
+
+                $quantity = $request->quantity ?? $distribution->quantity;
+
+                if ($quantity > $item->remaining) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'quantity' => ['Requested quantity exceeds available stock.'],
+                    ]);
+                }
+
+                // Subtract the new quantity
+                $item->decrement('remaining', $quantity);
+
+                // Update the distribution record
+                $distribution->update([
+                    'type' => $type,
+                    'quantity' => $quantity,
+                    'status' => $status,
+                    'department_or_borrower' => $request->department_or_borrower,
+                    'distribution_date' => $request->distribution_date ?? now(),
+                    'due_date' => $request->due_date,
+                    'notes' => $request->notes,
+                    'updated_by' => Auth::id(),
+                ]);
+            } else {
+                // Non-consumable: update inventories
+                $inventoryIds = $request->inventory_ids ?? [$distribution->inventory_id];
+
+                foreach ($inventoryIds as $invId) {
+                    $inventory = Inventory::findOrFail($invId);
+
+                    $distribution->update([
+                        'type' => $type,
+                        'inventory_id' => $inventory->id,
+                        'status' => $status,
+                        'department_or_borrower' => $request->department_or_borrower,
+                        'distribution_date' => $request->distribution_date ?? now(),
+                        'due_date' => $request->due_date,
+                        'notes' => $request->notes,
+                        'updated_by' => Auth::id(),
+                        'quantity' => 1,
+                    ]);
+
+                    $inventory->update([
+                        'status' => $type,
+                        'holder' => $request->department_or_borrower,
+                        'date_assigned' => now(),
+                        'due_date' => $request->due_date,
+                        'notes' => $request->notes,
+                    ]);
+                }
+
+                // Update remaining count for item
+                $item->decrement('remaining', count($inventoryIds));
+            }
         });
 
         $itemDistributions = $this->getItemDistributions();
@@ -527,8 +585,16 @@ class ItemDistributionsController extends Controller
     {
         $record = ItemDistribution::findOrFail($id);
 
+        // Determine the original status based on the type
+        $originalStatus = match ($record->type) {
+            'distributed' => 'completed',  // distributed → completed
+            'issued'      => 'issued',     // issued → issued
+            'borrowed'    => 'borrowed',   // borrowed → borrowed
+            default       => $record->status, // fallback
+        };
+
         $record->update([
-            'status'         => 'in progress',
+            'status'         => $originalStatus,
             'completed_date' => null,
             'updated_by'     => Auth::id(),
         ]);

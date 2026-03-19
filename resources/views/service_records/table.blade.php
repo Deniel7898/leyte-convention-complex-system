@@ -23,7 +23,7 @@
         @endif
     </td>
     <td style="padding:0; margin:0; vertical-align:top; text-align:center">
-        @if($service_record->inventory->qrCode)
+        @if($service_record->inventory?->qrCode)
         <img src="{{ asset('storage/' . $service_record->inventory->qrCode->qr_picture) }}"
             alt="{{ $service_record->inventory->qrCode->code }}"
             width="40"
@@ -76,14 +76,12 @@
     <td>
         @if($service_record->status === 'completed')
         <span class="badge bg-success-subtle text-success">Completed</span>
-        @elseif($service_record->status === 'in progress')
-        <span class="badge bg-warning-subtle text-orange">In Progress</span>
+        @elseif($service_record->status === 'under repair')
+        <span class="badge bg-warning-subtle text-orange">Under Repair</span>
         @elseif($service_record->status === 'scheduled')
         <span class="badge bg-primary-subtle text-primary">Scheduled</span>
         @elseif($service_record->status === 'cancelled')
         <span class="badge bg-danger-subtle text-danger">Cancelled</span>
-        @else
-        <span class="badge bg-secondary-subtle text-secondary">Pending</span>
         @endif
     </td>
     <td>

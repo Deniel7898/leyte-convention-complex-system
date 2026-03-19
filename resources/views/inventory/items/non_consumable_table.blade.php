@@ -44,7 +44,8 @@ default => 'bg-secondary-subtle text-secondary',
             class="btn p-0 border-0 bg-transparent text-success me-2 add-itemDistribution"
             data-url="{{ route('item_distributions.create', $unit->id) }}"
             data-item-id="{{ $item->id }}"
-            data-type="borrowed">
+            data-type="borrowed"
+            data-quick="1">
             <i class="bi bi-send"></i>
         </button>
 
@@ -52,7 +53,9 @@ default => 'bg-secondary-subtle text-secondary',
         <button type="button" title="Service Item"
             class="btn p-0 border-0 bg-transparent text-orange me-2 add-service"
             data-url="{{ route('service_records.create') }}"
-            data-item-id="{{ $item->id }}">
+            data-item-id="{{ $item->id }}"
+            data-inventory-id="{{ $unit->id }}"
+            data-quick="1">
             <i class="bi bi-wrench"></i>
         </button>
         @endif

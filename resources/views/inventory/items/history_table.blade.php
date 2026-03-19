@@ -23,7 +23,7 @@
                         <td>{{ $record->action ?? '--' }}</td>
                         <td>{{ $record->quantity ?? '--' }}</td>
                         <td>{{ $record->created_at->format('M d, Y H:i') ?? '--' }}</td>
-                        <td>{{ $record->creator->name ?? '-' }}</td>
+                        <td>{{ $record->creator->last_name ?? '-' }}</td>
                         <td>{{ $record->notes ?? '--' }}</td>
                     </tr>
                     @empty

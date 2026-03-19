@@ -4,10 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class Service_Record extends Model
 {
-    use SoftDeletes;
+    use HasUuids, SoftDeletes;
+
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $table = 'service_records';
 
@@ -21,7 +25,7 @@ class Service_Record extends Model
         'status',
         'remarks',
         'picture',
-        'inventory_id', 
+        'inventory_id',
         'created_by',
         'updated_by',
     ];

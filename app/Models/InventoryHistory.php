@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class InventoryHistory extends Model
 {
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     use HasFactory;
 
     protected $table = 'inventory_history';

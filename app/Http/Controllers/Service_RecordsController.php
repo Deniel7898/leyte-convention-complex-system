@@ -114,18 +114,34 @@ class Service_RecordsController extends Controller
     {
         $items = Item::with(['unit', 'inventories.qrCode'])->get();
         $categories = Category::all();
-        $selectedItem = $request->has('item_id')
+
+        $selectedItem = $request->item_id
             ? Item::with(['unit', 'inventories.qrCode'])->find($request->item_id)
             : null;
 
-        return view('service_records.form', compact('items', 'selectedItem', 'categories'));
+        $selectedInventory = $request->inventory_id
+            ? Inventory::with(['item.unit', 'qrCode'])->find($request->inventory_id)
+            : null;
+
+        $quickAction = $request->quick == 1 ?? false;
+        $service_record = null;
+
+        return view('service_records.form', compact(
+            'items',
+            'selectedItem',
+            'categories',
+            'service_record',
+            'quickAction',
+            'selectedInventory'
+        ));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'inventory_ids' => 'required|array',
-            'inventory_ids.*' => 'exists:inventories,id',
+            'inventory_ids' => 'nullable|array',
+            'inventory_ids.*' => 'nullable|uuid|exists:inventories,id',
+            'item_id' => 'nullable|uuid|exists:items,id',
             'type' => 'required|in:maintenance,installation,inspection',
             'service_date' => 'required|date',
             'completed_date' => 'nullable|date',
@@ -133,7 +149,6 @@ class Service_RecordsController extends Controller
             'description' => 'nullable|string',
             'remarks' => 'nullable|string',
             'picture' => 'nullable|image|max:2048',
-            'item_id' => 'nullable|exists:items,id',
             'page' => 'nullable|string',
         ]);
 
@@ -146,11 +161,12 @@ class Service_RecordsController extends Controller
         }
 
         $newRecords = [];
-        $item = null; // make sure we have the item reference
-        $serviceCount = count($request->inventory_ids); // move outside the loop
+        $inventoryIds = array_filter($request->inventory_ids ?? []);
 
-        foreach ($request->inventory_ids as $inventoryId) {
-            $inventory = Inventory::findOrFail($inventoryId);
+        foreach ($inventoryIds as $inventoryId) {
+            $inventory = Inventory::with('item')->find($inventoryId);
+            if (!$inventory) continue;
+
             $item = $inventory->item;
 
             $record = Service_Record::create([
@@ -167,31 +183,53 @@ class Service_RecordsController extends Controller
                 'updated_by' => Auth::id(),
             ]);
 
-            $inventory->update(['status' => $request->type]);
-
-            if ($item) {
-                $item->decrement('remaining', 1);
-            }
+            $inventory->update(['status' => 'scheduled']);
+            $item?->decrement('remaining', 1);
 
             $newRecords[] = $record;
         }
 
-        // Log history
+        $item = null;
+        if (empty($newRecords) && $request->filled('item_id')) {
+            $item = Item::findOrFail($request->item_id);
+
+            $record = Service_Record::create([
+                'inventory_id' => null,
+                'type' => $request->type,
+                'status' => 'scheduled',
+                'service_date' => $request->service_date,
+                'completed_date' => $request->completed_date,
+                'technician' => $request->technician,
+                'description' => $request->description,
+                'remarks' => $request->remarks,
+                'picture' => $picturePath,
+                'created_by' => Auth::id(),
+                'updated_by' => Auth::id(),
+            ]);
+
+            $item->decrement('remaining', 1);
+
+            $newRecords[] = $record;
+        }
+
+        // 5️⃣ Log inventory history
+        $item ??= $newRecords[0]->inventory->item ?? null;
+
         if ($item) {
             InventoryHistory::create([
                 'item_id' => $item->id,
                 'action' => $request->type,
-                'quantity' => $serviceCount,
-                'notes' => $request->remarks ?? $request->description, // use description or remarks
+                'quantity' => $serviceCount ?: 1,
+                'notes' => $request->remarks ?? $request->description,
                 'created_by' => Auth::id(),
                 'updated_by' => Auth::id(),
             ]);
+
+            $item->refresh();
         }
 
-        $item->refresh();
-
-        // Response based on page
-        if ($request->page === 'items') {
+        // 6️⃣ Prepare response based on page
+        if ($request->page === 'items' && $item) {
             $item->load('unit', 'category', 'inventories.qrCode');
 
             $history = InventoryHistory::where('item_id', $item->id)
@@ -199,38 +237,44 @@ class Service_RecordsController extends Controller
                 ->orderByDesc('created_at')
                 ->get();
 
-            // Return the non-consumable table partial
             $nonConsumableTableHtml = view('inventory.items.non_consumable_table', compact('item'))->render();
 
             return response()->json([
-                'item_card_html'           => view('inventory.items.item_card', compact('item'))->render(),
-                'history_table_html'       => view('inventory.items.history_table', compact('item', 'history'))->render(),
+                'item_card_html'            => view('inventory.items.item_card', compact('item'))->render(),
+                'history_table_html'        => view('inventory.items.history_table', compact('item', 'history'))->render(),
                 'non_consumable_table_html' => $nonConsumableTableHtml,
-                'item_id'                  => $item->id,
-                'message'                  => 'Service added successfully'
+                'item_id'                   => $item->id,
+                'message'                   => 'Service added successfully'
             ]);
         } elseif ($request->page === 'inventory') {
             $inventories = $this->getInventories();
+
             return response()->json([
                 'table_html' => view('inventory.inventory.table', compact('inventories'))->render(),
                 'message'    => 'Inventory updated successfully',
             ]);
         } elseif ($request->page === 'service_records') {
-            // Render service record cards
-            $cards_html = '';
+            $cardsHtml = '';
             foreach ($newRecords as $record) {
-                $cards_html .= view('service_records.card', ['record' => $record])->render();
+                $cardsHtml .= view('service_records.card', ['record' => $record])->render();
             }
 
-            $service_records = Service_Record::latest()->get();
-            $table_html = view('service_records.table', compact('service_records'))->render();
+            $serviceRecords = Service_Record::latest()->get();
+            $tableHtml = view('service_records.table', compact('serviceRecords'))->render();
+
             return response()->json([
-                'cards_html' => $cards_html,
-                'table_html' => $table_html,
+                'cards_html' => $cardsHtml,
+                'table_html' => $tableHtml,
                 'message'    => 'Service record(s) added successfully',
                 'record_ids' => collect($newRecords)->pluck('id')->toArray(),
             ]);
         }
+
+        // Default fallback response
+        return response()->json([
+            'message' => 'Service record(s) added successfully',
+            'records' => $newRecords,
+        ]);
     }
 
     public function show(string $id)
@@ -241,29 +285,49 @@ class Service_RecordsController extends Controller
 
     public function edit(string $id)
     {
-        $service_record = Service_Record::with('inventory.item', 'inventory.qrCode')->findOrFail($id);
+        $service_record = Service_Record::with('inventory.item', 'inventory.qrCode')
+            ->findOrFail($id);
+
         $items = Item::with(['unit', 'inventories.qrCode'])->get();
         $categories = Category::all();
         $units = Units::all();
-        return view('service_records.form', compact('service_record', 'items', 'categories', 'units'));
+
+        // Get the item from the service_record (for display)
+        $selectedItem = optional($service_record->inventory)->item;
+
+        return view('service_records.form', compact(
+            'service_record',
+            'items',
+            'categories',
+            'units',
+            'selectedItem'
+        ));
     }
 
     public function update(Request $request, string $id)
     {
-        $request->validate([
-            'inventory_ids' => 'required|array',
-            'type' => 'required|in:maintenance,installation,inspection',
-            'status' => 'required|in:scheduled,in progress,completed',
+        $record = Service_Record::findOrFail($id);
+
+        // Conditional validation
+        $rules = [
+            'service_id' => 'required|exists:service_records,id',
+            'technician' => 'required|string|max:255',
+            'type'       => 'required|in:maintenance,installation,inspection',
             'service_date' => 'required|date',
             'completed_date' => 'nullable|date',
-            'technician' => 'required|string|max:255',
             'description' => 'nullable|string',
             'remarks' => 'nullable|string',
             'picture' => 'nullable|image|max:2048',
-        ]);
+        ];
 
-        $record = Service_Record::findOrFail($id);
+        // Only require inventory_ids if present in the form
+        if ($request->has('inventory_ids')) {
+            $rules['inventory_ids'] = 'required|array|min:1';
+        }
 
+        $request->validate($rules);
+
+        // Handle picture upload
         $picturePath = $record->picture;
         if ($request->hasFile('picture')) {
             $file = $request->file('picture');
@@ -272,10 +336,11 @@ class Service_RecordsController extends Controller
             $picturePath = 'service_records/' . $filename;
         }
 
+        // Update record
         $record->update([
-            'inventory_id'   => $request->inventory_ids[0],
+            'inventory_id'   => $request->inventory_ids[0] ?? $record->inventory_id, // keep existing if not provided
             'type'           => $request->type,
-            'status'         => $request->status,
+            'status'         => 'scheduled',
             'service_date'   => $request->service_date,
             'completed_date' => $request->completed_date,
             'technician'     => $request->technician,
@@ -359,7 +424,7 @@ class Service_RecordsController extends Controller
         // Reset inventory status
         if ($inventory) {
             $inventory->update([
-                'status' => null,
+                'status' => 'available',
                 $item->increment('remaining', 1),
             ]);
         }

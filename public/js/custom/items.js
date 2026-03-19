@@ -143,6 +143,8 @@ $(function () {
         let url = button.data('url');
         let itemId = button.data('item-id');
         let type = button.data('type'); // distributed, issued, borrowed
+        const quick = $(this).data('quick');
+        let inventoryId = button.data('inventory-id');
 
         $('#loading-spinner').addClass('active');
 
@@ -151,11 +153,14 @@ $(function () {
 
         // Set modal action
         $(modalSelector).data('action', button.hasClass('complete-service') ? 'complete' : 'update');
-
         // Prepare data to send
         let data = {};
         if (itemId) data.item_id = itemId;
+        if (inventoryId) data.inventory_id = inventoryId;
         if (type && modalSelector === '#items_modal') data.type = type;
+
+        // Add quick flag if present
+        if (quick) data.quick = quick;
 
         $.ajax({
             url: url,
@@ -163,6 +168,7 @@ $(function () {
             data: data,
             success: function (response) {
                 $(modalSelector + ' .modal-content').html(response);
+
                 $('#loading-spinner').removeClass('active');
                 $(modalSelector).modal('show');
 

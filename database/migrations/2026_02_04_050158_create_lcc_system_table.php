@@ -73,7 +73,7 @@ return new class extends Migration
         Schema::create('inventory_history', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('item_id')->nullable()->constrained('items')->onDelete('cascade');
-            $table->enum('action', ['added stock', 'added unit', 'distributed', 'borrowed', 'issued', 'returned', 'maintenance', 'installation', 'inspection', 'service completed', 'deleted'])->nullable();
+            $table->enum('action', ['item created', 'added stock', 'added unit', 'distributed', 'borrowed', 'issued', 'returned', 'maintenance', 'installation', 'inspection', 'service completed', 'deleted'])->nullable();
             $table->integer('quantity');
             $table->text('notes')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
@@ -104,7 +104,7 @@ return new class extends Migration
 
         // Service Records
         Schema::create('service_records', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary(); // use UUID
             $table->enum('type', ['maintenance', 'installation', 'inspection'])->nullable();
             $table->text('description')->nullable();
             $table->date('service_date')->nullable();

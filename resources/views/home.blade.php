@@ -217,7 +217,7 @@
         <div class="stats-card primary">
             <div>
                 <div class="stat-title">Total Items</div>
-                <div class="stat-number">1,234</div>
+                <div class="stat-number">{{ number_format($total_stock) }}</div>
             </div>
             <a href="{{ route('inventory.index') }}" class="stat-icon"><i class="bi bi-box-seam"></i></a>
         </div>
@@ -227,9 +227,9 @@
         <div class="stats-card success">
             <div>
                 <div class="stat-title">Available</div>
-                <div class="stat-number">856</div>
+                <div class="stat-number">{{ number_format($total_remaining) }}</div>
             </div>
-            <a href="{{ route('items.index') }}" class="stat-icon"><i class="bi bi-check-circle"></i></a>
+            <a href="{{ route('inventory.index') }}" class="stat-icon"><i class="bi bi-check-circle"></i></a>
         </div>
     </div>
 
@@ -237,7 +237,7 @@
         <div class="stats-card warning">
             <div>
                 <div class="stat-title">Items Service Required</div>
-                <div class="stat-number">45</div>
+                <div class="stat-number">{{ number_format($item_service_required) }}</div>
             </div>
             <a href="{{ route('service_records.index') }}" class="stat-icon"><i class="bi bi-tools"></i></a>
         </div>
@@ -247,7 +247,7 @@
         <div class="stats-card danger">
             <div>
                 <div class="stat-title">To Purchase</div>
-                <div class="stat-number">23</div>
+                <div class="stat-number">(23)</div>
             </div>
             <a href="{{ route('purchase_request.index') }}" class="stat-icon"><i class="bi bi-cart-dash"></i></a>
         </div>

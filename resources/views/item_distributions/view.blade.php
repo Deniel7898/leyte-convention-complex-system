@@ -73,7 +73,7 @@
         <!-- Distributed By -->
         <div class="row py-2 border-bottom">
             <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Distributed By</div>
-            <div class="col-8">{{ $itemDistribution->createdBy->name ?? 'N/A' }}</div>
+            <div class="col-8">{{ $itemDistribution->createdBy->last_name ?? 'N/A' }}</div>
         </div>
 
         <!-- Item QR Code -->
