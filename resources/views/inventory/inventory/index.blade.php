@@ -91,7 +91,7 @@
 
 <div class="card shadow-sm border-0 rounded-4 card-styles mt-3">
     <div class="card-body p-0">
-        <div class="table-responsive rounded-4">
+        <div class="table-responsive rounded-4" style="min-height: 190px;">
             <table class="table align-middle table-hover mb-0" id="inventories_table">
                 <thead class="bg-light">
                     <tr class="text-uppercase text-muted small">

@@ -14,15 +14,15 @@ class ItemDistribution extends Model
     protected $fillable = [
         'transaction_id',
         'type',
-        'item_id',       
-        'inventory_id',   
+        'item_id',
+        'inventory_id',
         'quantity',
         'department_or_borrower',
         'distribution_date',
         'due_date',
         'returned_date',
-        'status',         
-        'notes',         
+        'status',
+        'notes',
         'created_by',
         'updated_by',
     ];
@@ -37,5 +37,13 @@ class ItemDistribution extends Model
     public function item()
     {
         return $this->belongsTo(Item::class, 'item_id');
+    }
+
+    /**
+     * Created by user
+     */
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

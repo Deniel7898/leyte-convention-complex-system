@@ -113,6 +113,7 @@ return new class extends Migration
             $table->enum('status', ['scheduled', 'under repair', 'completed', 'cancelled'])->nullable();
             $table->string('picture')->nullable();
             $table->text('remarks')->nullable();
+            $table->foreignUuid('item_id')->nullable()->constrained('items')->onDelete('cascade');
             $table->foreignUuid('inventory_id')->nullable()->constrained('inventories')->onDelete('cascade');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');

@@ -1,4 +1,4 @@
-<div class="mb-1" style="flex: 0 0 260px; margin-right: 1rem;">
+<div id="distribution-card-{{ $item->id }}" class="mb-1" style="flex: 0 0 260px; margin-right: 1rem;">
     <div class="card shadow-sm rounded-3 mb-2 pt-2 h-100 border-0 card-styles">
         <div class="d-flex align-items-start">
 

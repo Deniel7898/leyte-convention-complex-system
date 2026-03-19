@@ -25,6 +25,7 @@ class Service_Record extends Model
         'status',
         'remarks',
         'picture',
+        'item_id',
         'inventory_id',
         'created_by',
         'updated_by',

@@ -120,25 +120,18 @@ $(function () {
 
                 // ADD RECORD
                 if (action === 'add') {
-
                     $('#cards-row').prepend(response.cards_html);
-
                 }
 
                 // UPDATE RECORD
                 else if (action === 'update') {
-
-                    $('#service-card-' + response.record_id)
-                        .replaceWith(response.cards_html);
-
+                    $('#service-card-' + response.record_id).replaceWith(response.cards_html);
                 }
 
                 // COMPLETE SERVICE
                 else if (action === 'complete') {
-
                     // remove card since service is finished
                     $('#service-card-' + response.record_id).remove();
-
                 }
 
                 // Refresh table always
@@ -252,14 +245,14 @@ $(function () {
         });
     });
 
+    $(function() {
     function performSearch() {
         let query = $('#service-search').val();
         let serviceType = $('#type-filter').val();
-        let status = $('#status-filter').val();
+        let category = $('#categories-filter').val();
 
-        // Ignore "All ..." options
         if (serviceType.toLowerCase().includes('all')) serviceType = '';
-        if (status.toLowerCase().includes('all')) status = '';
+        if (category.toLowerCase().includes('all')) category = '';
 
         $.ajax({
             url: window.liveSearchUrl,
@@ -267,7 +260,7 @@ $(function () {
             data: {
                 query: query,
                 service_type: serviceType,
-                status: status
+                categories: category
             },
             success: function (response) {
                 $('#serviceRecords-table-body').html(response);
@@ -278,9 +271,8 @@ $(function () {
         });
     }
 
-    // Trigger search while typing
     $('#service-search').on('keyup', performSearch);
+    $('#type-filter, #categories-filter').on('change', performSearch);
 
-    // Trigger search when dropdown changes
-    $('#type-filter, #status-filter').on('change', performSearch);
+}); // <- THIS MUST BE PRESENT
 })

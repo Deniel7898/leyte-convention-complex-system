@@ -18,18 +18,20 @@
         </div>
 
         <div class="col-auto" style="min-width: 140px;">
-            <select id="type-filter" class="form-select">
-                <option>All Service Type</option>
-                <option>Maintenance</option>
-                <option>Installation</option>
+            <select id="categories-filter" class="form-select">
+                <option value="All">All Category</option>
+                @foreach($categories as $category)
+                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                @endforeach
             </select>
         </div>
 
         <div class="col-auto" style="min-width: 140px;">
-            <select id="status-filter" class="form-select">
-                <option>All Status</option>
-                <option>Available</option>
-                <option>Not Available</option>
+            <select id="type-filter" class="form-select">
+                <option>All Service Type</option>
+                <option>Maintenance</option>
+                <option>Installation</option>
+                <option>Inspection</option>
             </select>
         </div>
     </div>
@@ -50,7 +52,7 @@
 
 <div class="card shadow-sm border-0 rounded-4 card-styles mt-3">
     <div class="card-body p-0">
-        <div class="table-responsive rounded-4">
+        <div class="table-responsive rounded-4" style="min-height: 215px;">
             <table class="table align-middle table-hover" id="serviceRecords_table">
                 <thead class="bg-light">
                     <tr class="text-uppercase text-muted small">

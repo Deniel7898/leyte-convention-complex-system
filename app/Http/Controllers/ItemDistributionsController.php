@@ -86,13 +86,20 @@ class ItemDistributionsController extends Controller
             $distributions = $distributions->filter(fn($dist) => $dist->inventory->item->category->id == $categoryFilter ?? false);
         }
 
-        // Distribution Type Filter
         if (!empty($distTypeFilter) && !str_contains(strtolower($distTypeFilter), 'all')) {
-            $distributions = $distributions->filter(
-                fn($dist) =>
-                strtolower($distTypeFilter) === 'distribution' ? $dist->type == 0
-                    : (strtolower($distTypeFilter) === 'borrow' ? $dist->type == 1 : true)
-            );
+            $distributions = $distributions->filter(function ($dist) use ($distTypeFilter) {
+                $filter = strtolower($distTypeFilter);
+
+                if ($filter === 'distribution') {
+                    return $dist->type === 'distributed';
+                } elseif ($filter === 'borrow') {
+                    return $dist->type === 'borrowed';
+                } elseif ($filter === 'issue') {
+                    return $dist->type === 'issued';
+                }
+
+                return true; // fallback: include all if no match
+            });
         }
 
         $itemDistributions = $distributions->values();
@@ -172,24 +179,45 @@ class ItemDistributionsController extends Controller
 
     public function create(Request $request)
     {
-        // Get all items with inventories and unit
+        // 1️⃣ Get all items with inventories and unit
         $items = Item::with(['unit', 'inventories.qrCode'])->get();
 
-        // Get all categories
+        // 2️⃣ Get categories
         $categories = Category::all();
 
-        // Fetch the selected item if item_id is provided
+        // 3️⃣ Fetch the selected item if item_id is provided
         $selectedItem = null;
+        $availableInventories = collect();
+        $selectedInventory = null; // <- THIS WILL HOLD the clicked inventory
+
         if ($request->has('item_id')) {
-            $selectedItem = Item::with(['unit', 'inventories.qrCode'])
-                ->find($request->item_id);
+            $selectedItem = Item::with(['unit', 'inventories.qrCode'])->find($request->item_id);
+
+            if ($selectedItem) {
+                // Available inventories (you can filter by status if needed)
+                $availableInventories = $selectedItem->inventories;
+
+                // If inventory_id is passed from JS, use it as selectedInventory
+                if ($request->has('inventory_id')) {
+                    $selectedInventory = $selectedItem->inventories
+                        ->where('id', $request->inventory_id)
+                        ->first()?->id; // null-safe
+                }
+            }
         }
 
-        // Quick action flag (from table button)
+        // 4️⃣ Quick flag
         $quickAction = $request->has('quick') && $request->quick == 1;
 
-        // Return the service record form view
-        return view('item_distributions.form', compact('items', 'selectedItem', 'categories', 'quickAction'));
+        // 5️⃣ Return view (or JSON for modal)
+        return view('item_distributions.form', compact(
+            'items',
+            'selectedItem',
+            'categories',
+            'quickAction',
+            'availableInventories',
+            'selectedInventory'
+        ));
     }
 
     public function store(Request $request)
@@ -449,11 +477,13 @@ class ItemDistributionsController extends Controller
             }
         });
 
-        $itemDistributions = $this->getItemDistributions();
+        $itemDistributions = ItemDistribution::latest()->get();
 
         return response()->json([
-            'distribution_html' => view('item_distributions.table', compact('itemDistributions'))->render(),
-            'message' => 'Distribution updated successfully',
+            'distribution_id' => $distribution->id, // must match <div id="distribution-card-{{ $item->id }}">
+            'cards_html' => view('item_distributions.card', ['item' => $distribution])->render(), // pass the correct variable
+            'table_html' => view('item_distributions.table', ['itemDistributions' => $itemDistributions])->render(),
+            'message' => 'Item returned/updated successfully!',
         ]);
     }
 
@@ -481,14 +511,15 @@ class ItemDistributionsController extends Controller
      */
     public function destroy(string $id)
     {
-        $itemDistribution = ItemDistribution::findOrFail($id);
-        $itemDistribution->delete();
+        $distribution = ItemDistribution::findOrFail($id);
+        $distribution->delete();
 
-        $itemDistributions = $this->getItemDistributions();
+        $itemDistributions = ItemDistribution::latest()->get();
 
         return response()->json([
-            'distribution_html' => view('item_distributions.table', compact('itemDistributions'))->render(),
-            'message' => 'Item Distribution deleted successfully.',
+            'distribution_id' => $distribution->id, // must match <div id="distribution-card-{{ $item->id }}">
+            'table_html' => view('item_distributions.table', ['itemDistributions' => $itemDistributions])->render(),
+            'message' => 'Item returned/updated successfully!',
         ]);
     }
 
@@ -574,9 +605,10 @@ class ItemDistributionsController extends Controller
             $itemDistributions = ItemDistribution::latest()->get();
 
             return response()->json([
-                'distribution_id' => $distribution->id,
-                'table_html' => view('item_distributions.table', compact('itemDistributions'))->render(),
-                'message' => 'Item returned successfully!',
+                'distribution_id' => $distribution->id, // must match <div id="distribution-card-{{ $item->id }}">
+                'cards_html' => view('item_distributions.card', ['item' => $distribution])->render(), // pass the correct variable
+                'table_html' => view('item_distributions.table', ['itemDistributions' => $itemDistributions])->render(),
+                'message' => 'Item returned/updated successfully!',
             ]);
         }
     }

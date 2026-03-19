@@ -22,7 +22,7 @@ class Service_RecordsController extends Controller
     public function liveSearch(Request $request)
     {
         $searchTerm = $request->input('query', '');
-        $statusFilter = $request->input('status', null);
+        $categoryFilter = $request->input('categories', null);
         $serviceTypeFilter = $request->input('service_type', null);
 
         // Base query: load service records with inventory/item relationships
@@ -43,7 +43,6 @@ class Service_RecordsController extends Controller
                 })
                     ->orWhereHas('inventory.qrCode', fn($qrc) => $qrc->whereRaw('LOWER(code) LIKE ?', ["%{$searchTermLower}%"]))
                     ->orWhereRaw('LOWER(type) LIKE ?', ["%{$searchTermLower}%"])
-                    ->orWhereRaw('LOWER(status) LIKE ?', ["%{$searchTermLower}%"])
                     ->orWhereRaw('LOWER(description) LIKE ?', ["%{$searchTermLower}%"])
                     ->orWhereRaw('LOWER(technician) LIKE ?', ["%{$searchTermLower}%"])
                     ->orWhereRaw('LOWER(remarks) LIKE ?', ["%{$searchTermLower}%"])
@@ -52,17 +51,17 @@ class Service_RecordsController extends Controller
             });
         }
 
-        // --- Status filter ---
-        if (!empty($statusFilter) && !str_contains(strtolower($statusFilter), 'all')) {
-            $query->where('status', strtolower($statusFilter));
+        // --- Category Filter ---
+        if (!empty($categoryFilter) && strtolower($categoryFilter) !== 'all') {
+            $query->whereHas('inventory.item.category', fn($q) => $q->where('id', $categoryFilter));
         }
 
         // --- Service type filter ---
         if (!empty($serviceTypeFilter) && !str_contains(strtolower($serviceTypeFilter), 'all')) {
-            // Map dropdown values to database type codes
             $typeMap = [
-                'maintenance' => 0,
-                'installation' => 1,
+                'maintenance' => 'maintenance',
+                'installation' => 'installation',
+                'inspection' => 'inspection',
             ];
             $lowerType = strtolower($serviceTypeFilter);
             if (isset($typeMap[$lowerType])) {
@@ -105,33 +104,51 @@ class Service_RecordsController extends Controller
 
     public function index()
     {
+        $categories = Category::all();
         $service_records = Service_Record::latest()->get();
         $serviceRecords_table = view('service_records.table', compact('service_records'))->render();
-        return view('service_records.index', compact('serviceRecords_table', 'service_records'));
+        return view('service_records.index', compact('serviceRecords_table', 'service_records', 'categories'));
     }
 
     public function create(Request $request)
     {
+        // 1️⃣ Get all items with inventories and unit
         $items = Item::with(['unit', 'inventories.qrCode'])->get();
+
+        // 2️⃣ Get categories
         $categories = Category::all();
 
-        $selectedItem = $request->item_id
-            ? Item::with(['unit', 'inventories.qrCode'])->find($request->item_id)
-            : null;
+        // 3️⃣ Fetch the selected item if item_id is provided
+        $selectedItem = null;
+        $availableInventories = collect();
+        $selectedInventory = null; // <- THIS WILL HOLD the clicked inventory
 
-        $selectedInventory = $request->inventory_id
-            ? Inventory::with(['item.unit', 'qrCode'])->find($request->inventory_id)
-            : null;
+        if ($request->has('item_id')) {
+            $selectedItem = Item::with(['unit', 'inventories.qrCode'])->find($request->item_id);
 
-        $quickAction = $request->quick == 1 ?? false;
-        $service_record = null;
+            if ($selectedItem) {
+                // Available inventories (you can filter by status if needed)
+                $availableInventories = $selectedItem->inventories;
 
+                // If inventory_id is passed from JS, use it as selectedInventory
+                if ($request->has('inventory_id')) {
+                    $selectedInventory = $selectedItem->inventories
+                        ->where('id', $request->inventory_id)
+                        ->first()?->id; // null-safe
+                }
+            }
+        }
+
+        // 4️⃣ Quick flag
+        $quickAction = $request->has('quick') && $request->quick == 1;
+
+        // 5️⃣ Return view (or JSON for modal)
         return view('service_records.form', compact(
             'items',
             'selectedItem',
             'categories',
-            'service_record',
             'quickAction',
+            'availableInventories',
             'selectedInventory'
         ));
     }
@@ -141,7 +158,6 @@ class Service_RecordsController extends Controller
         $request->validate([
             'inventory_ids' => 'nullable|array',
             'inventory_ids.*' => 'nullable|uuid|exists:inventories,id',
-            'item_id' => 'nullable|uuid|exists:items,id',
             'type' => 'required|in:maintenance,installation,inspection',
             'service_date' => 'required|date',
             'completed_date' => 'nullable|date',
@@ -149,6 +165,7 @@ class Service_RecordsController extends Controller
             'description' => 'nullable|string',
             'remarks' => 'nullable|string',
             'picture' => 'nullable|image|max:2048',
+            'item_id' => 'required|exists:items,id',
             'page' => 'nullable|string',
         ]);
 
@@ -161,12 +178,12 @@ class Service_RecordsController extends Controller
         }
 
         $newRecords = [];
-        $inventoryIds = array_filter($request->inventory_ids ?? []);
+        $item = null; // make sure we have the item reference
+        $inventoryIds = $request->inventory_ids ?? [];
+        $serviceCount = count($inventoryIds);
 
         foreach ($inventoryIds as $inventoryId) {
-            $inventory = Inventory::with('item')->find($inventoryId);
-            if (!$inventory) continue;
-
+            $inventory = Inventory::findOrFail($inventoryId);
             $item = $inventory->item;
 
             $record = Service_Record::create([
@@ -183,53 +200,33 @@ class Service_RecordsController extends Controller
                 'updated_by' => Auth::id(),
             ]);
 
-            $inventory->update(['status' => 'scheduled']);
-            $item?->decrement('remaining', 1);
+            $inventory->update(['status' => $request->type]);
+
+            if ($item) {
+                $item->decrement('remaining', 1);
+            }
 
             $newRecords[] = $record;
         }
 
-        $item = null;
-        if (empty($newRecords) && $request->filled('item_id')) {
-            $item = Item::findOrFail($request->item_id);
-
-            $record = Service_Record::create([
-                'inventory_id' => null,
-                'type' => $request->type,
-                'status' => 'scheduled',
-                'service_date' => $request->service_date,
-                'completed_date' => $request->completed_date,
-                'technician' => $request->technician,
-                'description' => $request->description,
-                'remarks' => $request->remarks,
-                'picture' => $picturePath,
-                'created_by' => Auth::id(),
-                'updated_by' => Auth::id(),
-            ]);
-
-            $item->decrement('remaining', 1);
-
-            $newRecords[] = $record;
-        }
-
-        // 5️⃣ Log inventory history
-        $item ??= $newRecords[0]->inventory->item ?? null;
-
+        // Log history
         if ($item) {
             InventoryHistory::create([
                 'item_id' => $item->id,
                 'action' => $request->type,
-                'quantity' => $serviceCount ?: 1,
-                'notes' => $request->remarks ?? $request->description,
+                'quantity' => $serviceCount,
+                'notes' => $request->remarks ?? $request->description, // use description or remarks
                 'created_by' => Auth::id(),
                 'updated_by' => Auth::id(),
             ]);
+        }
 
+        if ($item) {
             $item->refresh();
         }
 
-        // 6️⃣ Prepare response based on page
-        if ($request->page === 'items' && $item) {
+        // Response based on page
+        if ($request->page === 'items') {
             $item->load('unit', 'category', 'inventories.qrCode');
 
             $history = InventoryHistory::where('item_id', $item->id)
@@ -237,44 +234,38 @@ class Service_RecordsController extends Controller
                 ->orderByDesc('created_at')
                 ->get();
 
+            // Return the non-consumable table partial
             $nonConsumableTableHtml = view('inventory.items.non_consumable_table', compact('item'))->render();
 
             return response()->json([
-                'item_card_html'            => view('inventory.items.item_card', compact('item'))->render(),
-                'history_table_html'        => view('inventory.items.history_table', compact('item', 'history'))->render(),
+                'item_card_html'           => view('inventory.items.item_card', compact('item'))->render(),
+                'history_table_html'       => view('inventory.items.history_table', compact('item', 'history'))->render(),
                 'non_consumable_table_html' => $nonConsumableTableHtml,
-                'item_id'                   => $item->id,
-                'message'                   => 'Service added successfully'
+                'item_id'                  => $item->id,
+                'message'                  => 'Service added successfully'
             ]);
         } elseif ($request->page === 'inventory') {
             $inventories = $this->getInventories();
-
             return response()->json([
                 'table_html' => view('inventory.inventory.table', compact('inventories'))->render(),
                 'message'    => 'Inventory updated successfully',
             ]);
         } elseif ($request->page === 'service_records') {
-            $cardsHtml = '';
+            // Render service record cards
+            $cards_html = '';
             foreach ($newRecords as $record) {
-                $cardsHtml .= view('service_records.card', ['record' => $record])->render();
+                $cards_html .= view('service_records.card', ['record' => $record])->render();
             }
 
-            $serviceRecords = Service_Record::latest()->get();
-            $tableHtml = view('service_records.table', compact('serviceRecords'))->render();
-
+            $service_records = Service_Record::latest()->get();
+            $table_html = view('service_records.table', compact('service_records'))->render();
             return response()->json([
-                'cards_html' => $cardsHtml,
-                'table_html' => $tableHtml,
+                'cards_html' => $cards_html,
+                'table_html' => $table_html,
                 'message'    => 'Service record(s) added successfully',
                 'record_ids' => collect($newRecords)->pluck('id')->toArray(),
             ]);
         }
-
-        // Default fallback response
-        return response()->json([
-            'message' => 'Service record(s) added successfully',
-            'records' => $newRecords,
-        ]);
     }
 
     public function show(string $id)

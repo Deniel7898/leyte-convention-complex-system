@@ -139,7 +139,7 @@
                                 <td>{{ $selectedItem->name }}</td>
                                 <td>{{ $inventory->qrCode->code ?? 'N/A' }}</td>
                                 <td>
-                                    @if($singleInventory)
+                                    @if(isset($selectedInventory) && $inventory->id == $selectedInventory)
                                     <input type="hidden" name="inventory_ids[]" value="{{ $inventory->id }}">
                                     <span class="text-success">Auto-selected</span>
                                     @else
@@ -156,8 +156,8 @@
                     </table>
                 </div>
             </div>
-            @elseif(isset($selectedItem) && $selectedItem->inventories->first())
-            <input type="hidden" name="inventory_ids[]" value="{{ $selectedItem->inventories->first()->id }}">
+            @elseif(isset($selectedInventory))
+            <input type="hidden" name="inventory_ids[]" value="{{ $selectedInventory }}">
             @endif
 
             <div class="row">
@@ -206,7 +206,7 @@
             // Show/hide based on type
             switch (type) {
                 case 'issued':
-                    if (unitsSection.length) unitsSection.show();
+                    if (unitsSection.length) unitsSection.hide();
                     if (quantityWrapper.length) quantityWrapper.hide();
                     if (distributionQuantity.length) distributionQuantity.val(1);
                     break;

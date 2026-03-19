@@ -45,6 +45,7 @@ default => 'bg-secondary-subtle text-secondary',
             data-url="{{ route('item_distributions.create', $unit->id) }}"
             data-item-id="{{ $item->id }}"
             data-type="borrowed"
+            data-inventory-id="{{ $unit->id }}"
             data-quick="1">
             <i class="bi bi-send"></i>
         </button>

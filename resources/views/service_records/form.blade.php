@@ -40,7 +40,34 @@
         </div>
 
         <!-- Units Table (for non-consumables) -->
-        @if(!isset($service_record) && !empty($selectedItem) && optional($selectedItem->inventories)->count() > 0 && empty($quickAction))
+
+        @if(isset($selectedItem) && $selectedItem->inventories)
+        @php
+        // Filter inventories
+        $availableInventories = $selectedItem->inventories->filter(function($inv) {
+        // Exclude if inventory has service records that are scheduled or in progress
+        $inService = $inv->serviceRecords
+        ->whereIn('status', ['scheduled', 'in progress'])
+        ->count() > 0;
+
+        // Exclude if inventory has a distribution type of distributed or issued
+        $inDistribution = $inv->itemDistributions
+        ->whereIn('type', ['distributed'])
+        ->count() > 0;
+
+        // Check if status is borrowed or issued
+        $status = strtolower($inv->status ?? '');
+        $isBorrowedOrIssued = in_array($status, ['borrowed', 'issued']);
+
+        // Only include inventories that pass all checks
+        return !$inService && !$inDistribution && !$isBorrowedOrIssued;
+        });
+
+        // Show units table if there is at least one inventory and quickAction is not active
+        $showUnitsTable = $availableInventories->count() > 0 && empty($quickAction);
+        @endphp
+
+        @if(!isset($service_record) && $showUnitsTable)
         <div class="mb-3" id="unitsSection">
             <label class="form-label fw-bold">Select Units</label>
             <div class="border rounded shadow-sm" style="max-height: 200px; overflow-y:auto; background-color:#f9f9f9;">
@@ -54,53 +81,43 @@
                                 <input type="checkbox" id="selectAllUnits" title="Select/Deselect All">
                             </th>
                         </tr>
+                    </thead>
                     <tbody>
-                        @if(isset($selectedItem) && $selectedItem->inventories)
-                        @php
-                        $counter = 1;
-
-                        // Filter inventories
-                        $availableInventories = $selectedItem->inventories->filter(function($inv) {
-                        // Exclude if inventory has service records that are scheduled or in progress
-                        $inService = $inv->serviceRecords
-                        ->whereIn('status', ['scheduled', 'in progress'])
-                        ->count() > 0;
-
-                        // Exclude if inventory has a distribution type of distributed or issued
-                        $inDistribution = $inv->itemDistributions
-                        ->whereIn('type', ['distributed'])
-                        ->count() > 0;
-
-                        // Check if status is borrowed or issued
-                        $status = strtolower($inv->status ?? '');
-                        $isBorrowedOrIssued = in_array($status, ['borrowed', 'issued']);
-
-                        // Only include inventories that pass all checks
-                        return !$inService && !$inDistribution && !$isBorrowedOrIssued;
-                        });
-                        @endphp
-
+                        @php $counter = 1; @endphp
                         @forelse($availableInventories as $inventory)
                         <tr>
                             <td>{{ $counter++ }}</td>
                             <td>{{ $selectedItem->name }}</td>
                             <td>{{ $inventory->qrCode->code ?? 'N/A' }}</td>
                             <td>
+                                @if(isset($selectedInventory) && $inventory->id == $selectedInventory)
+                                <input type="hidden" name="inventory_ids[]" value="{{ $inventory->id }}">
+                                <span class="text-success">Auto-selected</span>
+                                @else
                                 <input type="checkbox" class="unitCheckbox" name="inventory_ids[]" value="{{ $inventory->id }}">
+                                @endif
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="4">No available units</td>
+                            <td colspan="4">
+                                @if(isset($selectedInventory))
+                                <input type="hidden" name="inventory_ids[]" value="{{ $selectedInventory }}">
+                                Auto-selected inventory
+                                @else
+                                No available units
+                                @endif
+                            </td>
                         </tr>
                         @endforelse
-                        @endif
                     </tbody>
                 </table>
             </div>
         </div>
-        @elseif(!isset($service_record) && !empty($selectedItem) && $selectedInventory)
-        <input type="hidden" name="inventory_ids[]" value="{{ $inventory->id }}">
+        @elseif(isset($selectedInventory))
+        {{-- Case when no available inventories, but a specific inventory was clicked --}}
+        <input type="hidden" name="inventory_ids[]" value="{{ $selectedInventory }}">
+        @endif
         @endif
 
         <div class="row">
