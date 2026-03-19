@@ -9,25 +9,23 @@ class Purchase_Request extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'purchase_request'; // ⚠️ important (because singular)
+    protected $table = 'purchase_request';
 
     protected $fillable = [
         'request_date',
         'status',
+        'items',
         'created_by',
         'updated_by',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
-
-    public function items()
-    {
-        return $this->hasMany(ItemsPurchaseRequest::class, 'purchase_request_id');
-    }
+    protected $casts = [
+        'request_date' => 'date',
+        'items' => 'array',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
+    ];
 
     public function creator()
     {
