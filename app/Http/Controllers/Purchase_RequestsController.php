@@ -2,120 +2,157 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Purchase_Request;
-use App\Models\ItemsPurchaseRequest;
 use Illuminate\Http\Request;
+use App\Models\Purchase_Request;
+use App\Models\Item;
 use Illuminate\Support\Facades\Auth;
 
 class Purchase_RequestsController extends Controller
 {
-    // ✅ PRINT ALL APPROVED
-    public function printApproved()
+    /**
+     * Helper: Get paginated purchase requests table
+     */
+    private function getPurchaseRequestsTable($purchaseRequests = null, $perPage = 10)
     {
-        $approvedRequests = Purchase_Request::with([
-            'creator',
-            'items.item.category',
-            'items.item.unit'
-        ])
-        ->where('status', 'approved')
-        ->get();
-
-        return view('purchase_request.print_all', compact('approvedRequests'));
-    }
-
-    public function index(Request $request)
-    {
-        $query = Purchase_Request::with('creator');
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-
-            $query->where(function ($q) use ($search) {
-                $q->where('id', 'like', "%{$search}%")
-                  ->orWhere('request_date', 'like', "%{$search}%")
-                  ->orWhere('status', 'like', "%{$search}%")
-                  ->orWhereHas('creator', function ($q2) use ($search) {
-                      $q2->where('name', 'like', "%{$search}%");
-                  });
-            });
+        if ($purchaseRequests === null) {
+            $purchaseRequests = Purchase_Request::with(['creator'])
+                ->paginate($perPage);
         }
 
-        $requests = $query->orderBy('id', 'asc')
-                          ->paginate(10);
-
-        return view('purchase_request.index', compact('requests'));
+        return view('purchase_requests.table', compact('purchaseRequests'))->render();
     }
 
+    /**
+     * Display listing
+     */
+    public function index()
+    {
+        $purchaseRequests = Purchase_Request::with(['creator'])
+            ->paginate(10);
+
+        return view('purchase_requests.index', [
+            'purchaseRequests' => $purchaseRequests,
+            'purchase_requests_table' => $this->getPurchaseRequestsTable($purchaseRequests),
+        ]);
+    }
+
+    /**
+     * Show create form
+     */
     public function create()
     {
-        return view('purchase_request.create');
+        return view('purchase_requests.form');
     }
 
+    /**
+     * Store new purchase request (JSON items)
+     */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'request_date' => 'required|date',
-            'items.*.description' => 'required|string',
+            'items' => 'required|array|min:1',
+            'items.*.item_name' => 'required|string|max:255',
             'items.*.quantity' => 'required|numeric|min:1',
+            'items.*.unit' => 'nullable|string|max:50',
+            'items.*.description' => 'nullable|string',
         ]);
 
-        $pr = Purchase_Request::create([
-            'request_date' => $request->request_date,
+        Purchase_Request::create([
+            'request_date' => $validated['request_date'],
             'status' => 'pending',
+            'items' => $validated['items'],
             'created_by' => Auth::id(),
-        ]);
-
-        foreach ($request->items as $item) {
-            ItemsPurchaseRequest::create([
-                'purchase_request_id' => $pr->id,
-                'description' => $item['description'],
-                'quantity' => $item['quantity'],
-                'created_by' => Auth::id(),
-            ]);
-        }
-
-        return redirect()->route('purchase_request.index')
-            ->with('success', 'Purchase Request created successfully.');
-    }
-
-    public function show(Purchase_Request $purchaseRequest)
-    {
-        $purchaseRequest->load('items', 'creator');
-
-        return view('purchase_request.show', compact('purchaseRequest'));
-    }
-
-    public function updateStatus($id, $status)
-    {
-        $pr = Purchase_Request::findOrFail($id);
-
-        $pr->update([
-            'status' => $status,
             'updated_by' => Auth::id(),
         ]);
 
-        return back()->with('success', 'Status updated successfully.');
+        return $this->getPurchaseRequestsTable();
     }
 
-    public function destroy(Purchase_Request $purchaseRequest)
+    /**
+     * Edit form
+     */
+    public function edit($id)
     {
-        if (!in_array($purchaseRequest->status, ['pending', 'rejected'])) {
-            return response()->json([
-                'error' => 'Approved requests cannot be deleted.'
-            ], 403);
+        $purchaseRequest = Purchase_Request::findOrFail($id);
+        return view('purchase_requests.form', compact('purchaseRequest'));
+    }
+
+    /**
+     * Update purchase request
+     */
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'request_date' => 'required|date',
+            'items' => 'required|array|min:1',
+            'items.*.item_name' => 'required|string|max:255',
+            'items.*.quantity' => 'required|numeric|min:1',
+            'items.*.unit' => 'nullable|string|max:50',
+            'items.*.description' => 'nullable|string',
+        ]);
+
+        $purchaseRequest = Purchase_Request::findOrFail($id);
+
+        // Prevent updates to non-pending requests
+        if ($purchaseRequest->status !== 'pending') {
+            abort(403, 'Cannot update a purchase request that is not pending.');
+        }
+
+        $purchaseRequest->update([
+            'request_date' => $validated['request_date'],
+            'items' => $validated['items'],
+            'updated_by' => Auth::id(),
+        ]);
+
+        return $this->getPurchaseRequestsTable();
+    }
+
+    /**
+     * Delete purchase request
+     */
+    public function destroy($id)
+    {
+        $purchaseRequest = Purchase_Request::findOrFail($id);
+
+        // Prevent deletion of non-pending requests
+        if ($purchaseRequest->status !== 'pending') {
+            abort(403, 'Cannot delete a purchase request that is not pending.');
         }
 
         $purchaseRequest->delete();
 
-        $requests = Purchase_Request::with('creator')
-                        ->latest()
-                        ->paginate(10);
+        return $this->getPurchaseRequestsTable();
+    }
 
-        $html = view('purchase_request.table', compact('requests'))->render();
+    /**
+     * Print single purchase request
+     */
+    public function print($id)
+    {
+        $purchaseRequest = Purchase_Request::with(['creator'])
+            ->findOrFail($id);
 
-        return response()->json([
-            'success' => true,
-            'html' => $html
-        ]);
+        return view('purchase_requests.print', compact('purchaseRequest'));
+    }
+
+    /**
+     * Search items (for autocomplete suggestions)
+     */
+    public function searchItems(Request $request)
+    {
+        $search = $request->input('search', '');
+
+        $items = Item::where('name', 'like', '%' . $search . '%')
+            ->limit(10)
+            ->get(['id', 'name'])
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                ];
+            });
+
+        return response()->json($items);
     }
 }

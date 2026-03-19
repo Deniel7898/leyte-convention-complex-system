@@ -249,7 +249,7 @@
                 <div class="stat-title">To Purchase</div>
                 <div class="stat-number">23</div>
             </div>
-            <a href="{{ route('purchase_request.index') }}" class="stat-icon"><i class="bi bi-cart-dash"></i></a>
+            <a href="{{ route('purchase-requests.index') }}" class="stat-icon"><i class="bi bi-cart-dash"></i></a>
         </div>
     </div>
 
