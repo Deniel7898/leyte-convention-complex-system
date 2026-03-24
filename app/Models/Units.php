@@ -21,4 +21,16 @@ class Units extends Model
     {
         return $this->hasMany(Item::class);
     }
+
+    public function inventories()
+    {
+        return $this->hasManyThrough(
+            Inventory::class, // Final model
+            Item::class,      // Intermediate model
+            'unit_id',    // Foreign key on items table
+            'item_id',        // Foreign key on inventories table
+            'id',             // Local key on categories
+            'id'              // Local key on items
+        );
+    }
 }

@@ -2,9 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Models\Service_Record;
 use App\Models\Item;
+use App\Models\User;
+use App\Models\Inventory;
+use App\Models\ItemDistribution;
+use App\Models\InventoryHistory;
+use App\Models\QR_Code;
 
 class HomeController extends Controller
 {
@@ -25,6 +31,12 @@ class HomeController extends Controller
      */
     public function index()
     {
+        $recent_activities = InventoryHistory::orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+
+        $today = now()->toDateString();
+
         return view('home', [
             // Count of service records that require attention
             'item_service_required' => Service_Record::whereIn('status', ['scheduled', 'under repair', 'cancelled'])->count(),
@@ -34,6 +46,59 @@ class HomeController extends Controller
 
             // Total remaining in items table
             'total_remaining' => Item::sum('remaining'),
+
+            // Total remaining 
+            'total_category' => Category::count(),
+
+            // Total users 
+            'total_users' => User::count(),
+
+            // Total Items Added Today 
+            'items_added_today' => Inventory::whereDate('created_at', $today)->count(),
+
+            // Total Distribution Today 
+            'items_distributed' => ItemDistribution::whereIn('status', ['distributed', 'issued', 'borrowed'])->count(),
+
+            // Total Service Today 
+            'services_logged' => Service_Record::whereDate('created_at', $today)->count(),
+
+            // Recent Activities
+            'recent_activities' => $recent_activities,
         ]);
+    }
+
+    public function getItemByQrCode($code)
+    {
+        try {
+            $qr = \App\Models\QR_Code::with('inventory.item')->where('code', $code)->first();
+
+            if (!$qr) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'QR code not found'
+                ], 404);
+            }
+
+            $inventory = $qr->inventory;
+            $item = $inventory->item ?? null;
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'item_name' => $item->name ?? 'N/A',
+                    'item_code' => $qr->code,
+                    'description' => $item->description ?? '',
+                    'total_stock' => $item->total_stock ?? 0,
+                    'remaining' => $item->remaining ?? 0,
+                    'inventory_status' => $inventory->status ?? 'N/A',
+                    'inventory_holder' => $inventory->holder ?? 'N/A',
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Server error: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

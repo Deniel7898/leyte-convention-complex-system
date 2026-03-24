@@ -14,8 +14,6 @@
         style="width:120px;height:120px;cursor:pointer;"
         data-full="{{ $item->picture ? asset('storage/'.$item->picture) : 'https://via.placeholder.com/120' }}">
     <div class="flex-grow-1">
-        <h2 class="fs-3">{{ $item->name }}</h2>
-        <p class="text-muted">{{ $item->description }}</p>
         @if($item->type === 'consumable')
         <span class="badge bg-success-subtle text-success">
             <i class="bi bi-box-seam me-1"></i> Consumable
@@ -28,6 +26,14 @@
         @php
         $isConsumable = $item->type === 'consumable';
         @endphp
+        <h2 class="fs-3">{{ $item->name }}</h2>
+        <p class="text-muted"
+            style="cursor: pointer;"
+            data-bs-toggle="popover"
+            data-bs-placement="top"
+            data-bs-content="{{ $item->description }}">
+            {{ \Illuminate\Support\Str::limit($item->description, 50, '...') }}
+        </p>
 
         <div class="row text-muted small g-3">
             <!-- Category -->
@@ -77,6 +83,7 @@
     </div>
     <div class="col-auto">
         <div class="delete-item" data-url="{{ route('items.destroy', ['item' => $item->id]) }}">
+            @if(Auth::user()->role === 'admin' || $item->historyCount === 1)
             <button class="btn px-4 text-white" style="background-color:hsl(0,70%,50%)">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2 me-2">
                     <path d="M3 6h18"></path>
@@ -87,6 +94,7 @@
                 </svg>
                 Delete Item
             </button>
+            @endif
         </div>
     </div>
 </div>

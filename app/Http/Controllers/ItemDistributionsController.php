@@ -327,6 +327,8 @@ class ItemDistributionsController extends Controller
             // Log history
             InventoryHistory::create([
                 'item_id' => $item->id,
+                'inventory_id' => $inventory->id,
+                'holder_or_borrower' => $department,
                 'action' => $request->type,
                 'quantity' => $distributedCount,
                 'notes' => $request->notes,
@@ -567,6 +569,9 @@ class ItemDistributionsController extends Controller
             // Reset status
             $inventory->update([
                 'status' => 'available',
+                'date_assigned' => null,
+                'holder' => null,
+                'notes' => $request->notes ?? 'Returned item',
             ]);
         }
 
@@ -574,6 +579,8 @@ class ItemDistributionsController extends Controller
         if ($distribution->inventory && $distribution->inventory->item) {
             InventoryHistory::create([
                 'item_id' => $distribution->inventory->item->id,
+                'inventory_id' => $inventory->id,
+                'holder_or_department' => null,
                 'action' => 'returned',
                 'quantity' => 1,
                 'notes' => $request->notes ?? 'Returned item',

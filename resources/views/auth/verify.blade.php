@@ -10,7 +10,7 @@
         padding: 0;
         height: 100%;
         font-family: Arial, sans-serif;
-        background: url('{{ asset('images/home_bg/palo_capitol.jpg') }}') center/cover no-repeat;
+        background: url('{{ asset(' images/home_bg/palo_capitol.jpg') }}') center/cover no-repeat;
         background-size: cover;
         position: relative;
     }
@@ -159,9 +159,9 @@
         </p>
 
         <!-- Resend form -->
-        <form method="POST" action="{{ route('verification.resend') }}">
+        <form method="POST" action="{{ route('verification.resend') }}" id="resendForm">
             @csrf
-            <button type="submit" class="resend-btn">Click here to resend</button>
+            <button type="submit" class="resend-btn" id="resendBtn">Click here to resend</button>
         </form>
 
         <p id="verification-status" class="mt-4 fw-600" style="color:hsl(237, 34%, 26%);">Waiting for verification...</p>
@@ -202,6 +202,74 @@
 
     // Run automatically
     checkEmailVerification();
+</script>
+
+<script>
+    const resendForm = document.getElementById('resendForm');
+    const resendBtn = document.getElementById('resendBtn');
+    const resendInfo = document.getElementById('resendInfo');
+
+    const cooldown = 5 * 60; // 5 minutes in seconds
+    let cooldownTimer;
+
+    // Check if there's a stored cooldown in sessionStorage (persists across refresh)
+    let lastResend = localStorage.getItem('lastResendTime');
+    if (lastResend) {
+        const elapsed = Math.floor(Date.now() / 1000) - lastResend;
+        if (elapsed < cooldown) startCooldown(cooldown - elapsed);
+    }
+
+    resendForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        // Disable immediately
+        resendBtn.disabled = true;
+
+        try {
+            const formData = new FormData(resendForm);
+            const res = await fetch(resendForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (res.ok) {
+                // Store resend time
+                localStorage.setItem('lastResendTime', Math.floor(Date.now() / 1000));
+                startCooldown(cooldown);
+                alert('Verification email sent!');
+            } else {
+                const data = await res.json();
+                alert(data.message || 'Error sending email');
+                resendBtn.disabled = false;
+            }
+
+        } catch (err) {
+            console.error(err);
+            alert('Error sending email');
+            resendBtn.disabled = false;
+        }
+    });
+
+    function startCooldown(seconds) {
+        let timeLeft = seconds;
+        resendBtn.disabled = true;
+
+        cooldownTimer = setInterval(() => {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            resendBtn.innerHTML = `<span style="font-size:0.85em;">You can resend in ${minutes}:${seconds < 10 ? '0' : ''}${seconds}</span>`;
+            timeLeft--;
+
+            if (timeLeft < 0) {
+                clearInterval(cooldownTimer);
+                resendBtn.disabled = false;
+                resendBtn.innerText = 'Click here to resend';
+            }
+        }, 1000);
+    }
 </script>
 
 @endsection

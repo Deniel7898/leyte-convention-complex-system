@@ -17,28 +17,28 @@
 
          <!-- Received Date -->
          <div class="mb-3">
-             <label class="form-label">Received Date</label>
+             <label class="form-label bold-label">Received Date</label>
              <input type="date" class="form-control" name="received_date" value="{{ date('Y-m-d') }}" required>
          </div>
 
          <!-- Item Name (readonly) -->
          <div class="mb-3">
-             <label class="form-label">Item</label>
+             <label class="form-label bold-label">Item</label>
              <input type="text" class="form-control" value="{{ $selectedItem->name ?? 'No Item Selected' }}" readonly>
          </div>
 
          <!-- Quantity -->
          @if(!isset($inventory)) <!-- Only show if not editing -->
          <div class="mb-3">
-             <label class="form-label">Quantity</label>
-             <input type="number" class="form-control" name="quantity" min="1" required>
+             <label for="quantity" class="form-label required">Quantity</label>
+             <input type="number" class="form-control" id="quantity" name="quantity" min="1" required maxlength="3" pattern="\d{1,3}" placeholder="Enter Quantity (max-999)">
          </div>
          @endif
 
          <!-- Holder/Department -->
          @if(isset($inventory))
          <div class="mb-3">
-             <label class="form-label">Holder/Department</label>
+             <label class="form-label bold-label">Holder/Department</label>
              <input type="text" class="form-control" name="holder"
                  value="{{ $inventory->holder ?? '' }}">
          </div>
@@ -47,7 +47,7 @@
          <!-- Date Assigned -->
          @if(isset($inventory))
          <div class="mb-3">
-             <label class="form-label">Date Assigned</label>
+             <label class="form-label bold-label">Date Assigned</label>
              <input type="date" class="form-control" name="date_assigned"
                  value="{{ old('date_assigned', $itemDistribution->date_assigned ?? date('Y-m-d')) }}" required>
          </div>
@@ -55,7 +55,7 @@
 
          <!-- Notes -->
          <div class="mb-3">
-             <label class="form-label">Notes</label>
+             <label class="form-label bold-label">Notes</label>
              <input type="text" class="form-control" name="notes"
                  value="{{ $inventory->notes ?? '' }}"
                  placeholder="{{ isset($inventory) ? '' : 'Optional notes' }}">
@@ -70,3 +70,11 @@
          <button type="submit" class="btn text-white" style="background-color: rgb(43, 45, 87);">Save Unit</button>
      </div>
  </form>
+
+ <script>
+     document.getElementById('quantity').addEventListener('input', function() {
+         if (this.value.length > 3) {
+             this.value = this.value.slice(0, 3); // Trim to 3 digits
+         }
+     });
+ </script>

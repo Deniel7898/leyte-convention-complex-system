@@ -30,6 +30,7 @@
                             </button>
 
                             <!-- Delete Button -->
+                            @if($category->inventories_count == 0)
                             <button type="button"
                                 class="btn p-0 border-0 bg-transparent text-danger delete"
                                 data-url="{{ route('categories.destroy', $category->id) }}"
@@ -42,6 +43,7 @@
                                     <line x1="14" x2="14" y1="11" y2="17"></line>
                                 </svg>
                             </button>
+                            @endif
                         </div>
                     </div>
 

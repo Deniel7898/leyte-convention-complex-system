@@ -114,11 +114,11 @@
  .login-card .forgot-text a {
      color: hsl(237, 34%, 26%);
      font-weight: 600;
-     text-decoration: underline;
+     text-decoration: underline;    
  }
 
  .login-card .error {
-     color: #ff6b6b;
+     color: red !important;
      font-size: 12px;
      margin-top: 4px;
      display: block;

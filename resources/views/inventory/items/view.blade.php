@@ -86,8 +86,18 @@
 
         <!-- Description -->
         <div class="row py-2 border-bottom">
-            <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Description</div>
-            <div class="col-8" style="white-space: pre-wrap;">{{ $inventory->item->description ?? 'No Description' }}</div>
+            <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">
+                Description
+            </div>
+            <div class="col-8">
+                <p
+                    style="cursor: pointer;"
+                    data-bs-toggle="popover"
+                    data-bs-placement="top"
+                    data-bs-content="{{ $inventory->item->description ?? 'No Description' }}">
+                    {{ \Illuminate\Support\Str::limit($inventory->item->description, 20, '...') }}
+                </p>
+            </div>
         </div>
 
         <!-- Pictures & QR Code Section -->

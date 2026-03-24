@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Purchase_RequestsController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Auth\VerificationController;
+use App\Http\Controllers\Auth\HomeController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -53,7 +54,7 @@ Route::get('/verification/success', function () {
 
 Route::get('/home', function () {
     return view('home');
-})->middleware(['auth', 'verified'])->name('home');
+})->middleware(['auth'])->name('home');
 
 Route::middleware('auth')->group(function () {
     Route::resource('users', App\Http\Controllers\UserController::class)->middleware('auth'); // includes all CRUD routes for users
@@ -62,9 +63,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
-// Optional
+/*--------------------------------------------------------------------------
+// Home Routes
+--------------------------------------------------------------------------*/
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-
+Route::get('/home/qr/{code}', [App\Http\Controllers\HomeController::class, 'getItemByQrCode']);
 
 /*--------------------------------------------------------------------------
 // Live Search Routes (ALL PROTECTED)

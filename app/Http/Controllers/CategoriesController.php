@@ -11,11 +11,11 @@ class CategoriesController extends Controller
     /**
      * Helper: Get paginated categories cards with inventory count
      */
-    private function getCategoriesCards($perPage = 12)
+    private function getCategoriesCards()
     {
         $categories = Category::withCount('inventories')
             ->orderBy('created_at', 'desc') // newest first
-            ->paginate($perPage);
+            ->get(); // get all categories without pagination
 
         return view('reference.categories.cards', compact('categories'))->render();
     }
@@ -27,7 +27,7 @@ class CategoriesController extends Controller
     {
         $categories = Category::withCount('inventories')
             ->orderBy('created_at', 'desc') // newest first
-            ->paginate(12);
+            ->get(); // get all categories without pagination
 
         return view('reference.categories.index', [
             'categories' => $categories,

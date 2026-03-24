@@ -16,6 +16,8 @@ class InventoryHistory extends Model
 
     protected $fillable = [
         'item_id',
+        'inventory_id',
+        'holder_or_borrower',
         'action',
         'quantity',
         'notes',
@@ -41,5 +43,10 @@ class InventoryHistory extends Model
                 $model->id = (string) \Illuminate\Support\Str::uuid();
             }
         });
+    }
+
+    public function inventory()
+    {
+        return $this->belongsTo(Inventory::class);
     }
 }

@@ -87,7 +87,7 @@ class VerificationController extends Controller
             return redirect()->route('home');
         }
 
-        // Send verification email using APP_URL (full URL)
+        // Send verification email including the same password
         $user->sendEmailVerificationNotification();
 
         return redirect()->route('verification.hold')->with('message', 'Verification link sent!');

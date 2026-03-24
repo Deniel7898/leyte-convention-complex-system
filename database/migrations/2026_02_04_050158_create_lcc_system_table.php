@@ -72,7 +72,9 @@ return new class extends Migration
         //Inventory History
         Schema::create('inventory_history', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->string('holder_or_borrower')->nullable();
             $table->foreignUuid('item_id')->nullable()->constrained('items')->onDelete('cascade');
+            $table->foreignUuid('inventory_id')->nullable()->constrained('inventories')->onDelete('cascade');
             $table->enum('action', ['item created', 'added stock', 'added unit', 'distributed', 'borrowed', 'issued', 'returned', 'maintenance', 'installation', 'inspection', 'service completed', 'deleted'])->nullable();
             $table->integer('quantity');
             $table->text('notes')->nullable();
