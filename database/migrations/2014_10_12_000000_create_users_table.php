@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
@@ -23,6 +22,10 @@ return new class extends Migration
             $table->string('profile_photo')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->rememberToken();
+
+            // last_seen column for online status tracking
+            $table->timestamp('last_seen')->nullable();
+
             $table->timestamps();
         });
     }

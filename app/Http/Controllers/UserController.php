@@ -16,6 +16,7 @@ class UserController extends Controller
         $users = User::orderByRaw("CASE WHEN role = 'admin' THEN 1 ELSE 0 END")
             ->orderBy('created_at', 'desc')
             ->get();
+
         $users_table = view('users.table', compact('users'))->render();
         return view('users.index', compact('users_table'));
     }

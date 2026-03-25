@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Notifications\CustomVerifyEmail;
+use Illuminate\Support\Carbon;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 
@@ -31,7 +32,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'birthday',
         'address',
         'profile_photo',
-        'status'
+        'status',
+        'last_seen',
     ];
 
     /**
@@ -52,6 +54,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $casts = [
         'email_verified_at' => 'datetime',
         'birthday' => 'date',
+        'last_seen' => 'datetime',
     ];
 
     public function sendEmailVerificationNotification()
@@ -64,5 +67,10 @@ class User extends Authenticatable implements MustVerifyEmail
             // If raw_password is null (e.g., user already exists), just send without password
             $this->notify(new CustomVerifyEmail($passwordForEmail));
         }
+    }
+
+    public function isOnline()
+    {
+        return $this->last_seen && $this->last_seen->gt(now()->subMinutes(2));
     }
 }
