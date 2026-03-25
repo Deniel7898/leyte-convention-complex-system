@@ -15,16 +15,9 @@
             <!-- Hidden input for current page segment -->
             <input type="hidden" name="page" id="currentPageInput" value="{{ request()->segment(1) ?? 'inventory' }}">
             
-            <!-- Item Name -->
+             <!-- Category -->
             <div class="col-md-6 mb-3">
-                <label for="item-name" class="form-label">Item Name</label>
-                <input type="text" class="form-control" id="item-name" name="name"
-                    value="{{ isset($item) ? $item->name : '' }}" required>
-            </div>
-
-            <!-- Category -->
-            <div class="col-md-6 mb-3">
-                <label for="item-category" class="form-label">Category</label>
+                <label for="item-category" class="form-label required">Category</label>
                 <select class="form-select" id="item-category" name="category_id" required>
                     <option value="">Select category</option>
                     @foreach($categories as $category)
@@ -36,11 +29,18 @@
                     @endforeach
                 </select>
             </div>
+            
+            <!-- Item Name -->
+            <div class="col-md-6 mb-3">
+                <label for="item-name" class="form-label required">Item Name</label>
+                <input type="text" class="form-control" id="item-name" name="name"
+                    value="{{ isset($item) ? $item->name : '' }}" required>
+            </div>
 
             <!-- Type -->
             @if(!isset($item))
             <div class="col-md-6 mb-3">
-                <label for="item-type" class="form-label">Type</label>
+                <label for="item-type" class="form-label required">Type</label>
                 <select class="form-select" id="item-type" name="type" required>
                     <option value="">Select Type</option>
                     <option value="consumable" {{ isset($item) && $item->type === 'consumable' ? 'selected' : '' }}>Consumable</option>
@@ -51,7 +51,7 @@
 
             <!-- Unit -->
             <div class="col-md-6 mb-3">
-                <label for="item-unit" class="form-label">Unit</label>
+                <label for="item-unit" class="form-label required">Unit</label>
                 <select class="form-select" id="item-unit" name="unit_id">
                     <option value="">Select unit</option>
                     @foreach($units as $unit)
@@ -65,7 +65,7 @@
             <!-- Total Stock -->
             @if(!isset($item))
             <div class="col-md-6 mb-3">
-                <label for="item-total-stock" class="form-label">Quantity</label>
+                <label for="item-total-stock" class="form-label required">Quantity</label>
                 <input type="number" class="form-control" id="item-total-stock" name="total_stock"
                     value="{{ isset($item) ? $item->total_stock : '' }}" min="0">
             </div>
@@ -73,21 +73,21 @@
 
             <!-- Supplier -->
             <div class="col-md-6 mb-3">
-                <label for="item-supplier" class="form-label">Supplier</label>
+                <label for="item-supplier" class="form-label bold-label">Supplier</label>
                 <input type="text" class="form-control" id="item-supplier" name="supplier"
                     value="{{ isset($item) ? $item->supplier : '' }}">
             </div>
 
             <!-- Description (full width) -->
             <div class="col-12 mb-3">
-                <label for="item-description" class="form-label">Description</label>
-                <textarea class="form-control" id="item-description" name="description" rows="2"
+                <label for="item-description" class="form-label bold-label">Description</label>
+                <textarea class="form-control" id="item-description" name="description" rows="1"
                     style="resize: none; overflow-y: auto; max-height: 80px;">{{ isset($item) ? $item->description : '' }}</textarea>
             </div>
 
             <!-- Picture Upload (full width) -->
             <div class="col-12 mb-3">
-                <label class="form-label">Item Picture</label>
+                <label class="form-labe bold-label">Item Picture</label>
                 <div class="border rounded p-3 text-center" id="picture-dropzone"
                     style="cursor: pointer; min-height: 150px; display: flex; align-items: center; justify-content: center;">
                     <input type="file" id="item-picture" name="picture" accept="image/*" style="display:none;">

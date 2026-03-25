@@ -32,8 +32,8 @@ default => 'bg-secondary-subtle text-secondary',
         @endif
     </td>
     <td>{{ $unit->holder ?? '--' }}</td>
-    <td>{{ $unit->date_assigned ?? '--'}}</td>
-    <td>{{ $unit->due_date ? \Carbon\Carbon::parse($unit->due_date)->format('m/d/Y') : '--' }}</td>
+    <td>{{ $unit->date_assigned ? \Carbon\Carbon::parse($unit->date_assigned)->format('M d, Y') : '--' }}</td>
+    <td>{{ $unit->due_date ? \Carbon\Carbon::parse($unit->due_date)->format('M d, Y') : '--' }}</td>    
     <td><span class="badge {{ $badgeClass }}">{{ ucfirst($unit->status ?? 'Available') }}</span></td>
     <td>{{ $unit->notes ?? '-' }}</td>
     <td class="text-center">

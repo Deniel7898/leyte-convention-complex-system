@@ -11,14 +11,23 @@
         @method('PUT')
         @endif
 
+        <!-- Name -->
+        <div class="mb-3">
+            <label for="category-name" class="col-form-label">
+                Name <span style="color: black;">*</span>
             </label>
             <input type="text"
                 class="form-control"
                 id="category-name"
+                name="name"
                 value="{{ isset($category) ? $category->name : '' }}">
         </div>
 
         <!-- Type Dropdown -->
+        <div class="mb-3">
+            <label for="category-type" class="col-form-label">
+                Type <span style="color: black;">*</span>
+            </label>
             <select class="form-select" id="category-type" name="type">
                 <option value="consumable" {{ (isset($category) && $category->type == 'consumable') ? 'selected' : '' }}>Consumable</option>
                 <option value="non-consumable" {{ (isset($category) && $category->type == 'non-consumable') ? 'selected' : '' }}>Non-Consumable</option>
@@ -32,6 +41,7 @@
                 id="category-description"
                 name="description">{{ isset($category) ? $category->description : '' }}</textarea>
         </div>
+    </div>
 
     <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

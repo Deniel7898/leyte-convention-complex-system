@@ -6,7 +6,13 @@
         {{ $service_record->inventory->item->name ?? '--' }}
         @if(!empty($service_record->inventory->item->description))
         <br>
-        <small class="text-muted">{{ $service_record->inventory->item->description }}</small>
+        <small class="text-muted"
+            style="cursor: pointer;"
+            data-bs-toggle="popover"
+            data-bs-placement="top"
+            data-bs-content="{{ $service_record->inventory->item->description }}">
+            {{ Str::limit($service_record->inventory->item->description, 15, '...') }}
+        </small>
         @endif
     </td>
     <td>
@@ -90,12 +96,12 @@
                 : '--' }}
     </td>
     <td>{{ $service_record->technician ?? '--' }}</td>
-    <td style="padding:0; margin:0; vertical-align:top; text-align:center">
+    <td style="padding:0; margin:0; text-align:center">
         @if($service_record->picture)
         <img src="{{ asset('storage/' . $service_record->picture) }}"
             alt="{{ $service_record->inventory->item->name ?? 'N/A' }}"
             width="50"
-            class="clickable-image"
+            class="clickable-image img-square"
             style="cursor: pointer;"
             data-full="{{ asset('storage/' . $service_record->picture) }}">
         @else

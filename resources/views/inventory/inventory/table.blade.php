@@ -6,7 +6,13 @@
          {{ $inventory->name ?? '--' }}
          @if(!empty($inventory->description))
          <br>
-         <small class="text-muted">{{ $inventory->description }}</small>
+         <small class="text-muted"
+             style="cursor: pointer;"
+             data-bs-toggle="popover"
+             data-bs-placement="top"
+             data-bs-content="{{ $inventory->description }}">
+             {{ Str::limit($inventory->description, 15, '...') }}
+         </small>
          @endif
      </td>
      <td>
@@ -24,7 +30,7 @@
 
      <!-- Lightbox Overlay (shared for QR & Item Images) -->
      <div id="universalLightbox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-background: rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1050;">
+            background: rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1050;">
          <button id="universalLightboxClose" style="position:absolute; top:20px; right:20px; background:none;
     border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
          <img id="universalLightboxImg" src="" style="max-width:90%; max-height:90%; border-radius:8px;">
@@ -51,12 +57,11 @@ background: rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index
      </td>
 
      <!-- Example Item Picture Display -->
-     <td style="padding:0; margin:0; vertical-align:top; text-align:center">
+     <td style="padding:0; margin:0; text-align:center">
          @if($inventory->picture)
          <img src="{{ asset('storage/' . $inventory->picture) }}"
              alt="{{ $inventory->name }}"
-             width="50"
-             class="clickable-image"
+             class="clickable-image img-square"
              style="cursor:pointer;"
              data-full="{{ asset('storage/' . $inventory->picture) }}">
          @else

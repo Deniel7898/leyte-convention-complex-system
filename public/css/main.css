@@ -5382,3 +5382,17 @@ only screen and (min-width: 768px) and (max-width: 991px),
     background: #4a6cf7;
     color: #fff;
 }
+
+/* Required Input */
+label.required::after {
+  content: " *";
+  color: red;
+}
+
+.required {
+  font-weight: 600 !important;
+}
+
+.bold-label {
+  font-weight: 600 !important;
+}

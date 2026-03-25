@@ -10,7 +10,7 @@
         <div class="row py-2 border-bottom">
             <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Distribution Date</div>
             <div class="col-8">
-                {{ isset($itemDistribution) ? \Carbon\Carbon::parse($itemDistribution->distribution_date)->format('Y-m-d') : 'N/A' }}
+                {{ isset($itemDistribution) ? \Carbon\Carbon::parse($itemDistribution->distribution_date)->format('M j, Y') : 'N/A' }}
             </div>
         </div>
 
