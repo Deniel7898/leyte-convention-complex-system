@@ -15,10 +15,29 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check() || auth()->user()->role !== 'admin') {
-            abort(403, 'Unauthorized');
+        $user = auth()->user();
+
+        // Not logged in
+        if (!$user) {
+            return redirect()->route('login');
         }
 
-        return $next($request);
+        // ✅ Admin → always allowed
+        if ($user->role === 'admin') {
+            return $next($request);
+        }
+
+        // ✅ Staff → must be verified
+        if ($user->role === 'staff') {
+            if (!$user->hasVerifiedEmail()) {
+                return redirect()->route('verification.notice')
+                    ->with('error', 'Please verify your email first.');
+            }
+
+            return $next($request);
+        }
+
+        // ❌ Any other role
+        abort(403, 'Unauthorized');
     }
 }

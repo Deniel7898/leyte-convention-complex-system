@@ -56,10 +56,10 @@
 <div class="mt-4">
     <div class="card shadow-sm border-0 rounded-4">
         <div class="card-body p-4 bg-light rounded-4">
-            <h4 class="fw-semibold mb-4">Quick Actions</h4>
+            <h4 class="fw-semibold mb-2">Quick Actions</h4>
 
             <!-- Restock / Distribute / Service Quick Actions -->
-            <div class="row g-3 mt-4">
+            <div class="row g-3 mt-2">
                 <div class="col-lg-4 col-md-6">
                     <div class="quick-action-box primary" data-action="restock" style="cursor:pointer;">
                         <div class="icon text-primary"><i class="bi bi-box-seam"></i></div>
