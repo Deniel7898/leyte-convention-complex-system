@@ -18,29 +18,46 @@ class ProfileController extends Controller
         try {
             Log::info('Profile update request', $request->all());
 
-            $data = $request->except(['password', 'password_confirmation']);
+            $user = auth()->user();
 
-            if ($request->filled('password')) {
-                $data['password'] = Hash::make($request->password);
+            // ✅ Get ONLY validated data
+            $data = $request->validated();
+
+            // ✅ Handle password
+            if (!empty($data['password'])) {
+                $data['password'] = Hash::make($data['password']);
+            } else {
+                unset($data['password']);
             }
 
+            // ✅ Handle profile photo
             if ($request->hasFile('profile_photo')) {
-                $data['profile_photo'] = $request->file('profile_photo')->store('profile_photos', 'public');
+
+                // Delete old photo (optional but recommended)
+                if ($user->profile_photo && \Storage::disk('public')->exists($user->profile_photo)) {
+                    \Storage::disk('public')->delete($user->profile_photo);
+                }
+
+                $data['profile_photo'] = $request->file('profile_photo')
+                    ->store('profile_photos', 'public');
             }
 
-            auth()->user()->update($data);
+            // ✅ Update user
+            $user->update($data);
 
-            Log::info('Profile updated successfully for user', ['user_id' => auth()->id()]);
+            Log::info('Profile updated successfully', [
+                'user_id' => $user->id
+            ]);
 
             return redirect()->back()->with('success', 'Profile updated.');
+
         } catch (\Exception $e) {
             Log::error('Profile update failed', [
                 'user_id' => auth()->id(),
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
             ]);
 
-            return redirect()->back()->with('error', 'Failed to update profile. Please try again.');
+            return redirect()->back()->with('error', 'Failed to update profile.');
         }
     }
 }

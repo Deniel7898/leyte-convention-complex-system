@@ -261,5 +261,4 @@ $(function () {
 
     // Trigger search when any dropdown changes
     $('#type-filter, #status-filter, #categories-filter').on('change', performSearch);
-
 })

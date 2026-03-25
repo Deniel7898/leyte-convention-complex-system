@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -29,7 +30,7 @@ class UserController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:8',
+            'password' => 'nullable|min:8',
             'first_name' => 'nullable|string',
             'middle_name' => 'nullable|string',
             'last_name' => 'nullable|string',
@@ -48,23 +49,33 @@ class UserController extends Controller
 
         $data = $validator->validated();
 
-        // 🔐 Hash password
+        // If password is null, set a random password
+        if (empty($data['password'])) {
+            $data['password'] = Str::random(12); // generates a 12-character random string
+        }
+
+        // Hash password
+        $rawPassword = $data['password']; // keep raw for email
+
         $data['password'] = Hash::make($data['password']);
         $data['status'] = 'active';
 
-        // 📸 Upload profile photo
+        // Upload profile photo
         if ($request->hasFile('profile_photo')) {
             $data['profile_photo'] = $request->file('profile_photo')
                 ->store('profile_photos', 'public');
         }
 
-        // 👤 Create user
+        // Create user
         $user = User::create($data);
 
-        // 🔥 Send email verification
-        event(new Registered($user));
+        // temporarily store raw password for email
+        $user->raw_password = $rawPassword;
 
-        // 🔄 Reload users list
+        // Send email verification with password included
+        $user->sendEmailVerificationNotification();
+
+        // Reload users list
         $users = User::orderByRaw("CASE WHEN role = 'admin' THEN 1 ELSE 0 END")
             ->orderBy('created_at', 'desc')
             ->get();

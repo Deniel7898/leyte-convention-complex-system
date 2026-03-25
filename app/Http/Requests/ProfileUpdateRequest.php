@@ -11,16 +11,24 @@ class ProfileUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
             'first_name' => ['nullable', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
-            'email' => ['required', 'email', 'string', 'max:255', Rule::unique('users')->ignore(Auth::user())],
+
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore(Auth::id())
+            ],
+
             'phone' => ['nullable', 'string', 'max:255'],
             'birthday' => ['nullable', 'date'],
-            'place' => ['nullable', 'string', 'max:255'],
+            'address' => ['nullable', 'string', 'max:255'], 
+
             'profile_photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
-            'password' => ['nullable', 'string', 'confirmed', 'min:8'],
+
+            'password' => ['nullable', 'confirmed', 'min:8'],
         ];
     }
 

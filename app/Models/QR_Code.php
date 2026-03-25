@@ -32,4 +32,9 @@ class QR_Code extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function item()
+    {
+        return $this->belongsTo(Item::class, 'item_id', 'id'); // if you add an item_id column
+    }
 }

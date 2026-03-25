@@ -13,7 +13,10 @@ class UnitsController extends Controller
      */
     private function getUnitsTable($perPage = 10)
     {
-        $units = Units::paginate($perPage);
+        $units = Units::withCount('inventories')
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
+
         return view('reference.units.table', compact('units'))->render();
     }
 
@@ -22,7 +25,9 @@ class UnitsController extends Controller
      */
     public function index()
     {
-        $units = Units::paginate(10);
+        $units = Units::withCount('inventories')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
 
         return view('reference.units.index', [
             'units' => $units,

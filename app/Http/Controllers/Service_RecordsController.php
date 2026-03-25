@@ -202,6 +202,12 @@ class Service_RecordsController extends Controller
 
             $inventory->update(['status' => $request->type]);
 
+            $inventory->update([
+                'status' => $request->type,
+                'holder' => $request->technician,
+                'date_assigned' => now(),
+                'notes' => $request->notes,
+            ]);
             if ($item) {
                 $item->decrement('remaining', 1);
             }
@@ -213,6 +219,8 @@ class Service_RecordsController extends Controller
         if ($item) {
             InventoryHistory::create([
                 'item_id' => $item->id,
+                'inventory_id' => $inventoryId,
+                'holder_or_borrower' => $request->technician,
                 'action' => $request->type,
                 'quantity' => $serviceCount,
                 'notes' => $request->remarks ?? $request->description, // use description or remarks
@@ -416,6 +424,9 @@ class Service_RecordsController extends Controller
         if ($inventory) {
             $inventory->update([
                 'status' => 'available',
+                'holder' => null,
+                'notes' => $request->remarks ?? 'Service completed',
+                'date_assigned' => null,
                 $item->increment('remaining', 1),
             ]);
         }
@@ -424,6 +435,8 @@ class Service_RecordsController extends Controller
         if ($item) {
             InventoryHistory::create([
                 'item_id' => $item->id,
+                'inventory_id' => $inventory->id,
+                'holder_or_borrower' => null,
                 'action' => 'service completed',
                 'quantity' => 1,
                 'notes' => $request->remarks ?? 'Service completed',

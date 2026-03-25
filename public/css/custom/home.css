@@ -1,0 +1,199 @@
+ .stats-card {
+     border-radius: 16px;
+     padding: 1.5rem 2rem;
+     background-color: #f8f9fa;
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+     min-height: 110px;
+ }
+
+ .stats-card .stat-icon {
+     width: 50px;
+     height: 50px;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     border-radius: 50%;
+     font-size: 26px;
+     color: #fff;
+ }
+
+ .stats-card.primary .stat-icon {
+     background: #0d6efd;
+ }
+
+ .stats-card.success .stat-icon {
+     background: #198754;
+ }
+
+ .stats-card.warning .stat-icon {
+     background: #ffc107;
+ }
+
+ .stats-card.danger .stat-icon {
+     background: #dc3545;
+ }
+
+ .stat-title {
+     font-size: 0.95rem;
+     color: #6c757d;
+ }
+
+ .stat-number {
+     font-size: 1.6rem;
+     font-weight: 700;
+ }
+
+ .stat-change {
+     font-size: 0.85rem;
+ }
+
+ .stats-card .stat-icon {
+     width: 50px;
+     height: 50px;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     border-radius: 50%;
+     font-size: 26px;
+     color: #fff;
+     transition: transform 0.3s ease, box-shadow 0.3s ease;
+     cursor: pointer;
+     /* Makes it clickable */
+     text-decoration: none;
+     /* Remove underline from <a> */
+ }
+
+ .stats-card .stat-icon:hover {
+     transform: scale(1.1);
+     /* Slightly enlarge on hover */
+     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+     /* Add shadow on hover */
+ }
+
+ /* =========================
+   Quick Actions
+========================== */
+ .quick-action-box {
+     border: 3px dashed #d6dbe1;
+     border-radius: 14px;
+     padding: 30px;
+     background-color: #f8f9fa;
+     cursor: pointer;
+     transition: all .25s ease-in-out;
+     display: flex;
+     gap: 15px;
+     align-items: flex-start;
+     height: 100%;
+ }
+
+ .quick-action-box:hover {
+     transform: translateY(-3px);
+     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+ }
+
+ .quick-action-box.primary:hover {
+     background: #e7ecf5;
+     border-color: #0d6efd;
+ }
+
+ .quick-action-box.success:hover {
+     background: #e6f4ea;
+     border-color: #198754;
+ }
+
+ .quick-action-box.warning:hover {
+     background: #fff8e6;
+     border-color: #ffc107;
+ }
+
+ .quick-action-box .icon {
+     font-size: 26px;
+ }
+
+ .action-title {
+     font-weight: 600;
+     font-size: 1.05rem;
+     margin-bottom: 4px;
+ }
+
+ .action-desc {
+     font-size: 0.9rem;
+     color: #6c757d;
+ }
+
+ /* =========================
+   Mini Cards
+========================== */
+ .mini-card {
+     border-radius: 14px;
+     padding: 20px;
+     background-color: #f8f9fa;
+     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+     height: 100%;
+ }
+
+ .mini-card h5 {
+     font-weight: 600;
+     margin-bottom: 12px;
+ }
+
+ .metric {
+     display: flex;
+     justify-content: space-between;
+     margin-bottom: 6px;
+     font-size: 0.95rem;
+ }
+
+ .status-list {
+     list-style: none;
+     padding: 0;
+     margin: 0;
+ }
+
+ .status-list li {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     padding: 8px 0;
+     font-size: 0.95rem;
+ }
+
+ /* =========================
+   Recent Activity Timeline
+========================== */
+
+ .activity-item {
+     display: flex;
+     align-items: flex-start;
+     justify-content: space-between;
+     gap: 12px;
+     /* reduced gap */
+     padding: 10px 0;
+     /* clean vertical spacing */
+ }
+
+ .activity-item:not(:last-child) {
+     border-bottom: 1px solid #e9ecef;
+     /* soft divider instead of <hr> */
+ }
+
+ .activity-content {
+     flex-grow: 1;
+ }
+
+ .activity-dot {
+     width: 8px;
+     /* slightly smaller */
+     height: 8px;
+     border-radius: 50%;
+     margin-top: 6px;
+ }
+
+ .activity-time {
+     white-space: nowrap;
+     font-size: 0.8rem;
+     /* slightly smaller time */
+ }

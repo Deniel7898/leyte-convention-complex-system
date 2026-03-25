@@ -13,13 +13,13 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="mb-3">
-                    <label for="first_name" class="form-label">First Name</label>
+                    <label for="first_name" class="form-label required">First Name</label>
                     <input type="text" class="form-control" id="first_name" name="first_name" value="{{ $user->first_name ?? '' }}" required>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="mb-3">
-                    <label for="middle_name" class="form-label">Middle Name</label>
+                    <label for="middle_name" class="form-label bold-label">Middle Name</label>
                     <input type="text" class="form-control" id="middle_name" name="middle_name" value="{{ $user->middle_name ?? '' }}">
                 </div>
             </div>
@@ -27,13 +27,13 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="mb-3">
-                    <label for="last_name" class="form-label">Last Name</label>
+                    <label for="last_name" class="form-label required">Last Name</label>
                     <input type="text" class="form-control" id="last_name" name="last_name" value="{{ $user->last_name ?? '' }}" required>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="mb-3">
-                    <label for="email" class="form-label">Email</label>
+                    <label for="email" class="form-label required">Email</label>
                     <input type="email" class="form-control" id="email" name="email" value="{{ $user->email ?? '' }}" required>
                 </div>
             </div>
@@ -41,13 +41,21 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="mb-3">
-                    <label for="password" class="form-label">Password {{ isset($user) ? '(leave blank to keep current)' : '' }}</label>
-                    <input type="password" class="form-control" id="password" name="password" {{ !isset($user) ? 'required' : '' }}>
+                    <label for="password" class="form-label bold-label">
+                        Password
+                        @if(isset($user)) (leave blank to keep current)
+                        @else
+                        (leave blank to use default)
+                        @endif
+                    </label>
+                    <input type="password" class="form-control" id="password" name="password"
+                        placeholder="{{ isset($user) ? '' : 'Leave blank to use default password' }}"
+                        {{ !isset($user) ? '' : '' }}>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="mb-3">
-                    <label for="phone" class="form-label">Phone</label>
+                    <label for="phone" class="form-label ">Phone</label>
                     <input type="text" class="form-control" id="phone" name="phone" value="{{ $user->phone ?? '' }}">
                 </div>
             </div>
@@ -91,6 +99,6 @@
 
     <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="submit" class="btn text-white" style="background-color: rgb(43, 45, 87);">Save Item</button>
+        <button type="submit" class="btn text-white" style="background-color: rgb(43, 45, 87);">Create User</button>
     </div>
 </form>

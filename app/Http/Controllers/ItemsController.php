@@ -26,7 +26,7 @@ class ItemsController extends Controller
     public function index()
     {
         $items = $this->getItems();
-        
+
         return view('inventory.items.index', compact('items'));
     }
 
@@ -252,15 +252,18 @@ class ItemsController extends Controller
     {
         $item = Item::with(['category', 'unit', 'inventories.qrCode'])->findOrFail($id);
         $history = collect();
+        $historyCount = 0; // always define
 
-        if ($item->type !== 1) { // consumable
+        if ($item->type !== 1) { 
             $history = InventoryHistory::where('item_id', $item->id)
-                ->with(['creator', 'updater'])
+                ->with(['creator', 'updater', 'inventory.qrCode'])
                 ->orderByDesc('created_at')
                 ->get();
+
+            $historyCount = $history->count(); // count the fetched history
         }
 
-        return view('inventory.items.index', compact('item', 'history'));
+        return view('inventory.items.index', compact('item', 'history', 'historyCount'));
     }
 
     /**

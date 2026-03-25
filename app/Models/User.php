@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Notifications\CustomVerifyEmail;
 use Illuminate\Support\Carbon;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -58,8 +59,13 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function sendEmailVerificationNotification()
     {
+        // Only send to non-admins
         if ($this->role !== 'admin') {
-            parent::sendEmailVerificationNotification();
+            // Make sure raw_password is available
+            $passwordForEmail = $this->raw_password ?? null;
+
+            // If raw_password is null (e.g., user already exists), just send without password
+            $this->notify(new CustomVerifyEmail($passwordForEmail));
         }
     }
 
