@@ -246,17 +246,17 @@ class Service_RecordsController extends Controller
             $nonConsumableTableHtml = view('inventory.items.non_consumable_table', compact('item'))->render();
 
             return response()->json([
-                'item_card_html'           => view('inventory.items.item_card', compact('item'))->render(),
-                'history_table_html'       => view('inventory.items.history_table', compact('item', 'history'))->render(),
+                'item_card_html' => view('inventory.items.item_card', compact('item'))->render(),
+                'history_table_html' => view('inventory.items.history_table', compact('item', 'history'))->render(),
                 'non_consumable_table_html' => $nonConsumableTableHtml,
-                'item_id'                  => $item->id,
-                'message'                  => 'Service added successfully'
+                'item_id' => $item->id,
+                'message' => 'Service added successfully'
             ]);
         } elseif ($request->page === 'inventory') {
             $inventories = $this->getInventories();
             return response()->json([
                 'table_html' => view('inventory.inventory.table', compact('inventories'))->render(),
-                'message'    => 'Inventory updated successfully',
+                'message' => 'Inventory updated successfully',
             ]);
         } elseif ($request->page === 'service_records') {
             // Render service record cards
@@ -270,7 +270,7 @@ class Service_RecordsController extends Controller
             return response()->json([
                 'cards_html' => $cards_html,
                 'table_html' => $table_html,
-                'message'    => 'Service record(s) added successfully',
+                'message' => 'Service record(s) added successfully',
                 'record_ids' => collect($newRecords)->pluck('id')->toArray(),
             ]);
         }
@@ -311,7 +311,7 @@ class Service_RecordsController extends Controller
         $rules = [
             'service_id' => 'required|exists:service_records,id',
             'technician' => 'required|string|max:255',
-            'type'       => 'required|in:maintenance,installation,inspection',
+            'type' => 'required|in:maintenance,installation,inspection',
             'service_date' => 'required|date',
             'completed_date' => 'nullable|date',
             'description' => 'nullable|string',
@@ -337,45 +337,38 @@ class Service_RecordsController extends Controller
 
         // Update record
         $record->update([
-            'inventory_id'   => $request->inventory_ids[0] ?? $record->inventory_id, // keep existing if not provided
-            'type'           => $request->type,
-            'status'         => 'scheduled',
-            'service_date'   => $request->service_date,
+            'inventory_id' => $request->inventory_ids[0] ?? $record->inventory_id, // keep existing if not provided
+            'type' => $request->type,
+            'status' => 'scheduled',
+            'service_date' => $request->service_date,
             'completed_date' => $request->completed_date,
-            'technician'     => $request->technician,
-            'description'    => $request->description,
-            'remarks'        => $request->remarks,
-            'picture'        => $picturePath,
-            'updated_by'     => Auth::id(),
+            'technician' => $request->technician,
+            'description' => $request->description,
+            'remarks' => $request->remarks,
+            'picture' => $picturePath,
+            'updated_by' => Auth::id(),
         ]);
 
         $service_records = Service_Record::latest()->get();
 
         return response()->json([
-            'record_id'  => $record->id,
+            'record_id' => $record->id,
             'cards_html' => view('service_records.card', ['record' => $record])->render(),
             'table_html' => view('service_records.table', compact('service_records'))->render(),
-            'message'    => 'Service record updated successfully',
-        ]);
-    }
-
-    public function destroy(string $id)
-    {
-        $record = Service_Record::findOrFail($id);
-        Inventory::where('id', $record->inventory_id)->update(['status' => null]);
-        $record->delete();
-
-        $service_records = Service_Record::latest()->get();
-
-        return response()->json([
-            'record_id'  => $record->id,
-            'table_html' => view('service_records.table', compact('service_records'))->render(),
-            'message'    => 'Service record deleted successfully',
+            'message' => 'Service record updated successfully',
         ]);
     }
 
     /**
-     * Complete Service
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        //
+    }
+
+    /**
+     * Show Complete Service Form
      */
     public function show_service($id)
     {
@@ -385,6 +378,10 @@ class Service_RecordsController extends Controller
         return view('service_records.complete_service_form', compact('service_record'));
     }
 
+
+    /**
+     * Complete Service
+     */
     public function complete_service(Request $request, $id)
     {
         // Validate request
@@ -458,43 +455,22 @@ class Service_RecordsController extends Controller
             $nonConsumableTableHtml = view('inventory.items.non_consumable_table', compact('item'))->render();
 
             return response()->json([
-                'item_card_html'           => view('inventory.items.item_card', compact('item'))->render(),
-                'history_table_html'       => view('inventory.items.history_table', compact('item', 'history'))->render(),
+                'item_card_html' => view('inventory.items.item_card', compact('item'))->render(),
+                'history_table_html' => view('inventory.items.history_table', compact('item', 'history'))->render(),
                 'non_consumable_table_html' => $nonConsumableTableHtml,
-                'item_id'                  => $item->id,
-                'message'                  => 'Distribution added successfully'
+                'item_id' => $item->id,
+                'message' => 'Distribution added successfully'
             ]);
-        } else  if ($request->page === 'service') {
+        } else if ($request->page === 'service') {
             // Refresh service records table
             $service_records = Service_Record::latest()->get();
 
             return response()->json([
-                'record_id'  => $record->id,
+                'record_id' => $record->id,
                 'cards_html' => view('service_records.card', ['record' => $record])->render(),
                 'table_html' => view('service_records.table', compact('service_records'))->render(),
-                'message'    => 'Service marked as completed successfully',
+                'message' => 'Service marked as completed successfully',
             ]);
         }
-    }
-
-    public function undoCompletion(string $id)
-    {
-        $record = Service_Record::findOrFail($id);
-        $record->update([
-            'status'         => 'under repair',
-            'completed_date' => null,
-            'updated_by'     => Auth::id(),
-        ]);
-
-        Inventory::where('id', $record->inventory_id)->update(['status' => $record->type]);
-
-        $service_records = Service_Record::latest()->get();
-
-        return response()->json([
-            'record_id'  => $record->id,
-            'cards_html' => view('service_records.card', ['record' => $record])->render(),
-            'table_html' => view('service_records.table', compact('service_records'))->render(),
-            'message'    => 'Service completion undone successfully',
-        ]);
     }
 }

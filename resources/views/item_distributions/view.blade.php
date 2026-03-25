@@ -64,10 +64,10 @@
             <div class="col-8">{{ 1 }}</div>
         </div>
 
-        <!-- Description -->
+        <!-- Notes -->
         <div class="row py-2 border-bottom">
-            <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Description</div>
-            <div class="col-8" style="white-space: pre-wrap;">{{ $itemDistribution->description ?? 'N/A' }}</div>
+            <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Notes</div>
+            <div class="col-8" style="white-space: pre-wrap;">{{ $itemDistribution->notes ?? 'N/A' }}</div>
         </div>
 
         <!-- Distributed By -->

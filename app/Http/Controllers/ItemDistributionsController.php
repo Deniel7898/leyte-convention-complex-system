@@ -473,9 +473,6 @@ class ItemDistributionsController extends Controller
                         'notes' => $request->notes,
                     ]);
                 }
-
-                // Update remaining count for item
-                $item->decrement('remaining', count($inventoryIds));
             }
         });
 
@@ -513,16 +510,7 @@ class ItemDistributionsController extends Controller
      */
     public function destroy(string $id)
     {
-        $distribution = ItemDistribution::findOrFail($id);
-        $distribution->delete();
-
-        $itemDistributions = ItemDistribution::latest()->get();
-
-        return response()->json([
-            'distribution_id' => $distribution->id, // must match <div id="distribution-card-{{ $item->id }}">
-            'table_html' => view('item_distributions.table', ['itemDistributions' => $itemDistributions])->render(),
-            'message' => 'Item returned/updated successfully!',
-        ]);
+        //
     }
 
     public function showReturnForm($id)
@@ -618,40 +606,5 @@ class ItemDistributionsController extends Controller
                 'message' => 'Item returned/updated successfully!',
             ]);
         }
-    }
-
-    public function undoCompletion(string $id)
-    {
-        $record = ItemDistribution::findOrFail($id);
-
-        // Determine the original status based on the type
-        $originalStatus = match ($record->type) {
-            'distributed' => 'completed',  // distributed → completed
-            'issued'      => 'issued',     // issued → issued
-            'borrowed'    => 'borrowed',   // borrowed → borrowed
-            default       => $record->status, // fallback
-        };
-
-        $record->update([
-            'status'         => $originalStatus,
-            'completed_date' => null,
-            'updated_by'     => Auth::id(),
-        ]);
-
-        Inventory::where('id', $record->inventory_id)
-            ->update(['status' => $record->type]);
-
-        $item_distributions = ItemDistribution::with([
-            'inventory.item.unit',
-            'inventory.item.category',
-            'inventory.qrCode'
-        ])->latest()->get();
-
-        return response()->json([
-            'record_id'  => $record->id,
-            'cards_html' => view('item_distributions.card', ['record' => $record])->render(),
-            'table_html' => view('item_distributions.table', compact('item_distributions'))->render(),
-            'message'    => 'Service completion undone successfully',
-        ]);
     }
 }

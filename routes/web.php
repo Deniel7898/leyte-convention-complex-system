@@ -53,6 +53,14 @@ Route::middleware('auth')->get('/check-verification-status', function (Illuminat
     ]);
 });
 
+/*--------------------------------------------------------------------------
+// Live Search Routes (ALL PROTECTED)
+--------------------------------------------------------------------------*/
+Route::get('/items/live-search', [ItemsController::class, 'liveSearch'])->name('items.liveSearch');
+Route::get('/inventory/live-search', [InventoriesController::class, 'liveSearch'])->name('inventory.liveSearch');
+Route::get('/item_distributions/live-search', [ItemDistributionsController::class, 'liveSearch'])->name('item_distributions.liveSearch');
+Route::get('/service_records/live-search', [Service_RecordsController::class, 'liveSearch'])->name('service_records.liveSearch');
+
 // -------------------------
 // Protected Routes (Admin & Verified Staff)
 // -------------------------
@@ -81,13 +89,11 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::resource('item_distributions', ItemDistributionsController::class);
     Route::get('/item-distributions/{id}', [ItemDistributionsController::class, 'showReturnForm'])->name('item_distributions.return_form');
     Route::post('/item-distributions/{id}/return', [ItemDistributionsController::class, 'returnItem'])->name('item_distributions.returnItem');
-    Route::post('/item-distributions/{id}/undo', [ItemDistributionsController::class, 'undoCompletion'])->name('item_distributions.undo');
 
     // Service Records
     Route::resource('service_records', Service_RecordsController::class);
     Route::get('/service/show-service/{id}', [Service_RecordsController::class, 'show_service'])->name('service_records.show_service');
     Route::post('/service/{id}/complete-service', [Service_RecordsController::class, 'complete_service'])->name('service_records.complete_service');
-    Route::post('/service-records/{id}/undo', [Service_RecordsController::class, 'undoCompletion'])->name('service_records.undo');
 
     // References
     Route::resource('categories', App\Http\Controllers\CategoriesController::class);
@@ -97,10 +103,4 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::resource('purchase-requests', Purchase_RequestsController::class);
     Route::get('/purchase-requests/{id}/print', [Purchase_RequestsController::class, 'print'])->name('purchase-requests.print');
     Route::get('/purchase-requests/search-items', [Purchase_RequestsController::class, 'searchItems'])->name('purchase-requests.searchItems');
-
-    // Live Search Routes
-    Route::get('/items/live-search', [ItemsController::class, 'liveSearch'])->name('items.liveSearch');
-    Route::get('/inventory/live-search', [InventoriesController::class, 'liveSearch'])->name('inventory.liveSearch');
-    Route::get('/item_distributions/live-search', [ItemDistributionsController::class, 'liveSearch'])->name('item_distributions.liveSearch');
-    Route::get('/service_records/live-search', [Service_RecordsController::class, 'liveSearch'])->name('service_records.liveSearch');
 });
