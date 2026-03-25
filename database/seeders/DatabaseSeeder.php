@@ -21,24 +21,36 @@ class DatabaseSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'admin@example.com'],
             [
-                'name' => 'Admin',
+                'last_name' => 'Administrator',
+                'first_name' => 'System',
+                'middle_name' => 'A',
                 'password' => Hash::make('admin123'),
+                'role' => 'admin',
+                'status' => true
             ]
         );
 
         User::updateOrCreate(
             ['email' => 'user1@example.com'],
             [
-                'name' => 'User One',
+                'last_name' => 'Doe',
+                'first_name' => 'John',
+                'middle_name' => 'D',
                 'password' => Hash::make('password123'),
+                'role' => 'staff',
+                'status' => true
             ]
         );
 
         User::updateOrCreate(
             ['email' => 'user2@example.com'],
             [
-                'name' => 'User Two',
+                'last_name' => 'Smith',
+                'first_name' => 'Jane',
+                'middle_name' => 'S',
                 'password' => Hash::make('password123'),
+                'role' => 'staff',
+                'status' => true
             ]
         );
 
@@ -63,21 +75,39 @@ class DatabaseSeeder extends Seeder
                 ]
             );
         }
-        
         // ----------------------
         // CATEGORIES
         // ----------------------
         $categories = [
-            'Com Parts' => 'Computer parts and accessories',
-            'Disposable' => 'Single-use or consumable items',
-            'Tools' => 'Tools and equipment',
-            'Electric Mats' => 'Electrical mats and accessories'
+            'Disposable' => [
+                'description' => 'Single-use or consumable items',
+                'type' => 'consumable'
+            ],
+            'Plumbing Mats' => [
+                'description' => 'Protective mats used in plumbing work',
+                'type' => 'non-consumable'
+            ],
+            'Tools' => [
+                'description' => 'Tools and equipment',
+                'type' => 'non-consumable'
+            ],
+            'Electric Mats' => [
+                'description' => 'Electrical mats and accessories',
+                'type' => 'non-consumable'
+            ],
+            'Generator Fanbelt' => [
+                'description' => 'Fanbelt used for generator maintenance and replacement',
+                'type' => 'consumable'
+            ],
         ];
 
-        foreach ($categories as $name => $description) {
+        foreach ($categories as $name => $data) {
             Category::updateOrCreate(
                 ['name' => $name],
-                ['description' => $description]
+                [
+                    'description' => $data['description'],
+                    'type' => $data['type']
+                ]
             );
         }
     }

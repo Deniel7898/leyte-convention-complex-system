@@ -7,8 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Carbon;
 
-class User extends Authenticatable
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -18,9 +21,18 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'last_name',
+        'first_name',
+        'middle_name',
         'email',
         'password',
+        'role',
+        'phone',
+        'birthday',
+        'address',
+        'profile_photo',
+        'status',
+        'last_seen',
     ];
 
     /**
@@ -40,5 +52,19 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'birthday' => 'date',
+        'last_seen' => 'datetime',
     ];
+
+    public function sendEmailVerificationNotification()
+    {
+        if ($this->role !== 'admin') {
+            parent::sendEmailVerificationNotification();
+        }
+    }
+
+    public function isOnline()
+    {
+        return $this->last_seen && $this->last_seen->gt(now()->subMinutes(2));
+    }
 }

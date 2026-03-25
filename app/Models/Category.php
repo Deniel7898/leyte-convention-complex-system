@@ -13,6 +13,7 @@ class Category extends Model
 
     protected $fillable = [
         'name',
+        'type',
         'description',
         'created_by',
         'updated_by',
@@ -23,27 +24,15 @@ class Category extends Model
         return $this->hasMany(Item::class);
     }
 
-    public function inventoryConsumables()
+    public function inventories()
     {
         return $this->hasManyThrough(
-            InventoryConsumable::class, // Final model
-            Item::class,                // Intermediate model
-            'category_id',              // Foreign key on Item (to Category)
-            'item_id',                  // Foreign key on InventoryConsumable (to Item)
-            'id',                      // Local key on Category
-            'id'                       // Local key on Item
-        );
-    }
-
-    public function inventoryNonConsumables()
-    {
-        return $this->hasManyThrough(
-            InventoryNonConsumable::class,
-            Item::class,
-            'category_id',
-            'item_id',
-            'id',
-            'id'
+            Inventory::class, // Final model
+            Item::class,      // Intermediate model
+            'category_id',    // Foreign key on items table
+            'item_id',        // Foreign key on inventories table
+            'id',             // Local key on categories
+            'id'              // Local key on items
         );
     }
 }

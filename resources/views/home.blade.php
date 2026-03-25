@@ -217,7 +217,7 @@
         <div class="stats-card primary">
             <div>
                 <div class="stat-title">Total Items</div>
-                <div class="stat-number">1,234</div>
+                <div class="stat-number">{{ number_format($total_stock) }}</div>
             </div>
             <a href="{{ route('inventory.index') }}" class="stat-icon"><i class="bi bi-box-seam"></i></a>
         </div>
@@ -227,9 +227,9 @@
         <div class="stats-card success">
             <div>
                 <div class="stat-title">Available</div>
-                <div class="stat-number">856</div>
+                <div class="stat-number">{{ number_format($total_remaining) }}</div>
             </div>
-            <a href="{{ route('items.index') }}" class="stat-icon"><i class="bi bi-check-circle"></i></a>
+            <a href="{{ route('inventory.index') }}" class="stat-icon"><i class="bi bi-check-circle"></i></a>
         </div>
     </div>
 
@@ -237,7 +237,7 @@
         <div class="stats-card warning">
             <div>
                 <div class="stat-title">Items Service Required</div>
-                <div class="stat-number">45</div>
+                <div class="stat-number">{{ number_format($item_service_required) }}</div>
             </div>
             <a href="{{ route('service_records.index') }}" class="stat-icon"><i class="bi bi-tools"></i></a>
         </div>
@@ -247,9 +247,9 @@
         <div class="stats-card danger">
             <div>
                 <div class="stat-title">To Purchase</div>
-                <div class="stat-number">23</div>
+                <div class="stat-number">(23)</div>
             </div>
-            <a href="{{ route('purchase-requests.index') }}" class="stat-icon"><i class="bi bi-cart-dash"></i></a>
+            <a href="{{ route('purchase_request.index') }}" class="stat-icon"><i class="bi bi-cart-dash"></i></a>
         </div>
     </div>
 
@@ -266,7 +266,7 @@
 
             <div class="row g-3">
                 <div class="col-lg-4 col-md-6">
-                    <a href="{{ route('items.index') }}" class="quick-action-box primary text-decoration-none">
+                    <a href="{{ route('inventory.index') }}" class="quick-action-box primary text-decoration-none">
                         <div class="icon text-primary">
                             <i class="bi bi-box-seam"></i>
                         </div>
@@ -359,7 +359,6 @@
                 <div class="progress" style="height:6px;">
                     <div class="progress-bar bg-info" style="width:40%"></div>
                 </div>
-
             </div>
         </div>
     </div>
@@ -387,7 +386,7 @@
 
                 <li>
                     <div><strong>Backup Service</strong></div>
-                    <span class="badge bg-warning-subtle text-warning">Processing</span>
+                    <span class="badge bg-warning-subtle text-orange">Processing</span>
                 </li>
 
                 <li>

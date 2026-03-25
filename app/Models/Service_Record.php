@@ -4,57 +4,65 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class Service_Record extends Model
 {
-    protected $table = 'service_records';
+    use HasUuids, SoftDeletes;
 
-    use SoftDeletes;
+    public $incrementing = false;
+    protected $keyType = 'string';
+
+    protected $table = 'service_records';
 
     protected $fillable = [
         'type',
         'description',
         'quantity',
-        'schedule_date',
+        'service_date',
         'completed_date',
-        'encharge_person',
+        'technician',
+        'status',
+        'remarks',
         'picture',
-        'inventory_non_consumable_id',
+        'item_id',
+        'inventory_id',
         'created_by',
         'updated_by',
     ];
 
-    // Relationship to InventoryConsumable
-    public function inventoryConsumable()
+    /**
+     * Relationship to Inventory
+     */
+    public function inventory()
     {
-        return $this->belongsTo(InventoryConsumable::class, 'inventory_consumable_id');
+        return $this->belongsTo(Inventory::class, 'inventory_id')->with('item');
     }
 
-    // Relationship to InventoryNonConsumable
-    public function inventoryNonConsumable()
-    {
-        return $this->belongsTo(InventoryNonConsumable::class, 'inventory_non_consumable_id');
-    }
-
+    /**
+     * Access the related item directly
+     */
     public function item()
     {
-        if ($this->inventory_consumable_id) {
-            return $this->belongsTo(InventoryConsumable::class, 'inventory_consumable_id')->with('item');
-        }
-        if ($this->inventory_non_consumable_id) {
-            return $this->belongsTo(InventoryNonConsumable::class, 'inventory_non_consumable_id')->with('item');
-        }
-
-        return null;
+        // Optional shortcut to get the item directly from inventory
+        return $this->inventory ? $this->inventory->item : null;
     }
 
-    public function user()
+    /**
+     * Created by user
+     */
+    public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    /**
+     * Optional: Get unit via inventory->item->unit
+     */
     public function unit()
     {
-        return $this->belongsTo(Units::class);
+        return $this->inventory && $this->inventory->item
+            ? $this->inventory->item->unit
+            : null;
     }
 }

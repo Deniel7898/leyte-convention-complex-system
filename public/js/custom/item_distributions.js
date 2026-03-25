@@ -20,23 +20,27 @@ $(function () {
     })
 
     //edit button click
-    $(document).on('click', '.edit', function () {
+    $(document).on('click', '.edit, .return-item', function (e) {
+        e.preventDefault();
+
+        let url = $(this).data('url');
+        // detect action based on class
+        let action = $(this).hasClass('return-item') ? 'return' : 'update';
+        $('#itemDistributions_modal').data('action', action);
         $('#loading-spinner').addClass('active');
 
-        // When opening modal for update
-        $('#itemDistributions_modal').data('action', 'update');
-
-        url = $(this).data('url');
-        $.ajax({
-            url: url,
-            type: 'GET',
-            success: function (response) {
+        $.get(url)
+            .done(function (response) {
                 $('#itemDistributions_modal .modal-content').html(response);
-                $('#loading-spinner').removeClass('active'); // hide
                 $('#itemDistributions_modal').modal('show');
-            }
-        })
-    })
+            })
+            .fail(function () {
+                Swal.fire("Error!", "Could not load the form.", "error");
+            })
+            .always(function () {
+                $('#loading-spinner').removeClass('active');
+            });
+    });
 
     //delete button click
     $(document).on('click', '.delete', function () {
@@ -61,7 +65,8 @@ $(function () {
                     _method: 'DELETE'
                 })
                     .done(function (response) {
-                        $('#itemDistributions_table tbody').html(response.html);
+                        $('#distribution-card-' + response.distribution_id).remove();
+                        $('#itemDistributions_table tbody').html(response.table_html);
 
                         Swal.fire({
                             title: "Deleted!",
@@ -84,15 +89,18 @@ $(function () {
         });
     });
 
-    //form submit
-    $(document).on('submit', 'form', function (e) {
+    // Consolidated form submit handler
+    $(document).on('submit', '#itemDistributions_modal form', function (e) {
         e.preventDefault();
-        $('#loading-spinner').addClass('active');
 
-        var form = $(this);
-        var url = form.attr('action');
-        var method = form.attr('method');
-        var data = new FormData(this);
+        let form = $(this);
+        let url = form.attr('action');
+        let method = form.attr('method');
+        let data = new FormData(this);
+
+        let action = $('#itemDistributions_modal').data('action'); // add / update / return / complete
+
+        $('#loading-spinner').addClass('active');
 
         $.ajax({
             url: url,
@@ -102,19 +110,54 @@ $(function () {
             contentType: false,
             success: function (response) {
 
-                $('#itemDistributions_table tbody').html(response.html);
+                // ADD RECORD
+                if (action === 'add') {
+                    $('#cards-row').prepend(response.cards_html);
+                }
 
+                // UPDATE RECORD (flexible)
+                else if (action === 'update') {
+                    let cardId = '#distribution-card-' + response.distribution_id;
+
+                    if (response.remove_card) {
+                        // Remove card if backend indicates it should be removed
+                        $(cardId).remove();
+                    }
+                    else if ($(cardId).length) {
+                        // Replace existing card if it exists
+                        $(cardId).replaceWith(response.cards_html);
+                    }
+                    else if (response.cards_html) {
+                        // Prepend if card doesn't exist yet
+                        $('#cards-row').prepend(response.cards_html);
+                    }
+                }
+
+                // COMPLETE SERVICE
+                else if (action === 'return') {
+                    // remove card since service is finished
+                    $('#distribution-card-' + response.distribution_id).remove();
+                }
+
+                // Always refresh the table if HTML is returned
+                if (response.table_html) {
+                    $('#itemDistributions_table tbody').html(response.table_html);
+                }
+
+                // Close modal
                 $('#itemDistributions_modal').modal('hide');
 
-                //Reset form fields
+                // Reset form and file inputs
                 form[0].reset();
+                form.find('input[type="file"]').val('');
+                form.find('.preview-img').attr('src', '').hide(); // generic for all preview images
 
                 $('#loading-spinner').removeClass('active');
 
                 Swal.fire({
                     icon: 'success',
                     title: 'Success!',
-                    text: response.message,
+                    text: response.message || 'Action completed successfully!',
                     showConfirmButton: false,
                     timer: 1500,
                     width: '400px',
@@ -122,7 +165,20 @@ $(function () {
                 });
             },
             error: function (xhr) {
-                console.log(xhr.responseJSON);
+                let msg = 'Something went wrong.';
+                if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    msg = Object.values(xhr.responseJSON.errors).map(e => e[0]).join('\n');
+                }
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: msg,
+                    width: '400px',
+                    padding: '0.8rem'
+                });
+                console.error(xhr.responseJSON || xhr.responseText);
+            },
+            complete: function () {
                 $('#loading-spinner').removeClass('active');
             }
         });
@@ -163,4 +219,73 @@ $(function () {
         // Trigger search when any dropdown changes
         $('#type-filter, #status-filter, #categories-filter, #dist-type-filter').on('change', performSearch);
     });
+
+    // undo completion click
+    $(document).on('click', '.undo-completion', function () {
+
+        let url = $(this).data('url');
+        let itemName = $(this).data('item');
+        let qrCode = $(this).data('qr');
+        let scheduleDate = $(this).data('schedule');
+        let person = $(this).data('person');
+        let serviceTypeValue = $(this).data('type');
+
+        let serviceType = serviceTypeValue == 0
+            ? 'Maintenance'
+            : 'Installation';
+
+        Swal.fire({
+            title: "Undo completion?",
+            html: `
+        <div style="text-align:left">
+            <p><strong>Item:</strong> ${itemName}</p>
+            <p><strong>Service Type:</strong> ${serviceType}</p>
+            <p><strong>QR Code:</strong> ${qrCode}</p>
+            <p><strong>Schedule Date:</strong> ${scheduleDate}</p>
+            <p><strong>In-Charge:</strong> ${person}</p>
+        </div>
+        `,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#ffc107",
+            cancelButtonColor: "#6c757d",
+            confirmButtonText: "Yes, undo it",
+            width: '400px',
+        }).then((result) => {
+
+            if (result.isConfirmed) {
+
+                $('#loading-spinner').addClass('active');
+
+                $.post(url, {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                })
+                    .done(function (response) {
+
+                        // Add card if undo
+                        $('#cards-row').prepend(response.cards_html);
+                        // Update table
+                        $('#itemDistributions_table tbody').html(response.table_html);
+
+                        Swal.fire({
+                            icon: "success",
+                            title: "Updated!",
+                            text: response.message,
+                            timer: 1200,
+                            showConfirmButton: false,
+                            width: '400px',
+                            padding: '0.8rem'
+                        });
+                    })
+                    .fail(function (xhr) {
+                        Swal.fire("Error!", "Something went wrong.", "error");
+                        console.log(xhr.responseText);
+                    })
+                    .always(function () {
+                        $('#loading-spinner').removeClass('active');
+                    });
+            }
+        });
+    });
+
 })

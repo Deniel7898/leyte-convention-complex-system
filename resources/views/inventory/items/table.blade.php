@@ -8,19 +8,6 @@
         <p>{{ $item->name ?? '--' }}</p>
     </td>
     <td>
-        @if($item->type == 0)
-        <span class="badge bg-success-subtle text-success">Consumable</span>
-        @else
-        <span class="badge bg-primary-subtle text-primary">Non-Consumable</span>
-        @endif
-    </td>
-    <td>
-        <p>{{ $item->quantity ?? '--' }}</p>
-    </td>
-    <td>
-        <p>{{ $item->remaining ?? '--' }}</p>
-    </td>
-    <td>
         <p>{{ $item->unit->name ?? '--' }}</p>
     </td>
     <td>
@@ -31,6 +18,12 @@
             </svg>
             {{ $item->category->name ?? '--' }}
         </p>
+    </td>
+    <td>
+        <p>{{ $item->quantity ?? '--' }}</p>
+    </td>
+    <td>
+        <p>{{ $item->remaining ?? '--' }}</p>
     </td>
     <td>
         @if($item->is_available)
@@ -46,13 +39,58 @@
     <td>
         <p>{{ $item->description ?? '--' }}</p>
     </td>
+
+    <!-- Item Picture -->
     <td style="padding:0; margin:0; vertical-align:top; text-align:center">
         @if($item->picture)
-        <img src="{{ asset('storage/' . $item->picture) }}" alt="{{ $item->name }}" width="50">
+        <img src="{{ asset('storage/' . $item->picture) }}"
+            alt="{{ $item->name }}"
+            width="50"
+            class="clickable-img"
+            style="cursor: pointer;"
+            data-full="{{ asset('storage/' . $item->picture) }}">
         @else
         <span>No Image</span>
         @endif
     </td>
+
+    <!-- Fullscreen Overlay -->
+    <div id="imgLightbox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1050;">
+        <button id="imgLightboxClose" style="position:absolute; top:20px; right:20px; background:none;
+        border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+        <img id="imgLightboxImg" src="" style="max-width:90%; max-height:90%; border-radius:8px;">
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const clickableImgs = document.querySelectorAll('.clickable-img');
+            const lightbox = document.getElementById('imgLightbox');
+            const lightboxImg = document.getElementById('imgLightboxImg');
+            const closeBtn = document.getElementById('imgLightboxClose');
+
+            clickableImgs.forEach(img => {
+                img.addEventListener('click', () => {
+                    lightboxImg.src = img.dataset.full;
+                    lightbox.style.display = 'flex';
+                });
+            });
+
+            closeBtn.addEventListener('click', () => {
+                lightbox.style.display = 'none';
+                lightboxImg.src = '';
+            });
+
+            lightbox.addEventListener('click', (e) => {
+                if (e.target === lightbox) {
+                    lightbox.style.display = 'none';
+                    lightboxImg.src = '';
+                }
+            });
+        });
+    </script>
+    <!-- End Item Picture -->
+
     <td class="text-center">
         <a href="{{ route('viewItem.show', $item->id) }}"
             title="View Item"
@@ -82,6 +120,6 @@
 @endforeach
 @else
 <tr>
-    <td colspan="12" class="text-center text-muted text-danger">{{ __('No Items found.') }}</td>
+    <td colspan="12" class="text-center py-3">{{ __('No Items found.') }}</td>
 </tr>
 @endif

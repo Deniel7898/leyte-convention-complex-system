@@ -5,13 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Models\Item;
-use App\Models\InventoryConsumable;
-use App\Models\InventoryNonConsumable;
+use App\Models\Inventory;
 use App\Models\ItemDistribution;
+use App\Models\InventoryHistory;
 use App\Models\QR_Code;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 
 class ItemDistributionsController extends Controller
 {
@@ -21,116 +24,50 @@ class ItemDistributionsController extends Controller
     public function liveSearch(Request $request)
     {
         $searchTerm     = $request->input('query', '');
-        $typeFilter     = $request->input('type', null);
         $statusFilter   = $request->input('status', null);
         $categoryFilter = $request->input('category', null);
         $distTypeFilter = $request->input('dist_type', null);
 
         $distributions = $this->getItemDistributions();
 
-        // TEXT SEARCH 
         if ($searchTerm != '') {
-
             $searchLower = strtolower($searchTerm);
 
             $distributions = $distributions->filter(function ($dist) use ($searchTerm, $searchLower) {
+                if (!$dist->inventory || !$dist->inventory->item) return false;
 
-                if (!$dist->item) return false;
-
+                $item = $dist->inventory->item;
                 $match = false;
 
                 // Search item name
-                if (stripos($dist->item->name, $searchTerm) !== false) {
-                    $match = true;
-                }
+                if (stripos($item->name, $searchTerm) !== false) $match = true;
 
                 // Search unit
-                if (
-                    $dist->item->unit &&
-                    stripos($dist->item->unit->name, $searchTerm) !== false
-                ) {
-                    $match = true;
-                }
+                if ($item->unit && stripos($item->unit->name, $searchTerm) !== false) $match = true;
 
                 // Search category
-                if (
-                    $dist->item->category &&
-                    stripos($dist->item->category->name, $searchTerm) !== false
-                ) {
-                    $match = true;
-                }
+                if ($item->category && stripos($item->category->name, $searchTerm) !== false) $match = true;
 
                 // Search QR Code
-                if (
-                    $dist->qrCode &&
-                    stripos($dist->qrCode->code, $searchTerm) !== false
-                ) {
-                    $match = true;
-                }
+                if ($dist->inventory->qrCode && stripos($dist->inventory->qrCode->code, $searchTerm) !== false) $match = true;
 
-                // Search status
-                if (
-                    $dist->status &&
-                    stripos($dist->status, $searchTerm) !== false
-                ) {
-                    $match = true;
-                }
-
-                // Search description
-                if (
-                    $dist->description &&
-                    stripos($dist->description, $searchTerm) !== false
-                ) {
-                    $match = true;
-                }
-
-                // Search remarks
-                if (
-                    $dist->remarks &&
-                    stripos($dist->remarks, $searchTerm) !== false
-                ) {
-                    $match = true;
-                }
-
-                // Type keywords
-                if (in_array($searchLower, ['consumable', 'con']) && $dist->item->type == 0) {
-                    $match = true;
-                }
-
-                if (in_array($searchLower, ['non-consumable', 'non', 'non consumable']) && $dist->item->type == 1) {
-                    $match = true;
+                // Search status, description, remarks
+                foreach (['status', 'description', 'remarks'] as $field) {
+                    if (!empty($dist->$field) && stripos($dist->$field, $searchTerm) !== false) $match = true;
                 }
 
                 // Distribution type keywords
-                if (in_array($searchLower, ['distribution']) && $dist->type == 0) {
-                    $match = true;
-                }
+                if (in_array($searchLower, ['distribution']) && $dist->type == 0) $match = true;
+                if (in_array($searchLower, ['borrow', 'borrowed']) && $dist->type == 1) $match = true;
 
-                if (in_array($searchLower, ['borrow', 'borrowed']) && $dist->type == 1) {
-                    $match = true;
-                }
-
-                // Search Distribution date
-                if (!empty($dist->distribution_date) && $dist->distribution_date != '--') {
-                    try {
-                        $formattedReceived = Carbon::parse($dist->distribution_date)->format('M d, Y');
-                        if (stripos($formattedReceived, $searchTerm) !== false) {
-                            $match = true;
+                // Distribution date & due date
+                foreach (['distribution_date', 'due_date'] as $dateField) {
+                    if (!empty($dist->$dateField) && $dist->$dateField != '--') {
+                        try {
+                            $formatted = Carbon::parse($dist->$dateField)->format('M d, Y');
+                            if (stripos($formatted, $searchTerm) !== false) $match = true;
+                        } catch (\Exception $e) {
                         }
-                    } catch (\Exception $e) {
-                        // Ignore invalid dates
-                    }
-                }
-
-                // Search Due date
-                if (!empty($dist->due_date) && $dist->due_date != '--') {
-                    try {
-                        $formattedReceived = Carbon::parse($dist->due_date)->format('M d, Y');
-                        if (stripos($formattedReceived, $searchTerm) !== false) {
-                            $match = true;
-                        }
-                    } catch (\Exception $e) {
-                        // Ignore invalid dates
                     }
                 }
 
@@ -138,302 +75,576 @@ class ItemDistributionsController extends Controller
             });
         }
 
-        //TYPE FILTER (Consumable / Non-Consumable)
-        if (!empty($typeFilter) && !str_contains(strtolower($typeFilter), 'all')) {
-
-            $distributions = $distributions->filter(function ($dist) use ($typeFilter) {
-
-                if (!$dist->item) return false;
-
-                if (strtolower($typeFilter) === 'consumable') {
-                    return $dist->item->type == 0;
-                }
-
-                if (strtolower($typeFilter) === 'non-consumable') {
-                    return $dist->item->type == 1;
-                }
-
-                return true;
-            });
-        }
-
-        // STATUS FILTER
+        // Status Filter
         if (!empty($statusFilter) && !str_contains(strtolower($statusFilter), 'all')) {
-
             $statusLower = strtolower($statusFilter);
-
-            $distributions = $distributions->filter(function ($dist) use ($statusLower) {
-                return strtolower($dist->status) === $statusLower;
-            });
+            $distributions = $distributions->filter(fn($dist) => strtolower($dist->status) === $statusLower);
         }
 
-        // CATEGORY FILTER
+        // Category Filter
         if (!empty($categoryFilter) && strtolower($categoryFilter) !== 'all') {
-
-            $distributions = $distributions->filter(function ($dist) use ($categoryFilter) {
-
-                if (!$dist->item || !$dist->item->category) return false;
-
-                return $dist->item->category->id == $categoryFilter;
-            });
+            $distributions = $distributions->filter(fn($dist) => $dist->inventory->item->category->id == $categoryFilter ?? false);
         }
 
-        // DISTRIBUTION TYPE FILTER
         if (!empty($distTypeFilter) && !str_contains(strtolower($distTypeFilter), 'all')) {
-
             $distributions = $distributions->filter(function ($dist) use ($distTypeFilter) {
+                $filter = strtolower($distTypeFilter);
 
-                if (strtolower($distTypeFilter) === 'distribution') {
-                    return $dist->type == 0;
+                if ($filter === 'distribution') {
+                    return $dist->type === 'distributed';
+                } elseif ($filter === 'borrow') {
+                    return $dist->type === 'borrowed';
+                } elseif ($filter === 'issue') {
+                    return $dist->type === 'issued';
                 }
 
-                if (strtolower($distTypeFilter) === 'borrow') {
-                    return $dist->type == 1;
-                }
-
-                return true;
+                return true; // fallback: include all if no match
             });
         }
 
         $itemDistributions = $distributions->values();
-
         return view('item_distributions.table', compact('itemDistributions'));
     }
 
     /**
-     * Helper: Get all Item Distributions (Consumable + Non-Consumable)
+     * Helper: Get all Item Inventories
+     */
+    private function getInventories($perPage = 20)
+    {
+        $allItems = Item::with(['category', 'unit', 'inventories.qrCode'])->get()->map(function ($item) {
+
+            $item->inventory_type = $item->type === 'consumable' ? 'Consumable' : 'Non-Consumable';
+            $item->item_name = $item->name;
+
+            // Gather all QR codes linked to inventories
+            $qrCodes = $item->inventories->pluck('qrCode')->filter(); // removes nulls
+            $item->qrCodes = $qrCodes;
+            $item->received_date = $item->inventories->first()?->received_date ?? '--';
+
+            return $item;
+        })->sortByDesc('created_at')->values();
+
+        $currentPage = Paginator::resolveCurrentPage() ?: 1;
+        $currentItems = $allItems->slice(($currentPage - 1) * $perPage, $perPage)->values();
+
+        return new LengthAwarePaginator(
+            $currentItems,
+            $allItems->count(),
+            $perPage,
+            $currentPage,
+            ['path' => Paginator::resolveCurrentPath()]
+        );
+    }
+
+    /**
+     * Helper: Get all Item Distributions
      */
     private function getItemDistributions()
     {
-        $consumables = ItemDistribution::with([
-            'inventory_consumable.item.unit',
-            'inventory_consumable.item.category',
-            'inventory_consumable.qrCode'
+        return ItemDistribution::with([
+            'inventory.item.unit',
+            'inventory.item.category',
+            'inventory.qrCode',
         ])
-            ->whereHas('inventory_consumable')
             ->get()
-            ->map(function ($d) {
-
-                $d->item = $d->inventory_consumable->item ?? null;
-                $d->qrCode = $d->inventory_consumable->qrCode ?? null;
-                $d->item_type = 0;
-                $d->dist_type = $d->type;
-
-                return $d;
-            });
-
-        $nonConsumables = ItemDistribution::with([
-            'inventory_non_consumable.item.unit',
-            'inventory_non_consumable.item.category',
-            'inventory_non_consumable.qrCode'
-        ])
-            ->whereHas('inventory_non_consumable')
-            ->get()
-            ->map(function ($d) {
-
-                $d->item = $d->inventory_non_consumable->item ?? null;
-                $d->qrCode = $d->inventory_non_consumable->qrCode ?? null;
-                $d->item_type = 1;
-                $d->dist_type = $d->type;
-
-                return $d;
-            });
-
-        return $consumables
-            ->concat($nonConsumables)
             ->sortByDesc('created_at')
             ->values();
     }
 
     /**
-     * Display a listing of the resource.
+     * Index view
+     */
+    /**
+     * Index view
      */
     public function index()
     {
         $itemDistributions = $this->getItemDistributions();
         $categories = Category::all();
 
-        $itemDistributions_table = view('item_distributions.table', compact('itemDistributions'))->render();
-        return view('item_distributions.index', compact('itemDistributions_table', 'categories', 'itemDistributions'));
+        $itemDistributions_table = view('item_distributions.table', [
+            'itemDistributions' => $itemDistributions
+        ])->render();
+
+        return view('item_distributions.index', compact(
+            'itemDistributions',
+            'categories',
+            'itemDistributions_table'
+        ));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Create form
      */
+
     public function create(Request $request)
     {
-        $items = Item::with(['unit', 'inventoryConsumables', 'inventoryNonConsumables'])->get();
+        // 1️⃣ Get all items with inventories and unit
+        $items = Item::with(['unit', 'inventories.qrCode'])->get();
 
-        // Only pre-select if item_id is passed via request
+        // 2️⃣ Get categories
+        $categories = Category::all();
+
+        // 3️⃣ Fetch the selected item if item_id is provided
         $selectedItem = null;
+        $availableInventories = collect();
+        $selectedInventory = null; // <- THIS WILL HOLD the clicked inventory
+
         if ($request->has('item_id')) {
-            $selectedItem = $items->find($request->item_id);
+            $selectedItem = Item::with(['unit', 'inventories.qrCode'])->find($request->item_id);
+
+            if ($selectedItem) {
+                // Available inventories (you can filter by status if needed)
+                $availableInventories = $selectedItem->inventories;
+
+                // If inventory_id is passed from JS, use it as selectedInventory
+                if ($request->has('inventory_id')) {
+                    $selectedInventory = $selectedItem->inventories
+                        ->where('id', $request->inventory_id)
+                        ->first()?->id; // null-safe
+                }
+            }
         }
 
-        return view('item_distributions.form', compact('items', 'selectedItem'));
+        // 4️⃣ Quick flag
+        $quickAction = $request->has('quick') && $request->quick == 1;
+
+        // 5️⃣ Return view (or JSON for modal)
+        return view('item_distributions.form', compact(
+            'items',
+            'selectedItem',
+            'categories',
+            'quickAction',
+            'availableInventories',
+            'selectedInventory'
+        ));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $request->validate([
-            'type' => 'required|in:0,1',
-            'inventory_ids' => 'required|array|min:1',
-            'inventory_ids.*' => 'string',
-            'status' => 'required|string|max:255', // use the form value
-            'description' => 'nullable|string',
+            'type' => 'required|in:distributed,borrowed,issued',
+            'item_id' => 'required|exists:items,id',
+            'inventory_ids' => 'nullable|array',
+            'inventory_ids.*' => 'nullable|uuid|exists:inventories,id',
+            'quantity' => 'nullable|integer|min:1',
             'distribution_date' => 'nullable|date',
             'due_date' => 'nullable|date',
+            'notes' => 'nullable|string',
+            'department_or_borrower' => 'required|string|max:255',
+            'page' => 'nullable|string',
         ]);
 
-        DB::transaction(function () use ($request) {
+        $item = Item::findOrFail($request->item_id);
 
-            $totalItems = count($request->inventory_ids); // total items in this transaction
-            $transactionId = Str::uuid(); // new transaction id for this batch
+        DB::transaction(function () use ($request, $item) {
 
-            foreach ($request->inventory_ids as $inventoryId) {
+            $type = $request->type;
 
-                // Check if consumable
-                $consumable = InventoryConsumable::find($inventoryId);
-                if ($consumable) {
-                    ItemDistribution::create([
-                        'type' => $request->type,
-                        'description' => $request->description,
-                        'quantity' => $totalItems, // <-- dynamic quantity
-                        'distribution_date' => $request->distribution_date ?? now(),
-                        'due_date' => $request->due_date,
-                        'status' => $request->status,
-                        'inventory_consumable_id' => $consumable->id,
-                        'transaction_id' => $transactionId, // <-- assign transaction id
-                        'created_by' => auth()->id(),
-                        'updated_by' => auth()->id(),
+            // Map type → status
+            $status = match ($type) {
+                'distributed' => 'completed',
+                'issued'      => 'issued',
+                'borrowed'    => 'borrowed',
+                default       => $request->status,
+            };
+
+            $department = $request->department_or_borrower ?? 'Unknown';
+
+            if ($item->type === 'consumable') {
+                $quantity = $request->quantity ?? 1;
+
+                if ($quantity > $item->remaining) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'quantity' => ['The requested quantity exceeds available stock.'],
                     ]);
-                    continue;
                 }
 
+                ItemDistribution::create([
+                    'transaction_id' => Str::uuid(),
+                    'type' => $request->type,
+                    'quantity' => $quantity,
+                    'distribution_date' => $request->distribution_date ?? now(),
+                    'due_date' => $request->due_date,
+                    'status' => $status,
+                    'item_id' => $item->id,
+                    'inventory_id' => null,
+                    'department_or_borrower' => $department,
+                    'notes' => $request->notes,
+                    'created_by' => Auth::id(),
+                    'updated_by' => Auth::id(),
+                ]);
+
+                $item->decrement('remaining', $quantity);
+                $item->decrement('total_stock', $quantity);
+                $distributedCount = $quantity;
+            } else {
                 // Non-consumable
-                $nonConsumable = InventoryNonConsumable::find($inventoryId);
-                if ($nonConsumable) {
+                $availableInventories = $item->inventories->filter(function ($inv) {
+                    $excludedStatuses = ['borrowed'];
+                    $serviceExcluded = ['maintenance', 'repair', 'installation'];
+                    return !in_array(strtolower($inv->status ?? ''), $excludedStatuses)
+                        && !in_array(strtolower($inv->service_status ?? ''), $serviceExcluded);
+                });
+
+                $inventoryIds = $request->inventory_ids ?? $availableInventories->pluck('id')->toArray();
+
+                if (empty($inventoryIds)) {
+                    throw new \Exception("No available inventories to distribute.");
+                }
+
+                foreach ($inventoryIds as $invId) {
+                    $inventory = Inventory::findOrFail($invId);
+
                     ItemDistribution::create([
+                        'transaction_id' => Str::uuid(),
                         'type' => $request->type,
-                        'description' => $request->description,
-                        'quantity' => $totalItems, // <-- dynamic quantity
+                        'quantity' => 1,
                         'distribution_date' => $request->distribution_date ?? now(),
                         'due_date' => $request->due_date,
-                        'status' => $request->status,
-                        'inventory_non_consumable_id' => $nonConsumable->id,
-                        'transaction_id' => $transactionId, // <-- assign transaction id
-                        'created_by' => auth()->id(),
-                        'updated_by' => auth()->id(),
+                        'status' => $status,
+                        'item_id' => $item->id,
+                        'inventory_id' => $inventory->id,
+                        'department_or_borrower' => $department,
+                        'notes' => $request->notes,
+                        'created_by' => Auth::id(),
+                        'updated_by' => Auth::id(),
+                    ]);
+
+                    $inventory->update([
+                        'status' => $request->type,
+                        'holder' => $department,
+                        'date_assigned' => now(),
+                        'due_date' => $request->due_date,
+                        'notes' => $request->notes,
                     ]);
                 }
+
+                $item->decrement('remaining', count($inventoryIds));
+                $distributedCount = count($inventoryIds);
             }
+
+            // Log history
+            InventoryHistory::create([
+                'item_id' => $item->id,
+                'action' => $request->type,
+                'quantity' => $distributedCount,
+                'notes' => $request->notes,
+                'created_by' => Auth::id(),
+                'updated_by' => Auth::id(),
+            ]);
         });
 
-        // Get all distributions with inventory -> item
-        $itemDistributions = $this->getItemDistributions();
+        $item->refresh();
 
-        return response()->json([
-            'html' => view('item_distributions.table', compact('itemDistributions'))->render(),
-            'message' => 'New Distirbution added successfully',
-        ]);
+        // Response based on page
+        if ($request->page === 'items') {
+            $item->load('unit', 'category', 'inventories.qrCode');
+
+            $history = InventoryHistory::where('item_id', $item->id)
+                ->with(['creator', 'updater'])
+                ->orderByDesc('created_at')
+                ->get();
+
+            // Return the non-consumable table partial
+            $nonConsumableTableHtml = view('inventory.items.non_consumable_table', compact('item'))->render();
+
+            return response()->json([
+                'item_card_html'           => view('inventory.items.item_card', compact('item'))->render(),
+                'history_table_html'       => view('inventory.items.history_table', compact('item', 'history'))->render(),
+                'non_consumable_table_html' => $nonConsumableTableHtml,
+                'item_id'                  => $item->id,
+                'message'                  => 'Distribution added successfully'
+            ]);
+        } elseif ($request->page === 'inventory') {
+            $inventories = $this->getInventories();
+            return response()->json([
+                'table_html' => view('inventory.inventory.table', compact('inventories'))->render(),
+                'message'    => 'Inventory updated successfully',
+            ]);
+        }
     }
 
     /**
-     * Display the specified resource.
+     * Show distribution
      */
     public function show(string $id)
     {
-        //
+        $itemDistribution = ItemDistribution::with(['inventory.item.unit', 'inventory.item.category'])->findOrFail($id);
+        $items = Item::with(['unit', 'inventories'])->get();
+        $selectedItem = $itemDistribution->inventory->item ?? null;
+
+        return view('item_distributions.view', compact('items', 'selectedItem', 'itemDistribution'));
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Edit distribution
      */
     public function edit(string $id)
     {
-        $itemDistribution = ItemDistribution::with([
-            'inventory_consumable',
-            'inventory_non_consumable'
-        ])->findOrFail($id);
+        $itemDistribution = ItemDistribution::with(['inventory.item.unit', 'inventory.item.category'])->findOrFail($id);
+        $items = Item::with(['unit', 'inventories'])->get();
+        $categories = Category::all();
+        $selectedItem = $itemDistribution->inventory->item ?? null;
 
-        $items = Item::with(['unit', 'inventoryConsumables', 'inventoryNonConsumables'])->get();
-
-        // Set the selected item based on the distribution
-        $selectedItem = $itemDistribution->inventory_consumable
-            ? $itemDistribution->inventory_consumable->item
-            : ($itemDistribution->inventory_non_consumable
-                ? $itemDistribution->inventory_non_consumable->item
-                : null);
-
-        return view('item_distributions.form', compact('items', 'selectedItem', 'itemDistribution'));
+        return view('item_distributions.form', compact('items', 'selectedItem', 'itemDistribution', 'categories'));
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update distribution
      */
     public function update(Request $request, string $id)
     {
         $request->validate([
-            'type' => 'required|in:0,1',
-            'inventory_ids' => 'required|array|min:1',
-            'inventory_ids.*' => 'string',
-            'status' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'type' => 'required|in:distributed,issued,borrowed',
+            'inventory_ids' => 'nullable|array',
+            'inventory_ids.*' => 'nullable|uuid|exists:inventories,id',
+            'quantity' => 'nullable|integer|min:1',
+            'department_or_borrower' => 'required|string|max:255',
             'distribution_date' => 'nullable|date',
             'due_date' => 'nullable|date',
+            'notes' => 'nullable|string',
+            'status' => 'nullable|in:completed,borrowed,returned',
         ]);
 
-        DB::transaction(function () use ($request, $id) {
+        $distribution = ItemDistribution::findOrFail($id);
+        $item = $distribution->item;
 
-            $existingDistribution = ItemDistribution::findOrFail($id);
+        DB::transaction(function () use ($request, $distribution, $item) {
+            $type = $request->type;
+            $status = $request->status ?? match ($type) {
+                'distributed' => 'completed',
+                'issued' => 'issued',
+                'borrowed' => 'borrowed',
+            };
 
-            // Determine inventory type
-            $inventoryId = $request->inventory_ids[0]; // Only updating single inventory for edit
-            $consumable = InventoryConsumable::find($inventoryId);
-            $nonConsumable = InventoryNonConsumable::find($inventoryId);
+            if ($item->type === 'consumable') {
+                // Revert old distributed quantity
+                $item->increment('remaining', $distribution->quantity);
 
-            $existingDistribution->update([
-                'type' => $request->type,
-                'description' => $request->description,
-                'quantity' => 1,
-                'distribution_date' => $request->distribution_date ?? now(),
-                'due_date' => $request->due_date,
-                'status' => $request->status,
-                'inventory_consumable_id' => $consumable->id ?? null,
-                'inventory_non_consumable_id' => $nonConsumable->id ?? null,
-                'updated_by' => auth()->id(),
-            ]);
+                $quantity = $request->quantity ?? $distribution->quantity;
+
+                if ($quantity > $item->remaining) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'quantity' => ['Requested quantity exceeds available stock.'],
+                    ]);
+                }
+
+                // Subtract the new quantity
+                $item->decrement('remaining', $quantity);
+
+                // Update the distribution record
+                $distribution->update([
+                    'type' => $type,
+                    'quantity' => $quantity,
+                    'status' => $status,
+                    'department_or_borrower' => $request->department_or_borrower,
+                    'distribution_date' => $request->distribution_date ?? now(),
+                    'due_date' => $request->due_date,
+                    'notes' => $request->notes,
+                    'updated_by' => Auth::id(),
+                ]);
+            } else {
+                // Non-consumable: update inventories
+                $inventoryIds = $request->inventory_ids ?? [$distribution->inventory_id];
+
+                foreach ($inventoryIds as $invId) {
+                    $inventory = Inventory::findOrFail($invId);
+
+                    $distribution->update([
+                        'type' => $type,
+                        'inventory_id' => $inventory->id,
+                        'status' => $status,
+                        'department_or_borrower' => $request->department_or_borrower,
+                        'distribution_date' => $request->distribution_date ?? now(),
+                        'due_date' => $request->due_date,
+                        'notes' => $request->notes,
+                        'updated_by' => Auth::id(),
+                        'quantity' => 1,
+                    ]);
+
+                    $inventory->update([
+                        'status' => $type,
+                        'holder' => $request->department_or_borrower,
+                        'date_assigned' => now(),
+                        'due_date' => $request->due_date,
+                        'notes' => $request->notes,
+                    ]);
+                }
+
+                // Update remaining count for item
+                $item->decrement('remaining', count($inventoryIds));
+            }
         });
 
-        // Return updated table with all distributions
-        $itemDistributions = $this->getItemDistributions();
+        $itemDistributions = ItemDistribution::latest()->get();
 
         return response()->json([
-            'html' => view('item_distributions.table', compact('itemDistributions'))->render(),
-            'message' => 'Distribution updated successfully',
+            'distribution_id' => $distribution->id, // must match <div id="distribution-card-{{ $item->id }}">
+            'cards_html' => view('item_distributions.card', ['item' => $distribution])->render(), // pass the correct variable
+            'table_html' => view('item_distributions.table', ['itemDistributions' => $itemDistributions])->render(),
+            'message' => 'Item returned/updated successfully!',
         ]);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Mark as returned
      */
-    public function destroy(string $id)
+    public function return($id)
     {
-        // Find the distribution
-        $itemDistribution = ItemDistribution::find($id);
+        $itemDistribution = ItemDistribution::findOrFail($id);
+        $itemDistribution->update([
+            'status' => 'returned',
+            'updated_by' => Auth::id(),
+        ]);
 
-        // Delete the distribution
-        $itemDistribution->delete();
-
-        // Return updated table with all distributions
         $itemDistributions = $this->getItemDistributions();
 
         return response()->json([
-            'html' => view('item_distributions.table', compact('itemDistributions'))->render(),
-            'message' => 'Item Distribution deleted successfully.',
+            'distribution_html' => view('item_distributions.table', compact('itemDistributions'))->render(),
+            'message' => 'Return recorded successfully.',
+        ]);
+    }
+
+    /**
+     * Delete distribution
+     */
+    public function destroy(string $id)
+    {
+        $distribution = ItemDistribution::findOrFail($id);
+        $distribution->delete();
+
+        $itemDistributions = ItemDistribution::latest()->get();
+
+        return response()->json([
+            'distribution_id' => $distribution->id, // must match <div id="distribution-card-{{ $item->id }}">
+            'table_html' => view('item_distributions.table', ['itemDistributions' => $itemDistributions])->render(),
+            'message' => 'Item returned/updated successfully!',
+        ]);
+    }
+
+    public function showReturnForm($id)
+    {
+        $distribution = ItemDistribution::with('inventory.item', 'inventory.qrCode')->findOrFail($id);
+        return view('item_distributions.return_form', compact('distribution'));
+    }
+
+    public function returnItem(Request $request, $id)
+    {
+        // Validate request
+        $request->validate([
+            'returned_date' => 'required|date',
+            'notes' => 'nullable|string',
+            'type' => 'nullable',
+            'status' => 'nullable',
+            'item_id' => 'nullable',
+            'department_or_borrower' => 'nullable|string',
+            'page' => 'nullable|string',
+        ]);
+
+        // Find the item distribution
+        $distribution = ItemDistribution::with('inventory.item')->findOrFail($id);
+        $item = $distribution->inventory->item ?? null;
+        $inventory = $distribution->inventory;
+
+        // Update the record
+        $distribution->update([
+            'returned_date' => $request->returned_date,
+            'notes' => $request->notes,
+            'status' => 'returned',
+            'item_id' => $request->item_id ?? $distribution->item_id,
+            'department_or_borrower' => $request->department_or_borrower ?? $distribution->department_or_borrower,
+            'updated_by' => Auth::id(),
+        ]);
+
+        // Reset inventory status
+        if ($inventory) {
+            // Increment remaining on the inventory item
+            if ($item) {
+                $item->increment('remaining', 1); // increment remaining by 1
+            }
+
+            // Reset status
+            $inventory->update([
+                'status' => 'available',
+            ]);
+        }
+
+        // Optional: log history
+        if ($distribution->inventory && $distribution->inventory->item) {
+            InventoryHistory::create([
+                'item_id' => $distribution->inventory->item->id,
+                'action' => 'returned',
+                'quantity' => 1,
+                'notes' => $request->notes ?? 'Returned item',
+                'created_by' => Auth::id(),
+                'updated_by' => Auth::id(),
+            ]);
+        }
+
+        // Response based on page
+        if ($request->page === 'items') {
+            $item->load('unit', 'category', 'inventories.qrCode');
+
+            $history = InventoryHistory::where('item_id', $item->id)
+                ->with(['creator', 'updater'])
+                ->orderByDesc('created_at')
+                ->get();
+
+            // Return the non-consumable table partial
+            $nonConsumableTableHtml = view('inventory.items.non_consumable_table', compact('item'))->render();
+
+            return response()->json([
+                'item_card_html'           => view('inventory.items.item_card', compact('item'))->render(),
+                'history_table_html'       => view('inventory.items.history_table', compact('item', 'history'))->render(),
+                'non_consumable_table_html' => $nonConsumableTableHtml,
+                'item_id'                  => $item->id,
+                'message'                  => 'Distribution added successfully'
+            ]);
+        } else if ($request->page === 'item-distributions') { // Refresh the item distributions table
+            $itemDistributions = ItemDistribution::latest()->get();
+
+            return response()->json([
+                'distribution_id' => $distribution->id, // must match <div id="distribution-card-{{ $item->id }}">
+                'cards_html' => view('item_distributions.card', ['item' => $distribution])->render(), // pass the correct variable
+                'table_html' => view('item_distributions.table', ['itemDistributions' => $itemDistributions])->render(),
+                'message' => 'Item returned/updated successfully!',
+            ]);
+        }
+    }
+
+    public function undoCompletion(string $id)
+    {
+        $record = ItemDistribution::findOrFail($id);
+
+        // Determine the original status based on the type
+        $originalStatus = match ($record->type) {
+            'distributed' => 'completed',  // distributed → completed
+            'issued'      => 'issued',     // issued → issued
+            'borrowed'    => 'borrowed',   // borrowed → borrowed
+            default       => $record->status, // fallback
+        };
+
+        $record->update([
+            'status'         => $originalStatus,
+            'completed_date' => null,
+            'updated_by'     => Auth::id(),
+        ]);
+
+        Inventory::where('id', $record->inventory_id)
+            ->update(['status' => $record->type]);
+
+        $item_distributions = ItemDistribution::with([
+            'inventory.item.unit',
+            'inventory.item.category',
+            'inventory.qrCode'
+        ])->latest()->get();
+
+        return response()->json([
+            'record_id'  => $record->id,
+            'cards_html' => view('item_distributions.card', ['record' => $record])->render(),
+            'table_html' => view('item_distributions.table', compact('item_distributions'))->render(),
+            'message'    => 'Service completion undone successfully',
         ]);
     }
 }

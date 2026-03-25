@@ -7,52 +7,43 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ItemDistribution extends Model
 {
-    protected $table = 'item_distributions';
-
     use SoftDeletes;
+
+    protected $table = 'item_distributions';
 
     protected $fillable = [
         'transaction_id',
-        'item_id',
         'type',
-        'description',
+        'item_id',
+        'inventory_id',
         'quantity',
+        'department_or_borrower',
         'distribution_date',
         'due_date',
         'returned_date',
         'status',
-        'inventory_consumable_id',
-        'inventory_non_consumable_id',
+        'notes',
         'created_by',
         'updated_by',
     ];
 
-    public function inventory_consumable()
+    // Unified Inventory relationship
+    public function inventory()
     {
-        return $this->belongsTo(InventoryConsumable::class, 'inventory_consumable_id');
+        return $this->belongsTo(Inventory::class, 'inventory_id');
     }
 
-    public function inventory_non_consumable()
-    {
-        return $this->belongsTo(InventoryNonConsumable::class, 'inventory_non_consumable_id');
-    }
-
+    // Original Item relationship
     public function item()
     {
-        if ($this->inventory_consumable_id) {
-            return $this->belongsTo(InventoryConsumable::class, 'inventory_consumable_id')
-                ->withDefault(function ($consumable) {
-                    $consumable->item = null;
-                });
-        }
+        return $this->belongsTo(Item::class, 'item_id');
+    }
 
-        if ($this->inventory_non_consumable_id) {
-            return $this->belongsTo(InventoryNonConsumable::class, 'inventory_non_consumable_id')
-                ->withDefault(function ($nonConsumable) {
-                    $nonConsumable->item = null;
-                });
-        }
-
-        return $this->belongsTo(Item::class, 'id')->withDefault();
+    /**
+     * Created by user
+     */
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

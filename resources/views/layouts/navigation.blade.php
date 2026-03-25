@@ -45,8 +45,8 @@
         </a>
     </li>
 
-    <li class="nav-item @if(collect(['purchase-requests.*'])->contains(fn($pattern) => request()->routeIs($pattern))) active @endif">
-        <a href="{{ route('purchase-requests.index') }}" title="{{ __('Purchase Request') }}">
+    <li class="nav-item ">
+        <a href="{{ route('purchase_request.index') }}" title="{{ __('Purchase Request') }}">
             <span class="icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-cart2" viewBox="0 0 16 16">
                     <path d="M0 2.5A.5.5 0 0 1 .5 2H2a.5.5 0 0 1 .485.379L2.89 4H14.5a.5.5 0 0 1 .485.621l-1.5 6A.5.5 0 0 1 13 11H4a.5.5 0 0 1-.485-.379L1.61 3H.5a.5.5 0 0 1-.5-.5M3.14 5l1.25 5h8.22l1.25-5zM5 13a1 1 0 1 0 0 2 1 1 0 0 0 0-2m-2 1a2 2 0 1 1 4 0 2 2 0 0 1-4 0m9-1a1 1 0 1 0 0 2 1 1 0 0 0 0-2m-2 1a2 2 0 1 1 4 0 2 2 0 0 1-4 0" />
@@ -82,20 +82,6 @@
             </a>
             <ul id="ddmenu_1" data-bs-parent="#sidebarAccordion" class="dropdown-nav collapse mt-1 ps-4 @if(collect(['qr_codes.*','categories.*','units.*'])->contains(fn($pattern) => request()->routeIs($pattern))) show @endif">
                 <li>
-                    <a href="{{ route('qr_codes.index') }}" title="{{ __('QR Codes & Labels') }}" class="@if(request()->routeIs('qr_codes.*')) active @endif">
-                        <span class="icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-qr-code" viewBox="0 0 16 16">
-                                <path d="M2 2h2v2H2z" />
-                                <path d="M6 0v6H0V0zM5 1H1v4h4zM4 12H2v2h2z" />
-                                <path d="M6 10v6H0v-6zm-5 1v4h4v-4zm11-9h2v2h-2z" />
-                                <path d="M10 0v6h6V0zm5 1v4h-4V1zM8 1V0h1v2H8v2H7V1zm0 5V4h1v2zM6 8V7h1V6h1v2h1V7h5v1h-4v1H7V8zm0 0v1H2V8H1v1H0V7h3v1zm10 1h-1V7h1zm-1 0h-1v2h2v-1h-1zm-4 0h2v1h-1v1h-1zm2 3v-1h-1v1h-1v1H9v1h3v-2zm0 0h3v1h-2v1h-1zm-4-1v1h1v-2H7v1z" />
-                                <path d="M7 12h1v3h4v1H7zm9 2v2h-3v-1h2v-1z" />
-                            </svg>
-                        </span>
-                        <span class="text">{{ __('QR Codes & Labels') }}</span>
-                    </a>
-                </li>
-                <li>
                     <a href="{{ route('categories.index') }}" title="{{ __('Categories') }}" class="@if(request()->routeIs('categories.*')) active @endif">
                         <span class="icon">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-tag" viewBox="0 0 16 16">
@@ -119,6 +105,7 @@
             </ul>
         </li>
 
+        @if(auth()->check() && auth()->user()->role == 'admin')
         <li class="nav-item @if(request()->routeIs('users.index')) active @endif">
             <a href="{{ route('users.index') }}" title="{{ __('Users') }}">
                 <span class="icon">
@@ -129,6 +116,7 @@
                 <span class="text">{{ __('Users') }}</span>
             </a>
         </li>
+        @endif
 
         <!-- Divider -->
         <hr class="mt-4 border-light opacity-50">

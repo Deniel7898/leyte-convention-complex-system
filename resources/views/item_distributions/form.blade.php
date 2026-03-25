@@ -1,269 +1,267 @@
-<form action="{{ isset($itemDistribution) ? route('item_distributions.update', $itemDistribution->id) : route('item_distributions.store') }}"
-    method="POST"
-    enctype="multipart/form-data">
+    <form action="{{ isset($itemDistribution) ? route('item_distributions.update', $itemDistribution->id) : route('item_distributions.store') }}"
+        method="POST" enctype="multipart/form-data" id="itemDistributionForm">
+        @csrf
+        @if(isset($itemDistribution))
+        @method('PUT')
+        @endif
 
-    @csrf
-    @if(isset($itemDistribution))
-    @method('PUT')
-    @endif
+        <div class="modal-header" style="background-color: rgb(43, 45, 87);">
+            <h5 class="modal-title text-white">{{ isset($itemDistribution) ? 'Edit' : 'New' }} Distribution</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
 
-    <div class="modal-header" style="background-color: rgb(43, 45, 87);">
-        <h5 class="modal-title text-white">{{ isset($itemDistribution) ? 'Edit' : 'New' }} Distribution</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-    </div>
+        <div class="p-4 bg-white rounded shadow-sm">
+            <!-- Hidden input for current page segment -->
+            <input type="hidden" name="page" id="currentPageInput" value="{{ request()->segment(1) ?? 'inventory' }}">
 
-    <div class="modal-body">
+            <!-- Hidden input for service ID -->
+            <input type="hidden" name="distribution_id" value="{{ $itemDistribution->id ?? '' }}">
 
-        <div class="row">
-            <!-- Select Item -->
-            @if(!isset($itemDistribution))
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Select Item</label>
-                <select
-                    id="itemSelect"
-                    class="form-select"
-                    {{ isset($itemDistribution) ? 'disabled' : 'required' }}
-                    name="{{ isset($itemDistribution) ? '' : 'item_id' }}">
+            <div class="row">
+                <!-- Item Name & Available Stock -->
+                <div class="col-md-6 mb-1">
+                    <label class="form-label fw-bold">Item</label>
 
-                    <option value="">-- Select Item --</option>
+                    @if(isset($selectedItem))
+                    <input type="text" class="form-control text-muted"
+                        value="{{ old('item_name', $selectedItem->name ?? $inventory->item->name ?? '') }}"
+                        readonly>
+                    <small class="text-muted">
+                        Available: {{ $selectedItem->remaining ?? $inventory->item->remaining ?? 0 }}
+                    </small>
+                    <input type="hidden" name="item_id" value="{{ $selectedItem->id ?? $inventory->item->id ?? '' }}">
+                    @else
+                    <select class="form-select" name="item_id" id="itemSelect" required>
+                        <option value="">-- Select an item --</option>
+                        @foreach($items as $item)
+                        <option value="{{ $item->id }}"
+                            data-type="{{ $item->type }}"
+                            data-remaining="{{ $item->remaining }}">
+                            {{ $item->name }} (Available: {{ $item->remaining }})
+                        </option>
+                        @endforeach
+                    </select>
+                    @endif
+                </div>
 
-                    @foreach($items as $item)
-                    <option value="{{ $item->id }}"
-                        data-type="{{ $item->type }}"
-                        data-unit="{{ $item->unit->name ?? 'N/A' }}"
-                        data-quantity="{{ $item->quantity }}"
-                        data-consumables='@json($item->inventoryConsumables->map(fn($c) => ["id" => $c->id, "qrCode" => optional($c->qrCode)->code]))'
-                        data-nonconsumables='@json($item->inventoryNonConsumables->map(fn($nc) => ["id" => $nc->id, "qrCode" => optional($nc->qrCode)->code]))'>
-                        {{ $item->name }}
-                    </option>
-                    @endforeach
-                </select>
-
-                <small class="text-muted">
-                    Selecting an item will load its available units.
-                </small>
+                <!-- Type -->
+                @if(($selectedItem->type ?? '') !== 'consumable')
+                <div class="col-md-6 mb-1" id="typeWrapper">
+                    <label class="form-label">Select type</label>
+                    <select class="form-select" name="type" id="itemDistribution-type" required>
+                        <option value="">-- Select type --</option>
+                        {{-- Hide Distributed for non-consumables --}}
+                        <option value="distributed" style="display:none;"
+                            @if(isset($itemDistribution) && $itemDistribution->type == 'distributed') selected @endif>
+                            Distributed
+                        </option>
+                        <option value="borrowed" @if(isset($itemDistribution) && $itemDistribution->type == 'borrowed') selected @endif>
+                            Borrowed
+                        </option>
+                        <option value="issued" @if(isset($itemDistribution) && $itemDistribution->type == 'issued') selected @endif>
+                            Issued
+                        </option>
+                    </select>
+                </div>
+                @else
+                <input type="hidden" name="type" value="distributed">
+                @endif
             </div>
-            @else
-            <div class="col-md-6 mb-3">
-                <label for="item-name" class="form-label">Item Name</label>
-                <input type="text" class="form-control" id="item-name" name="name" value="{{ $selectedItem->name ?? '' }}" required readonly>
+
+            <!-- Quantity (for consumables) -->
+            @if(($selectedItem->type ?? '') === 'consumable')
+            <div class="mb-3" id="quantityWrapper">
+                <label class="form-label">Enter quantity</label>
+                <input
+                    type="number"
+                    class="form-control"
+                    name="quantity"
+                    id="distributionQuantity"
+                    value=""
+                    min="1"
+                    max="{{ $selectedItem->remaining }}"
+                    placeholder="Enter quantity"
+                    required
+                    @if($selectedItem->remaining <= 0) disabled @endif>
             </div>
             @endif
 
-            <!-- Type -->
-            @if(!isset($itemDistribution))
-            <div class="col-md-6 mb-3">
-                <label for="itemDistribution-type" class="form-label">Distribution Type</label>
-                <select class="form-select" id="itemDistribution-type" name="type" required>
-                    <option value="">Select type</option>
-                    <option value="0" {{ (isset($selectedItem) && $selectedItem->type == 0) ? 'selected' : '' }}>Distribution</option>
-                    <option value="1" {{ (isset($selectedItem) && $selectedItem->type == 1) ? 'selected' : '' }}>Borrow</option>
-                </select>
+            <!-- Units Table (for non-consumables) -->
+            @php
+            $availableInventories = collect(); // default empty collection
+
+            if ($selectedItem && $selectedItem->inventories) {
+            $availableInventories = $selectedItem->inventories->filter(function($inv) {
+            $hasActiveService = $inv->serviceRecords
+            ->whereIn('status', ['scheduled','in progress'])
+            ->count() > 0;
+
+            $hasDistributedOrIssued = $inv->itemDistributions
+            ->whereIn('type', ['distributed'])
+            ->count() > 0;
+
+            // Check if status is borrowed or issued
+            $status = strtolower($inv->status ?? '');
+            $isBorrowedOrIssued = in_array($status, ['borrowed', 'issued']);
+
+            return !$hasActiveService && !$hasDistributedOrIssued && !$isBorrowedOrIssued;
+            });
+            }
+
+            $inventoriesCount = $availableInventories->count();
+            $singleInventory = $inventoriesCount === 1 ? $availableInventories->first() : null;
+
+            // Only show units table if more than one inventory is available
+            $showUnitsTable = ($selectedItem->type ?? '') !== 'consumable' && $inventoriesCount > 0 && !empty($selectedItem) && optional($selectedItem->inventories)->count() > 0 && empty($quickAction);
+            @endphp
+
+            @if($showUnitsTable)
+            <div class="mb-3" id="unitsSection">
+                <label class="form-label fw-bold">Select Units</label>
+                <div class="border rounded shadow-sm" style="max-height: 200px; overflow-y:auto; background-color:#f9f9f9;">
+                    <table class="table table-sm mb-0 text-center align-middle">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th>#</th>
+                                <th>Item Name</th>
+                                <th>QR Code</th>
+                                <th>
+                                    <input type="checkbox" id="selectAllUnits" title="Select/Deselect All">
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @php $counter = 1; @endphp
+
+                            @forelse($availableInventories as $inventory)
+                            <tr>
+                                <td>{{ $counter++ }}</td>
+                                <td>{{ $selectedItem->name }}</td>
+                                <td>{{ $inventory->qrCode->code ?? 'N/A' }}</td>
+                                <td>
+                                    @if(isset($selectedInventory) && $inventory->id == $selectedInventory)
+                                    <input type="hidden" name="inventory_ids[]" value="{{ $inventory->id }}">
+                                    <span class="text-success">Auto-selected</span>
+                                    @else
+                                    <input type="checkbox" class="unitCheckbox" name="inventory_ids[]" value="{{ $inventory->id }}">
+                                    @endif
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="4">No available units</td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            @else
-            <div class="col-md-6 mb-3">
-                <label for="itemDistribution-type" class="form-label">Distribution Type</label>
-                <input type="text" class="form-control" value="{{ $itemDistribution->type == 0 ? 'Distribution' : 'Borrow' }}" readonly>
-                <input type="hidden" name="type" value="{{ $itemDistribution->type }}">
-            </div>
+            @elseif(isset($selectedInventory))
+            <input type="hidden" name="inventory_ids[]" value="{{ $selectedInventory }}">
             @endif
-        </div>
-        <div class="row">
-            <!-- Distribution Date -->
-            <div class="col-md-6 mb-3">
-                <label for="distribution-date" class="form-label">Distribution Date</label>
-                <input type="date" class="form-control" id="distribution-date" name="distribution_date"
-                    value="{{ isset($itemDistribution) ? $itemDistribution->distribution_date : date('Y-m-d') }}">
+
+            <div class="row">
+                <!-- Department / Borrower -->
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Department or Borrower</label>
+                    <input type="text" class="form-control" name="department_or_borrower"
+                        value="{{ old('department_or_borrower', $itemDistribution->department_or_borrower ?? '') }}"
+                        placeholder="Enter department or borrower name" required>
+                </div>
+
+                <!-- Distribution Date -->
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Distribution Date</label>
+                    <input type="date" class="form-control" name="distribution_date"
+                        value="{{ old('distribution_date', $itemDistribution->distribution_date ?? date('Y-m-d')) }}">
+                </div>
             </div>
 
-            <!-- Distribution Status -->
-            <div class="col-md-6 mb-3">
-                <label for="distribution-status" class="form-label">Status</label>
-
-                @php
-                $type = isset($itemDistribution) ? $itemDistribution->type : (isset($selectedItem) ? $selectedItem->type : null);
-                $currentStatus = $itemDistribution->status ?? null;
-
-                $statusOptions = [
-                'distributed' => 'Distributed',
-                'borrowed' => 'Borrow',
-                'partial' => 'Partial',
-                'pending' => 'Pending',
-                'returned' => 'Returned',
-                'received' => 'Received',
-                ];
-
-                $filteredOptions = [];
-
-                if ($type === null) {
-                $filteredOptions = $statusOptions; // adding new
-                } elseif ($type == 0) { // Distribution
-                $filteredOptions = collect($statusOptions)
-                ->except(['borrowed','returned','received'])
-                ->toArray();
-                } elseif ($type == 1) { // Borrow
-                $filteredOptions = collect($statusOptions)
-                ->except(['distributed','partial','pending'])
-                ->toArray();
-                }
-
-                // Ensure current status is always included
-                if ($currentStatus && !isset($filteredOptions[$currentStatus])) {
-                $filteredOptions[$currentStatus] = $statusOptions[$currentStatus];
-                }
-                @endphp
-
-                <select class="form-select" id="distribution-status" name="status" required>
-                    <option value="" disabled {{ !$currentStatus ? 'selected' : '' }}>Select status</option>
-                    @foreach($filteredOptions as $value => $label)
-                    <option value="{{ $value }}" {{ ($currentStatus === $value) ? 'selected' : '' }}>
-                        {{ $label }}
-                    </option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
-        <!-- Units Section (Hidden First) -->
-        <div class="mb-3 d-none" id="unitsSection">
-
-            <label class="form-label fw-bold" id="unitsLabel"></label>
-
-            <div class="mb-1">
-                <small class="text-muted" id="itemInfo"></small>
+            <!-- Notes -->
+            <div class="mb-3">
+                <label class="form-label">Notes</label>
+                <textarea class="form-control" name="notes" rows="1"
+                    placeholder="Optional notes">{{ old('notes', $itemDistribution->notes ?? '') }}</textarea>
             </div>
 
-            <div class="border rounded shadow-sm" style="max-height: 250px; overflow-y: auto; background-color: #f9f9f9;">
-                <table class="table table-sm mb-0 align-middle text-center table-hover" id="unitsTable">
-                    <thead class="table-light sticky-top">
-                        <tr>
-                            <th style="width: 40px;">#</th>
-                            <th>Item Name</th>
-                            <th>QR Code</th>
-                            <th>
-                                <input type="checkbox" id="selectAllUnits" title="Select/Deselect All">
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Rows injected by JS -->
-                    </tbody>
-                </table>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn text-white" style="background-color: rgb(43, 45, 87);">Save Distribution</button>
             </div>
-            @if(isset($itemDistribution))
-            <input type="hidden" name="inventory_ids[]"
-                value="{{ $itemDistribution->inventory_consumable_id ?? $itemDistribution->inventory_non_consumable_id }}">
-            @endif
-            <small class="text-muted d-block mt-1">
-                Check the boxes to select multiple units.
-            </small>
         </div>
+    </form>
+    <script>
+        function toggleFieldsByType(type) {
+            const unitsSection = $('#unitsSection');
+            const quantityWrapper = $('#quantityWrapper');
+            const distributionQuantity = $('#distributionQuantity');
 
-        <!-- Description -->
-        <div class="mb-3">
-            <label class="form-label">Description: (optional)</label>
-            <textarea class="form-control"
-                name="description"
-                rows="2"
-                placeholder="Optional description for this distribution">{{ old('description', $itemDistribution->description ?? '') }}</textarea>
-        </div>
-    </div>
+            // Hide everything by default
+            if (unitsSection.length) unitsSection.hide();
+            if (quantityWrapper.length) quantityWrapper.hide();
+            if (distributionQuantity.length) distributionQuantity.val(1);
+            $('.unitCheckbox').prop('checked', false);
+            $('#selectAllUnits').prop('checked', false);
 
-    <div class="modal-footer">
-        <button type="button"
-            class="btn btn-secondary"
-            data-bs-dismiss="modal">
-            Close
-        </button>
+            // Show/hide based on type
+            switch (type) {
+                case 'issued':
+                    if (unitsSection.length) unitsSection.hide();
+                    if (quantityWrapper.length) quantityWrapper.hide();
+                    if (distributionQuantity.length) distributionQuantity.val(1);
+                    break;
 
-        <button type="submit"
-            class="btn text-white"
-            style="background-color: rgb(43, 45, 87);">
-            Save Distribution
-        </button>
-    </div>
-</form>
+                case 'distributed':
+                    if (unitsSection.length) unitsSection.hide();
+                    if (quantityWrapper.length) quantityWrapper.show();
+                    if (distributionQuantity.length) distributionQuantity.val(1);
+                    break;
 
-<script>
-    // HANDLE ITEM SELECT CHANGE (AJAX SAFE)
-    $(document).on('change', '#itemSelect', function() {
-        const selected = this.options[this.selectedIndex];
-        const type = selected.dataset.type;
-        const quantity = selected.dataset.quantity;
-        const unitName = selected.dataset.unit;
-        const consumables = JSON.parse(selected.dataset.consumables || '[]');
-        const nonConsumables = JSON.parse(selected.dataset.nonconsumables || '[]');
+                case 'borrowed':
+                    if (unitsSection.length) unitsSection.hide();
+                    if (quantityWrapper.length) quantityWrapper.hide();
+                    if (distributionQuantity.length) distributionQuantity.val(1);
+                    // Reset item select if general item
+                    if ($('#itemSelect').length) $('#itemSelect').prop('selectedIndex', 0);
+                    break;
 
-        const unitsSection = $('#unitsSection');
-        const unitsTableBody = $('#unitsTable tbody');
-        const unitsLabel = $('#unitsLabel');
-        const itemInfo = $('#itemInfo');
-        const selectAllCheckbox = $('#selectAllUnits');
-
-        unitsTableBody.html('');
-
-        const allUnits = [...consumables, ...nonConsumables];
-
-        if (allUnits.length === 0) {
-            unitsSection.addClass('d-none');
-            return;
+                default:
+                    if (unitsSection.length) unitsSection.hide();
+                    if (quantityWrapper.length) quantityWrapper.hide();
+                    if (distributionQuantity.length) distributionQuantity.val(1);
+                    break;
+            }
         }
 
-        unitsSection.removeClass('d-none');
+        // --- SELECT/DESELECT ALL UNITS (global) ---
+        $(document).ready(function() {
+            // Initialize form on page load
+            const currentType = $('#itemDistribution-type').val();
+            if (currentType) {
+                toggleFieldsByType(currentType); // sets the status based on type
+            }
 
-        unitsLabel.text('Units for "' + selected.text + '"');
-
-        itemInfo.text(
-            'Type: ' + (type == 0 ? 'Consumable' : 'Non-Consumable') +
-            ' | Unit: ' + unitName +
-            ' | Quantity: ' + quantity +
-            ' | Remaining: ' + allUnits.length
-        );
-
-        allUnits.forEach((unit, index) => {
-            unitsTableBody.append(`
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${selected.text}</td>
-                    <td>${unit.qrCode ?? 'N/A'}</td>
-                    <td>
-                        <input type="checkbox" class="unitCheckbox" name="inventory_ids[]" value="${unit.id}">
-                    </td>
-                </tr>
-            `);
+            // Select/Deselect all units
+            $('#selectAllUnits').change(function() {
+                $('.unitCheckbox').prop('checked', $(this).is(':checked'));
+            });
         });
+    </script>
+    <script>
+        (function() {
+            const input = document.getElementById('distributionQuantity');
+            if (!input) return;
 
-        selectAllCheckbox.prop('checked', false);
-    });
+            const max = Number(input.getAttribute('max')) || 1;
 
-    // SELECT/DESELECT ALL HANDLER (put here)
-    $(document).on('change', '#selectAllUnits', function() {
-        var checked = $(this).is(':checked');
-        $('#unitsTable tbody .unitCheckbox').prop('checked', checked);
-    });
-</script>
+            input.addEventListener('input', function() {
+                let value = Number(this.value);
 
-<script>
-    $(document).on('change', '#itemDistribution-type', function() {
-        var type = $(this).val(); // 0 = Distribution, 1 = Borrow
-        var statusSelect = $('#distribution-status option');
-
-        statusSelect.show(); // reset all first
-
-        if (type == '0') { // Distribution
-            statusSelect.each(function() {
-                if (['borrowed', 'returned', 'received'].includes($(this).val())) {
-                    $(this).hide();
+                if (isNaN(value) || value < 1) {
+                    this.value = ''; // keep empty if less than min
+                } else if (value > max) {
+                    this.value = max; // force it back to max
                 }
             });
-        } else if (type == '1') { // Borrow
-            statusSelect.each(function() {
-                if (['distributed', 'partial', 'pending'].includes($(this).val())) {
-                    $(this).hide();
-                }
-            });
-        }
-
-        // Reset selected
-        $('#distribution-status').val('');
-    });
-</script>
+        })();
+    </script>
