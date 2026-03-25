@@ -19470,3 +19470,151 @@ Did you mean one of these?
 #62 /var/www/html/public/index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
 #63 {main}
 "} 
+[2026-03-25 00:23:27] local.ERROR: Target class [App\Http\Middleware\UpdateLastSeen] does not exist. {"userId":2,"exception":"[object] (Illuminate\\Contracts\\Container\\BindingResolutionException(code: 0): Target class [App\\Http\\Middleware\\UpdateLastSeen] does not exist. at /var/www/html/vendor/laravel/framework/src/Illuminate/Container/Container.php:1019)
+[stacktrace]
+#0 /var/www/html/vendor/laravel/framework/src/Illuminate/Container/Container.php(890): Illuminate\\Container\\Container->build('App\\\\Http\\\\Middle...')
+#1 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1078): Illuminate\\Container\\Container->resolve('App\\\\Http\\\\Middle...', Array, true)
+#2 /var/www/html/vendor/laravel/framework/src/Illuminate/Container/Container.php(821): Illuminate\\Foundation\\Application->resolve('App\\\\Http\\\\Middle...', Array)
+#3 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1058): Illuminate\\Container\\Container->make('App\\\\Http\\\\Middle...', Array)
+#4 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(198): Illuminate\\Foundation\\Application->make('App\\\\Http\\\\Middle...')
+#5 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php(51): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#6 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#7 /var/www/html/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php(64): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#8 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Auth\\Middleware\\Authenticate->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#9 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/VerifyCsrfToken.php(88): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#10 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#11 /var/www/html/vendor/laravel/framework/src/Illuminate/View/Middleware/ShareErrorsFromSession.php(49): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#12 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\View\\Middleware\\ShareErrorsFromSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#13 /var/www/html/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(121): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#14 /var/www/html/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(64): Illuminate\\Session\\Middleware\\StartSession->handleStatefulRequest(Object(Illuminate\\Http\\Request), Object(Illuminate\\Session\\Store), Object(Closure))
+#15 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Session\\Middleware\\StartSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#16 /var/www/html/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/AddQueuedCookiesToResponse.php(37): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#17 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#18 /var/www/html/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/EncryptCookies.php(75): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#19 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Cookie\\Middleware\\EncryptCookies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#20 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(127): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#21 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(807): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#22 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(786): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#23 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(750): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#24 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(739): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#25 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(201): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#26 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(170): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#27 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#28 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#29 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#30 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#31 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#32 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 /var/www/html/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#34 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#35 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php(110): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#36 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#37 /var/www/html/vendor/laravel/framework/src/Illuminate/Http/Middleware/HandleCors.php(49): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#38 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#39 /var/www/html/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#40 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#41 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(127): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#42 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(176): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#43 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(145): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#44 /var/www/html/public/index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#45 {main}
+
+[previous exception] [object] (ReflectionException(code: -1): Class \"App\\Http\\Middleware\\UpdateLastSeen\" does not exist at /var/www/html/vendor/laravel/framework/src/Illuminate/Container/Container.php:1017)
+[stacktrace]
+#0 /var/www/html/vendor/laravel/framework/src/Illuminate/Container/Container.php(1017): ReflectionClass->__construct('App\\\\Http\\\\Middle...')
+#1 /var/www/html/vendor/laravel/framework/src/Illuminate/Container/Container.php(890): Illuminate\\Container\\Container->build('App\\\\Http\\\\Middle...')
+#2 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1078): Illuminate\\Container\\Container->resolve('App\\\\Http\\\\Middle...', Array, true)
+#3 /var/www/html/vendor/laravel/framework/src/Illuminate/Container/Container.php(821): Illuminate\\Foundation\\Application->resolve('App\\\\Http\\\\Middle...', Array)
+#4 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1058): Illuminate\\Container\\Container->make('App\\\\Http\\\\Middle...', Array)
+#5 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(198): Illuminate\\Foundation\\Application->make('App\\\\Http\\\\Middle...')
+#6 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php(51): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#7 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#8 /var/www/html/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php(64): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#9 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Auth\\Middleware\\Authenticate->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#10 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/VerifyCsrfToken.php(88): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#11 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#12 /var/www/html/vendor/laravel/framework/src/Illuminate/View/Middleware/ShareErrorsFromSession.php(49): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#13 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\View\\Middleware\\ShareErrorsFromSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#14 /var/www/html/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(121): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#15 /var/www/html/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(64): Illuminate\\Session\\Middleware\\StartSession->handleStatefulRequest(Object(Illuminate\\Http\\Request), Object(Illuminate\\Session\\Store), Object(Closure))
+#16 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Session\\Middleware\\StartSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#17 /var/www/html/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/AddQueuedCookiesToResponse.php(37): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#18 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#19 /var/www/html/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/EncryptCookies.php(75): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#20 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Cookie\\Middleware\\EncryptCookies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#21 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(127): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#22 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(807): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#23 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(786): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#24 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(750): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#25 /var/www/html/vendor/laravel/framework/src/Illuminate/Routing/Router.php(739): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#26 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(201): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#27 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(170): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#28 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#29 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#30 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#31 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#32 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#34 /var/www/html/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#35 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#36 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php(110): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#37 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#38 /var/www/html/vendor/laravel/framework/src/Illuminate/Http/Middleware/HandleCors.php(49): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#39 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#40 /var/www/html/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#41 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#42 /var/www/html/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(127): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#43 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(176): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#44 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(145): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#45 /var/www/html/public/index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#46 {main}
+"} 
+[2026-03-25 00:23:32] local.ERROR: Target class [App\Http\Middleware\UpdateLastSeen] does not exist. {"userId":2,"exception":"[object] (Illuminate\\Contracts\\Container\\BindingResolutionException(code: 0): Target class [App\\Http\\Middleware\\UpdateLastSeen] does not exist. at /var/www/html/vendor/laravel/framework/src/Illuminate/Container/Container.php:1019)
+[stacktrace]
+#0 /var/www/html/vendor/laravel/framework/src/Illuminate/Container/Container.php(890): Illuminate\\Container\\Container->build('App\\\\Http\\\\Middle...')
+#1 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1078): Illuminate\\Container\\Container->resolve('App\\\\Http\\\\Middle...', Array, true)
+#2 /var/www/html/vendor/laravel/framework/src/Illuminate/Container/Container.php(821): Illuminate\\Foundation\\Application->resolve('App\\\\Http\\\\Middle...', Array)
+#3 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1058): Illuminate\\Container\\Container->make('App\\\\Http\\\\Middle...', Array)
+#4 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(258): Illuminate\\Foundation\\Application->make('App\\\\Http\\\\Middle...')
+#5 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(216): Illuminate\\Foundation\\Http\\Kernel->terminateMiddleware(Object(Illuminate\\Http\\Request), Object(Illuminate\\Http\\Response))
+#6 /var/www/html/public/index.php(55): Illuminate\\Foundation\\Http\\Kernel->terminate(Object(Illuminate\\Http\\Request), Object(Illuminate\\Http\\Response))
+#7 {main}
+
+[previous exception] [object] (ReflectionException(code: -1): Class \"App\\Http\\Middleware\\UpdateLastSeen\" does not exist at /var/www/html/vendor/laravel/framework/src/Illuminate/Container/Container.php:1017)
+[stacktrace]
+#0 /var/www/html/vendor/laravel/framework/src/Illuminate/Container/Container.php(1017): ReflectionClass->__construct('App\\\\Http\\\\Middle...')
+#1 /var/www/html/vendor/laravel/framework/src/Illuminate/Container/Container.php(890): Illuminate\\Container\\Container->build('App\\\\Http\\\\Middle...')
+#2 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1078): Illuminate\\Container\\Container->resolve('App\\\\Http\\\\Middle...', Array, true)
+#3 /var/www/html/vendor/laravel/framework/src/Illuminate/Container/Container.php(821): Illuminate\\Foundation\\Application->resolve('App\\\\Http\\\\Middle...', Array)
+#4 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1058): Illuminate\\Container\\Container->make('App\\\\Http\\\\Middle...', Array)
+#5 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(258): Illuminate\\Foundation\\Application->make('App\\\\Http\\\\Middle...')
+#6 /var/www/html/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(216): Illuminate\\Foundation\\Http\\Kernel->terminateMiddleware(Object(Illuminate\\Http\\Request), Object(Illuminate\\Http\\Response))
+#7 /var/www/html/public/index.php(55): Illuminate\\Foundation\\Http\\Kernel->terminate(Object(Illuminate\\Http\\Request), Object(Illuminate\\Http\\Response))
+#8 {main}
+"} 
+[2026-03-25 00:42:24] local.INFO: Profile update request {"_token":"9Ri2XdmWsJDeEMa1MJuqPKN5KREq3DRtVqdpPYr5","_method":"PATCH","first_name":"System123","middle_name":"Daga","last_name":"Administrator123","email":"admin@example.com","phone":null,"birthday":null,"address":null,"password_confirmation":null} 
+[2026-03-25 00:42:24] local.INFO: Profile updated successfully {"user_id":1} 
+[2026-03-25 00:43:06] local.INFO: Profile update request {"_token":"9Ri2XdmWsJDeEMa1MJuqPKN5KREq3DRtVqdpPYr5","_method":"PATCH","first_name":"System123","middle_name":"Daga","last_name":"Administrator123","email":"admin@example.com","phone":"09355173615","birthday":"2026-03-28","address":"Brgy. San Isidro Sta. Fe, Leyte","password":"admin1234","password_confirmation":"admin1234","profile_photo":{"Illuminate\\Http\\UploadedFile":"/tmp/phpV3K1OT"}} 
+[2026-03-25 00:43:06] local.INFO: Profile updated successfully {"user_id":1} 
+[2026-03-25 00:48:53] local.INFO: Profile update request {"_token":"9Ri2XdmWsJDeEMa1MJuqPKN5KREq3DRtVqdpPYr5","_method":"PATCH","first_name":"System123","middle_name":"Daga","last_name":"Administrator123","email":"admin@example.com","phone":"09355173615","birthday":"2026-03-28","address":"Brgy. San Isidro Sta. Fe, Leyte","password_confirmation":null,"profile_photo":{"Illuminate\\Http\\UploadedFile":"/tmp/phpms51lm"}} 
+[2026-03-25 00:48:54] local.INFO: Profile updated successfully {"user_id":1} 
+[2026-03-25 00:52:18] local.INFO: Profile update request {"_token":"9Ri2XdmWsJDeEMa1MJuqPKN5KREq3DRtVqdpPYr5","_method":"PATCH","first_name":"System123","middle_name":"Daga","last_name":"Administrator123","email":"admin@example.com","phone":"09355173615","birthday":"2026-03-28","address":"Brgy. San Isidro Sta. Fe, Leyte","password_confirmation":null,"profile_photo":{"Illuminate\\Http\\UploadedFile":"/tmp/phpfjyuUf"}} 
+[2026-03-25 00:52:19] local.INFO: Profile updated successfully {"user_id":1} 
+[2026-03-25 00:53:04] local.INFO: Profile update request {"_token":"9Ri2XdmWsJDeEMa1MJuqPKN5KREq3DRtVqdpPYr5","_method":"PATCH","first_name":"System123","middle_name":"Daga","last_name":"Administrator123","email":"admin@example.com","phone":"09355173615","birthday":"2026-03-28","address":"Brgy. San Isidro Sta. Fe, Leyte","password_confirmation":null,"profile_photo":{"Illuminate\\Http\\UploadedFile":"/tmp/phpsG97xL"}} 
+[2026-03-25 00:53:05] local.INFO: Profile updated successfully {"user_id":1} 
+[2026-03-25 00:54:25] local.INFO: Profile update request {"_token":"9Ri2XdmWsJDeEMa1MJuqPKN5KREq3DRtVqdpPYr5","_method":"PATCH","first_name":"System123","middle_name":"Daga","last_name":"Administrator123","email":"admin@example.com","phone":"09355173615","birthday":"2026-03-28","address":"Brgy. San Isidro Sta. Fe, Leyte","password_confirmation":null,"profile_photo":{"Illuminate\\Http\\UploadedFile":"/tmp/phpPbDWAz"}} 
+[2026-03-25 00:54:25] local.INFO: Profile updated successfully {"user_id":1} 
+[2026-03-25 00:54:45] local.INFO: Profile update request {"_token":"9Ri2XdmWsJDeEMa1MJuqPKN5KREq3DRtVqdpPYr5","_method":"PATCH","first_name":"System123","middle_name":"Daga","last_name":"Administrator123","email":"admin@example.com","phone":"09355173615","birthday":"2026-03-28","address":"Brgy. San Isidro Sta. Fe, Leyte","password_confirmation":null} 
+[2026-03-25 00:54:45] local.INFO: Profile updated successfully {"user_id":1} 
+[2026-03-25 00:56:20] local.INFO: Profile update request {"_token":"9Ri2XdmWsJDeEMa1MJuqPKN5KREq3DRtVqdpPYr5","_method":"PATCH","first_name":"System123","middle_name":"Daga","last_name":"Administrator123","email":"admin@example.com","phone":"09355173615","birthday":"2026-03-28","address":"Brgy. San Isidro Sta. Fe, Leyte","password_confirmation":null} 
+[2026-03-25 00:56:20] local.INFO: Profile updated successfully {"user_id":1} 
+[2026-03-25 01:00:34] local.INFO: Profile update request {"_token":"9Ri2XdmWsJDeEMa1MJuqPKN5KREq3DRtVqdpPYr5","_method":"PATCH","first_name":"System123","middle_name":"Daga","last_name":"Administrator123","email":"admin@example.com","phone":"09355173615","birthday":"2026-03-28","address":"Brgy. San Isidro Sta. Fe, Leyte","password_confirmation":null} 
+[2026-03-25 01:00:34] local.INFO: Profile updated successfully {"user_id":1} 
+[2026-03-25 01:02:09] local.INFO: Profile update request {"_token":"9Ri2XdmWsJDeEMa1MJuqPKN5KREq3DRtVqdpPYr5","_method":"PATCH","first_name":"System123","middle_name":"Daga","last_name":"Administrator123","email":"admin@example.com","phone":"09355173615","birthday":"2026-03-28","address":"Brgy. San Isidro Sta. Fe, Leyte","password_confirmation":null,"profile_photo":{"Illuminate\\Http\\UploadedFile":"/tmp/phpjUI7ip"}} 
+[2026-03-25 01:02:10] local.INFO: Profile updated successfully {"user_id":1} 
+[2026-03-25 01:05:02] local.INFO: Profile update request {"_token":"9Ri2XdmWsJDeEMa1MJuqPKN5KREq3DRtVqdpPYr5","_method":"PATCH","first_name":"System123","middle_name":"Daga","last_name":"Administrator123","email":"admin@example.com","phone":"09355173615","birthday":"2026-03-28","address":"Brgy. San Isidro Sta. Fe, Leyte","password_confirmation":null} 
+[2026-03-25 01:05:02] local.INFO: Profile updated successfully {"user_id":1} 
+[2026-03-25 01:09:25] local.INFO: Profile update request {"_token":"9Ri2XdmWsJDeEMa1MJuqPKN5KREq3DRtVqdpPYr5","_method":"PATCH","first_name":"Deniel Paul","middle_name":"Daga","last_name":"Laurente","email":"admin@example.com","phone":"09997611929","birthday":"2026-03-28","address":"Brgy. Zone 1 Sta. Fe, Leyte","password":"12345678","password_confirmation":"12345678"} 
+[2026-03-25 01:09:25] local.INFO: Profile updated successfully {"user_id":1} 
+[2026-03-25 01:10:20] local.INFO: Profile update request {"_token":"9Ri2XdmWsJDeEMa1MJuqPKN5KREq3DRtVqdpPYr5","_method":"PATCH","first_name":"Deniel Paul","middle_name":"Daga","last_name":"Laurente","email":"admin@example.com","phone":"09997611929","birthday":"2026-03-28","address":"Brgy. Zone 1 Sta. Fe, Leyte","password_confirmation":null} 
+[2026-03-25 01:10:20] local.INFO: Profile updated successfully {"user_id":1} 
