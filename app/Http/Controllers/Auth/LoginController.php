@@ -52,4 +52,22 @@ class LoginController extends Controller
         // Verified users go to dashboard
         return redirect()->intended('/home');
     }
+
+    public function logout(Request $request)
+    {
+        $user = auth()->user();
+
+        if ($user) {
+            $user->update([
+                'last_seen' => now(), // mark exact logout time
+                'status' => 'inactive'
+            ]);
+        }
+
+        auth()->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/');
+    }
 }
