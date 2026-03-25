@@ -5378,11 +5378,6 @@ only screen and (min-width: 768px) and (max-width: 991px),
   color: rgba(0, 0, 0, 0.7);
 }
 
-<<<<<<< HEAD
-.pagination .page-item.active .page-link, .pagination .page-item:hover .page-link {
-    background: #4a6cf7;
-    color: #fff;
-=======
 .pagination .page-item.active .page-link,
 .pagination .page-item:hover .page-link {
   background: #4a6cf7;
@@ -5396,7 +5391,6 @@ only screen and (min-width: 768px) and (max-width: 991px),
   border-radius: 1px;
   display: block;
   margin: 0 auto;
->>>>>>> final-main
 }
 
 /* Required Input */

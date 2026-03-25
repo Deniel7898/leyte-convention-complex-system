@@ -22,12 +22,12 @@ class AdminMiddleware
             return redirect()->route('login');
         }
 
-        // ✅ Admin → always allowed
+        // Admin → always allowed
         if ($user->role === 'admin') {
             return $next($request);
         }
 
-        // ✅ Staff → must be verified
+        // Staff → must be verified
         if ($user->role === 'staff') {
             if (!$user->hasVerifiedEmail()) {
                 return redirect()->route('verification.notice')
@@ -37,7 +37,7 @@ class AdminMiddleware
             return $next($request);
         }
 
-        // ❌ Any other role
+        // Any other role
         abort(403, 'Unauthorized');
     }
 }

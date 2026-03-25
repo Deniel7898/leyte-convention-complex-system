@@ -57,11 +57,13 @@
      </td>
 
      <!-- Example Item Picture Display -->
-     <td style="padding:0; margin:0; text-align:center">
+    <td style="padding:0; margin:0; text-align:center">
          @if($inventory->picture)
          <img src="{{ asset('storage/' . $inventory->picture) }}"
              alt="{{ $inventory->name }}"
-             class="clickable-image img-square"
+             width="50"
+             height="50"
+             class="clickable-image"
              style="cursor:pointer;"
              data-full="{{ asset('storage/' . $inventory->picture) }}">
          @else

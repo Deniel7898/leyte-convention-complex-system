@@ -45,26 +45,33 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user)
     {
-        if (is_null($user->email_verified_at) && $user->role !== 'admin') {
-            return redirect()->route('verification.hold');
+        // Staff not verified → go to verification page
+        if ($user->role === 'staff' && !$user->hasVerifiedEmail()) {
+
+            return redirect()->route('verification.notice')
+                ->with('warning', 'Please verify your email first.');
         }
 
-        // Verified users go to dashboard
+        if ($user->role === 'admin') {
+            return redirect()->route('verification.notice')
+                ->with('warning', 'Please review the verification page.');
+        }
+
+        // Normal login
         return redirect()->intended('/home');
     }
 
     public function logout(Request $request)
     {
         $user = auth()->user();
-
         if ($user) {
             $user->update([
-                'last_seen' => now(), // mark exact logout time
-                'status' => 'inactive'
+                'last_seen' => now(),
+                'status' => 'inactive',
             ]);
         }
 
-        auth()->logout();
+        Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
