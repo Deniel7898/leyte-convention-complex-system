@@ -13,9 +13,11 @@
                 margin: 0;
                 padding: 0;
             }
+
             .no-print {
                 display: none !important;
             }
+
             .print-container {
                 max-width: 100%;
                 box-shadow: none;
@@ -206,11 +208,14 @@
             </div>
             <div class="info-group">
                 <span class="info-label">Request Date</span>
-                <span class="info-value">{{ optional($purchaseRequest->request_date)->format('F d, Y') ?: 'N/A' }}</span>
+                <span
+                    class="info-value">{{ optional($purchaseRequest->request_date)->format('F d, Y') ?: 'N/A' }}</span>
             </div>
             <div class="info-group">
                 <span class="info-label">Created By</span>
-                <span class="info-value">{{ $purchaseRequest->creator->name ?? 'N/A' }}</span>
+                <span class="info-value">
+                    {{ optional($purchaseRequest->creator)->first_name . ' ' . optional($purchaseRequest->creator)->last_name ?? 'N/A' }}
+                </span>
             </div>
             <div class="info-group">
                 <span class="info-label">Created Date</span>

@@ -108,6 +108,6 @@ Route::resource('units', App\Http\Controllers\UnitsController::class)->middlewar
 /*--------------------------------------------------------------------------
 // Purchase Requests Routes 
 --------------------------------------------------------------------------*/
-Route::get('/purchase_request/print_approved', [Purchase_RequestsController::class, 'printApproved'])->name('purchase_request.printApproved');
-Route::post('purchase_request/{id}/status/{status}', [App\Http\Controllers\Purchase_RequestsController::class, 'updateStatus'])->name('purchase_request.updateStatus');
-Route::resource('purchase_request', App\Http\Controllers\Purchase_RequestsController::class)->middleware('auth');
+Route::resource('purchase-requests', App\Http\Controllers\Purchase_RequestsController::class)->middleware('auth'); // includes all CRUD routes for purchase requests
+Route::get('/purchase-requests/{id}/print', [Purchase_RequestsController::class, 'print'])->name('purchase-requests.print')->middleware('auth');
+Route::get('/purchase-requests/search-items', [Purchase_RequestsController::class, 'searchItems'])->name('purchase-requests.searchItems')->middleware('auth');
