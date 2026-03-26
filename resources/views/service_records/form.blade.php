@@ -120,7 +120,6 @@
             @endif
             @endif
 
-
             <!-- Technician -->
             <div class="col-md-6 mb-3">
                 <label for="technician" class="form-label required">Technician</label>
@@ -202,20 +201,6 @@
                 reader.readAsDataURL(file);
             }
         }
-
-        // Auto-fill modal when clicking an item
-        $(document).on('click', '.add-service', function(e) {
-            e.preventDefault();
-            const url = $(this).data('url');
-            const itemId = $(this).data('item-id');
-
-            $.get(url, {
-                item_id: itemId
-            }, function(response) {
-                $('#inventories_modal .modal-content').html(response);
-                $('#inventories_modal').modal('show');
-            });
-        });
 
     });
 </script>

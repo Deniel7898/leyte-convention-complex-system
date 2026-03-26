@@ -38,8 +38,12 @@ class CustomVerifyEmail extends Notification
     {
         return URL::temporarySignedRoute(
             'verification.verify',
-            Carbon::now()->addMinutes(60),
-            ['id' => $notifiable->getKey(), 'hash' => sha1($notifiable->getEmailForVerification())]
+            now()->addMinutes(60),
+            [
+                'id' => $notifiable->getKey(),
+                'hash' => sha1($notifiable->getEmailForVerification())
+            ],
+            true // absolute URL, uses APP_URL
         );
     }
 

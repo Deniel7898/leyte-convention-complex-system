@@ -70,7 +70,14 @@ class HomeController extends Controller
     public function getItemByQrCode($code)
     {
         try {
-            $qr = \App\Models\QR_Code::with('inventory.item')->where('code', $code)->first();
+            $qr = \App\Models\QR_Code::with([
+                'inventory.item.category',
+                'inventory.item.unit',
+                'inventory.item.inventories' => function ($query) {
+                    // Only include units that are not borrowed or issued
+                    $query->whereNotIn('status', ['borrowed', 'issued']);
+                }
+            ])->where('code', $code)->first();
 
             if (!$qr) {
                 return response()->json([
@@ -82,16 +89,47 @@ class HomeController extends Controller
             $inventory = $qr->inventory;
             $item = $inventory->item ?? null;
 
+            $availableUnits = [];
+            $remainingQty = 0;
+
+            if ($item) {
+                // For consumables, just return remaining quantity
+                if ($item->type === 'consumable') {
+                    $remainingQty = $item->remaining ?? 0;
+                } else {
+                    // For non-consumables, calculate available units
+                    foreach ($item->inventories as $inv) {
+                        $hasActiveService = $inv->serviceRecords()
+                            ->whereIn('status', ['scheduled', 'in progress'])
+                            ->exists();
+
+                        $hasDistributed = $inv->itemDistributions()
+                            ->whereIn('type', ['distributed'])
+                            ->exists();
+
+                        if (!$hasActiveService && !$hasDistributed && !in_array(strtolower($inv->status), ['borrowed', 'issued'])) {
+                            $availableUnits[] = [
+                                'id' => $inv->id,
+                                'qr_code' => $inv->qrCode->code ?? 'N/A',
+                            ];
+                        }
+                    }
+
+                    $remainingQty = count($availableUnits);
+                }
+            }
+
             return response()->json([
                 'success' => true,
                 'data' => [
+                    'item_id'   => $item->id ?? null,
                     'item_name' => $item->name ?? 'N/A',
-                    'item_code' => $qr->code,
-                    'description' => $item->description ?? '',
-                    'total_stock' => $item->total_stock ?? 0,
-                    'remaining' => $item->remaining ?? 0,
-                    'inventory_status' => $inventory->status ?? 'N/A',
-                    'inventory_holder' => $inventory->holder ?? 'N/A',
+                    'category'  => $item->category->name ?? 'N/A',
+                    'type'      => $item->type ?? 'N/A',   // consumable or non-consumable
+                    'unit'      => $item->unit->name ?? 'N/A',
+                    'supplier'  => $item->supplier ?? 'N/A',
+                    'remaining' => $remainingQty,
+                    'units'     => $availableUnits,        // only for non-consumables
                 ]
             ]);
         } catch (\Exception $e) {

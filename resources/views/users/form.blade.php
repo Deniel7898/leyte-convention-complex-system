@@ -41,16 +41,10 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="mb-3">
-                    <label for="password" class="form-label bold-label">
-                        Password
-                        @if(isset($user)) (leave blank to keep current)
-                        @else
-                        (leave blank to use default)
-                        @endif
-                    </label>
-                    <input type="password" class="form-control" id="password" name="password"
-                        placeholder="{{ isset($user) ? '' : 'Leave blank to use default password' }}"
-                        {{ !isset($user) ? '' : '' }}>
+                    <label class="form-label bold-label">Password</label>
+                    <div class="form-control bg-light text-muted" style="font-size: 12px;">
+                        Password will be automatically generated and sent to the user's email.
+                    </div>
                 </div>
             </div>
             <div class="col-md-6">

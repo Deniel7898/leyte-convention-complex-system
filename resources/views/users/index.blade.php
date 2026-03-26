@@ -17,7 +17,7 @@
             </div>
         </div>
 
-         <div class="col-auto" style="min-width: 140px;">
+        <div class="col-auto" style="min-width: 140px;">
             <select id="role-filter" class="form-select">
                 <option>All Roles</option>
                 <option>admin</option>
@@ -42,11 +42,11 @@
                 <thead class="bg-light">
                     <tr class="text-uppercase text-muted small">
                         <th>{{ __('#') }}</th>
+                        <th>{{ __('Role') }}</th>
                         <th>{{ __('Last Name') }}</th>
                         <th>{{ __('First Name') }}</th>
                         <th>{{ __('Middle Initial') }}</th>
                         <th>{{ __('Email') }}</th>
-                        <th>{{ __('Role') }}</th>
                         <th>{{ __('Phone') }}</th>
                         <th>{{ __('Birthday') }}</th>
                         <th>{{ __('Status') }}</th>

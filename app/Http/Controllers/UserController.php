@@ -30,7 +30,6 @@ class UserController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|unique:users,email',
-            'password' => 'nullable|min:8',
             'first_name' => 'nullable|string',
             'middle_name' => 'nullable|string',
             'last_name' => 'nullable|string',
@@ -49,10 +48,8 @@ class UserController extends Controller
 
         $data = $validator->validated();
 
-        // If password is null, set a random password
-        if (empty($data['password'])) {
-            $data['password'] = Str::random(12); // generates a 12-character random string
-        }
+        // Set a random password
+        $data['password'] = Str::random(12);
 
         // Hash password
         $rawPassword = $data['password']; // keep raw for email

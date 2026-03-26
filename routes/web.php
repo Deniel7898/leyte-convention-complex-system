@@ -61,6 +61,12 @@ Route::get('/inventory/live-search', [InventoriesController::class, 'liveSearch'
 Route::get('/item_distributions/live-search', [ItemDistributionsController::class, 'liveSearch'])->name('item_distributions.liveSearch');
 Route::get('/service_records/live-search', [Service_RecordsController::class, 'liveSearch'])->name('service_records.liveSearch');
 
+/*--------------------------------------------------------------------------
+// Inventory (Route for restocking)
+--------------------------------------------------------------------------*/
+Route::get('/inventory/show-stock', [InventoriesController::class, 'show_stock'])->name('inventory.show_stock');
+Route::post('/inventory/add-stock', [InventoriesController::class, 'add_stock'])->name('inventory.add_stock');
+
 // -------------------------
 // Protected Routes (Admin & Verified Staff)
 // -------------------------
@@ -81,8 +87,6 @@ Route::middleware(['auth', 'admin'])->group(function () {
     // Inventory
     Route::resource('items', ItemsController::class);
     Route::resource('inventory', InventoriesController::class);
-    Route::get('/inventory/show-stock', [InventoriesController::class, 'show_stock'])->name('inventory.show_stock');
-    Route::post('/inventory/add-stock', [InventoriesController::class, 'add_stock'])->name('inventory.add_stock');
     Route::get('/inventory/{item}/history', [InventoriesController::class, 'view_history'])->name('inventory.history');
 
     // Item Distributions

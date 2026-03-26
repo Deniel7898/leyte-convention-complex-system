@@ -1,5 +1,5 @@
-$(function(){
-        //form submit
+$(function () {
+    //form submit
     $(document).on('submit', 'form', function (e) {
         e.preventDefault();
         $('#loading-spinner').addClass('active');
@@ -19,8 +19,8 @@ $(function(){
                 $('#inventories_table tbody').html(response.table_html);
 
                 // Close modal only if update
-                if ($('#inventories_modal').data('action') === 'update') {
-                    $('#inventories_modal').modal('hide');
+                if ($('#home_modal').data('action') === 'update') {
+                    $('#home_modal').modal('hide');
                 }
 
                 // Reset all fields
@@ -48,4 +48,42 @@ $(function(){
             }
         });
     });
+
+    // ----------------------------
+    // Modals
+    // ----------------------------
+    const scanModalEl = document.getElementById('scanModal');
+    const scanModal = new bootstrap.Modal(scanModalEl);
+
+    const actionFormModalEl = document.getElementById('actionFormModal');
+    const actionFormModal = new bootstrap.Modal(actionFormModalEl);
+
+    const distributionModalEl = document.getElementById('itemDistributionModal');
+    const distributionModal = new bootstrap.Modal(distributionModalEl);
+
+    // Scanner & manual input
+    const scanMessage = document.getElementById('scanModalMessage');
+    const manualQrInput = document.getElementById('manualQrInput');
+    const manualSubmit = document.getElementById('manualSubmit');
+
+    // Scanner state
+    let scanning = false;
+    let scanBuffer = '';
+    let scanTimeout;
+    let currentListener = null;
+    let currentAction = '';
+
+    // ----------------------------
+    // Quick action triggers
+    // ----------------------------
+    document.querySelectorAll('.quick-action-box').forEach(box => {
+        box.addEventListener('click', () => {
+            const action = box.dataset.action.toLowerCase();
+            if (['restock', 'distribute', 'service'].includes(action)) {
+                startScan(action);
+            }
+        });
+    });
+    
+
 })

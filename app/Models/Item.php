@@ -49,6 +49,11 @@ class Item extends Model
         return $this->hasOne(QR_Code::class, 'item_id', 'id');
     }
 
+    public function itemDistributions()
+    {
+        return $this->hasMany(ItemDistribution::class, 'item_id');
+    }
+
     /**
      * Available inventories (not distributed or borrowed)
      */

@@ -142,18 +142,21 @@ class ItemDistributionsController extends Controller
     private function getItemDistributions()
     {
         return ItemDistribution::with([
+            // Non-consumables: get inventory QR
             'inventory.item.unit',
             'inventory.item.category',
             'inventory.qrCode',
+
+            // Consumables: get item QR directly
+            'item.qrCode',
+            'item.unit',
+            'item.category',
         ])
             ->get()
             ->sortByDesc('created_at')
             ->values();
     }
 
-    /**
-     * Index view
-     */
     /**
      * Index view
      */
@@ -179,13 +182,13 @@ class ItemDistributionsController extends Controller
 
     public function create(Request $request)
     {
-        // 1️⃣ Get all items with inventories and unit
+        // Get all items with inventories and unit
         $items = Item::with(['unit', 'inventories.qrCode'])->get();
 
-        // 2️⃣ Get categories
+        // Get categories
         $categories = Category::all();
 
-        // 3️⃣ Fetch the selected item if item_id is provided
+        // Fetch the selected item if item_id is provided
         $selectedItem = null;
         $availableInventories = collect();
         $selectedInventory = null; // <- THIS WILL HOLD the clicked inventory
@@ -206,10 +209,10 @@ class ItemDistributionsController extends Controller
             }
         }
 
-        // 4️⃣ Quick flag
+        // Quick flag
         $quickAction = $request->has('quick') && $request->quick == 1;
 
-        // 5️⃣ Return view (or JSON for modal)
+        // Return view (or JSON for modal)
         return view('item_distributions.form', compact(
             'items',
             'selectedItem',
@@ -327,7 +330,7 @@ class ItemDistributionsController extends Controller
             // Log history
             InventoryHistory::create([
                 'item_id' => $item->id,
-                'inventory_id' => $inventory->id,
+                'inventory_id' => $item->type === 'consumable' ? null : $inventory->id,
                 'holder_or_borrower' => $department,
                 'action' => $request->type,
                 'quantity' => $distributedCount,
