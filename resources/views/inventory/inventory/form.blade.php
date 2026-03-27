@@ -19,7 +19,7 @@
             <div class="col-md-6 mb-3">
                 <label for="item-category" class="form-label required">Category</label>
                 <select class="form-select" id="item-category" name="category_id" required>
-                    <option value="">Select category</option>
+                    <option value="" disabled {{ !isset($item) ? 'selected' : '' }} hidden>Select Category</option>
                     @foreach($categories as $category)
                     <option value="{{ $category->id }}"
                         data-type="{{ $category->type }}"
@@ -42,7 +42,7 @@
             <div class="col-md-6 mb-3">
                 <label for="item-type" class="form-label required">Type</label>
                 <select class="form-select" id="item-type" name="type" required>
-                    <option value="">Select Type</option>
+                    <option value="" disabled {{ !isset($item) ? 'selected' : '' }} hidden>Select Type</option>
                     <option value="consumable" {{ isset($item) && $item->type === 'consumable' ? 'selected' : '' }}>Consumable</option>
                     <option value="non-consumable" {{ isset($item) && $item->type === 'non-consumable' ? 'selected' : '' }}>Non-Consumable</option>
                 </select>
@@ -53,7 +53,7 @@
             <div class="col-md-6 mb-3">
                 <label for="item-unit" class="form-label required">Unit</label>
                 <select class="form-select" id="item-unit" name="unit_id" required>
-                    <option value="">Select unit</option>
+                    <option value="" disabled {{ !isset($item) ? 'selected' : '' }} hidden>Select Unit</option>
                     @foreach($units as $unit)
                     <option value="{{ $unit->id }}" {{ isset($item) && $item->unit_id == $unit->id ? 'selected' : '' }}>
                         {{ $unit->name }}

@@ -1,8 +1,9 @@
-<form action="{{ isset($service_record) ? route('service_records.update', $service_record->id) : route('service_records.store') }}"
+<form
+    action="{{ isset($service_record) ? route('service_records.update', $service_record->id) : route('service_records.store') }}"
     method="POST" enctype="multipart/form-data">
     @csrf
     @if(isset($service_record))
-    @method('PUT')
+        @method('PUT')
     @endif
 
     <div class="modal-header" style="background-color: rgb(43, 45, 87);">
@@ -21,8 +22,7 @@
             <!-- Item Name & Available Stock -->
             <div class="col-md-6 mb-1">
                 <label class="form-label bold-label">Item</label>
-                <input type="text" class="form-control text-muted"
-                    value="{{ $selectedItem->name ?? '' }}" readonly>
+                <input type="text" class="form-control text-muted" value="{{ $selectedItem->name ?? '' }}" readonly>
                 <small class="text-muted">Available: {{ $selectedItem->remaining ?? 0 }}</small>
                 <input type="hidden" name="item_id" value="{{ $selectedItem->id ?? '' }}">
             </div>
@@ -31,7 +31,7 @@
             <div class="col-md-6 mb-1">
                 <label for="service-record-type" class="form-label required">Service Type</label>
                 <select class="form-select" id="service-record-type" name="type" required>
-                    <option value="">-- Select type --</option>
+                    <option value="" disabled {{ !isset($itemDistribution) ? 'selected' : '' }} hidden>Select Type</option>
                     <option value="maintenance" {{ (isset($service_record) && $service_record->type == 'maintenance') ? 'selected' : '' }}>Maintenance</option>
                     <option value="installation" {{ (isset($service_record) && $service_record->type == 'installation') ? 'selected' : '' }}>Installation</option>
                     <option value="inspection" {{ (isset($service_record) && $service_record->type == 'inspection') ? 'selected' : '' }}>Inspection</option>
@@ -42,82 +42,84 @@
             <!-- Units Table (for non-consumables) -->
 
             @if(isset($selectedItem) && $selectedItem->inventories)
-            @php
-            // Filter inventories
-            $availableInventories = $selectedItem->inventories->filter(function($inv) {
-            // Exclude if inventory has service records that are scheduled or in progress
-            $inService = $inv->serviceRecords
-            ->whereIn('status', ['scheduled', 'in progress'])
-            ->count() > 0;
+                @php
+                    // Filter inventories
+                    $availableInventories = $selectedItem->inventories->filter(function ($inv) {
+                        // Exclude if inventory has service records that are scheduled or in progress
+                        $inService = $inv->serviceRecords
+                            ->whereIn('status', ['scheduled', 'in progress'])
+                            ->count() > 0;
 
-            // Exclude if inventory has a distribution type of distributed or issued
-            $inDistribution = $inv->itemDistributions
-            ->whereIn('type', ['distributed'])
-            ->count() > 0;
+                        // Exclude if inventory has a distribution type of distributed or issued
+                        $inDistribution = $inv->itemDistributions
+                            ->whereIn('type', ['distributed'])
+                            ->count() > 0;
 
-            // Check if status is borrowed or issued
-            $status = strtolower($inv->status ?? '');
-            $isBorrowedOrIssued = in_array($status, ['borrowed', 'issued']);
+                        // Check if status is borrowed or issued
+                        $status = strtolower($inv->status ?? '');
+                        $isBorrowedOrIssued = in_array($status, ['borrowed', 'issued']);
 
-            // Only include inventories that pass all checks
-            return !$inService && !$inDistribution && !$isBorrowedOrIssued;
-            });
+                        // Only include inventories that pass all checks
+                        return !$inService && !$inDistribution && !$isBorrowedOrIssued;
+                    });
 
-            // Show units table if there is at least one inventory and quickAction is not active
-            $showUnitsTable = $availableInventories->count() > 0 && empty($quickAction);
-            @endphp
+                    // Show units table if there is at least one inventory and quickAction is not active
+                    $showUnitsTable = $availableInventories->count() > 0 && empty($quickAction);
+                @endphp
 
-            @if(!isset($service_record) && $showUnitsTable)
-            <div class="mb-3" id="unitsSection">
-                <label class="form-label required">Select Units</label>
-                <div class="border rounded shadow-sm" style="max-height: 200px; overflow-y:auto; background-color:#f9f9f9;">
-                    <table class="table table-sm mb-0 text-center align-middle">
-                        <thead class="table-light sticky-top">
-                            <tr>
-                                <th>#</th>
-                                <th>Item Name</th>
-                                <th>QR Code</th>
-                                <th>
-                                    <input type="checkbox" id="selectAllUnits" title="Select/Deselect All">
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @php $counter = 1; @endphp
-                            @forelse($availableInventories as $inventory)
-                            <tr>
-                                <td>{{ $counter++ }}</td>
-                                <td>{{ $selectedItem->name }}</td>
-                                <td>{{ $inventory->qrCode->code ?? 'N/A' }}</td>
-                                <td>
-                                    @if(isset($selectedInventory) && $inventory->id == $selectedInventory)
-                                    <input type="hidden" name="inventory_ids[]" value="{{ $inventory->id }}">
-                                    <span class="text-success">Auto-selected</span>
-                                    @else
-                                    <input type="checkbox" class="unitCheckbox" name="inventory_ids[]" value="{{ $inventory->id }}">
-                                    @endif
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="4">
-                                    @if(isset($selectedInventory))
-                                    <input type="hidden" name="inventory_ids[]" value="{{ $selectedInventory }}">
-                                    Auto-selected inventory
-                                    @else
-                                    No available units
-                                    @endif
-                                </td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            @elseif(isset($selectedInventory))
-            {{-- Case when no available inventories, but a specific inventory was clicked --}}
-            <input type="hidden" name="inventory_ids[]" value="{{ $selectedInventory }}">
-            @endif
+                @if(!isset($service_record) && $showUnitsTable)
+                    <div class="mb-3" id="unitsSection">
+                        <label class="form-label required">Select Units</label>
+                        <div class="border rounded shadow-sm"
+                            style="max-height: 200px; overflow-y:auto; background-color:#f9f9f9;">
+                            <table class="table table-sm mb-0 text-center align-middle">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Item Name</th>
+                                        <th>QR Code</th>
+                                        <th>
+                                            <input type="checkbox" id="selectAllUnits" title="Select/Deselect All">
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @php $counter = 1; @endphp
+                                    @forelse($availableInventories as $inventory)
+                                        <tr>
+                                            <td>{{ $counter++ }}</td>
+                                            <td>{{ $selectedItem->name }}</td>
+                                            <td>{{ $inventory->qrCode->code ?? 'N/A' }}</td>
+                                            <td>
+                                                @if(isset($selectedInventory) && $inventory->id == $selectedInventory)
+                                                    <input type="hidden" name="inventory_ids[]" value="{{ $inventory->id }}">
+                                                    <span class="text-success">Auto-selected</span>
+                                                @else
+                                                    <input type="checkbox" class="unitCheckbox" name="inventory_ids[]"
+                                                        value="{{ $inventory->id }}">
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="4">
+                                                @if(isset($selectedInventory))
+                                                    <input type="hidden" name="inventory_ids[]" value="{{ $selectedInventory }}">
+                                                    Auto-selected inventory
+                                                @else
+                                                    No available units
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                @elseif(isset($selectedInventory))
+                    {{-- Case when no available inventories, but a specific inventory was clicked --}}
+                    <input type="hidden" name="inventory_ids[]" value="{{ $selectedInventory }}">
+                @endif
             @endif
 
             <!-- Technician -->
@@ -131,7 +133,8 @@
             <div class="col-md-6 mb-3">
                 <label for="service_date" class="form-label required">Schedule Date</label>
                 <input type="date" class="form-control" id="service_date" name="service_date"
-                    value="{{ old('service_date', isset($service_record) ? \Carbon\Carbon::parse($service_record->service_date)->format('Y-m-d') : date('Y-m-d')) }}" required min="{{ date('Y-m-d') }}">
+                    value="{{ old('service_date', isset($service_record) ? \Carbon\Carbon::parse($service_record->service_date)->format('Y-m-d') : date('Y-m-d')) }}"
+                    required min="{{ date('Y-m-d') }}">
             </div>
 
 
@@ -145,13 +148,16 @@
             <!-- Picture Upload -->
             <div class="mb-3">
                 <label class="form-label bold-label">Service Picture</label>
-                <div class="border rounded p-3 text-center" id="service_record-dropzone" style="cursor:pointer; min-height:150px; display:flex; align-items:center; justify-content:center;">
-                    <input type="file" id="service_record-picture" name="picture" accept="image/*" style="display:none;">
+                <div class="border rounded p-3 text-center" id="service_record-dropzone"
+                    style="cursor:pointer; min-height:150px; display:flex; align-items:center; justify-content:center;">
+                    <input type="file" id="service_record-picture" name="picture" accept="image/*"
+                        style="display:none;">
                     <img id="picture-preview"
                         src="{{ isset($service_record) && $service_record->picture ? asset('storage/' . $service_record->picture) : '' }}"
                         class="img-fluid rounded"
                         style="max-height:120px; {{ isset($service_record) && $service_record->picture ? '' : 'display:none;' }}">
-                    <div id="picture-placeholder" class="text-muted" style="{{ isset($service_record) && $service_record->picture ? 'display:none;' : '' }}">
+                    <div id="picture-placeholder" class="text-muted"
+                        style="{{ isset($service_record) && $service_record->picture ? 'display:none;' : '' }}">
                         Click or drag to upload picture
                     </div>
                 </div>
@@ -161,12 +167,13 @@
 
     <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="submit" class="btn text-white" style="background-color: rgb(43, 45, 87);">Save Service Record</button>
+        <button type="submit" class="btn text-white" style="background-color: rgb(43, 45, 87);">Save Service
+            Record</button>
     </div>
 </form>
 
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
 
         // Drag & Drop preview
         const dropzone = document.getElementById('service_record-dropzone');
@@ -206,12 +213,12 @@
 </script>
 <script>
     // Select / Deselect all units
-    $(document).on('change', '#selectAllUnits', function() {
+    $(document).on('change', '#selectAllUnits', function () {
         $('.unitCheckbox').prop('checked', $(this).prop('checked'));
     });
 
     // Update Select All checkbox when individual checkbox changes
-    $(document).on('change', '.unitCheckbox', function() {
+    $(document).on('change', '.unitCheckbox', function () {
         const total = $('.unitCheckbox').length;
         const checked = $('.unitCheckbox:checked').length;
 

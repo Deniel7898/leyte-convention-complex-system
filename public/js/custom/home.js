@@ -30,6 +30,7 @@ $(function () {
                     $("#activity-container-wrapper").html(
                         response.recent_activity_html,
                     );
+                    $("#home-dashboard-overview").html(response.overview_html);
                 }
 
                 form[0].reset();
@@ -232,9 +233,6 @@ $(function () {
         }
 
         const hiddenInventoryId = document.getElementById("serviceInventoryId");
-        const scannedQRWrapper = document.getElementById(
-            "serviceScannedQRWrapper",
-        );
         const scannedQRText = document.getElementById("serviceScannedQR");
 
         // ✅ CHECK STATUS
@@ -256,15 +254,12 @@ $(function () {
 
         // Reset
         hiddenInventoryId.value = "";
-        if (scannedQRWrapper) scannedQRWrapper.style.display = "none";
         if (scannedQRText) scannedQRText.innerText = "";
 
         // Set item info
         serviceModalEl.querySelector('input[name="item_id"]').value =
             item.item_id || "";
         document.getElementById("serviceItemName").value = item.item_name || "";
-        document.getElementById("serviceItemAvailable").innerText =
-            `Available: ${item.remaining || 0}`;
         document.getElementById("technician").value = "";
         document.getElementById("serviceDescription").value = "";
         document.getElementById("serviceDate").value = new Date()
@@ -275,10 +270,7 @@ $(function () {
         if (item.type !== "consumable" && item.units && item.units.length > 0) {
             hiddenInventoryId.value = item.units[0].id;
 
-            if (scannedQRWrapper && scannedQRText) {
-                scannedQRWrapper.style.display = "block";
                 scannedQRText.innerText = `Selected QR: ${item.units[0].qr_code}`;
-            }
         }
 
         // Reset image preview
@@ -310,12 +302,11 @@ $(function () {
         const hiddenInventoryId = document.getElementById(
             "distributionInventoryId",
         );
-        const scannedQRWrapper = document.getElementById(
-            "distributionScannedQRWrapper",
-        );
         const scannedQRText = document.getElementById("distributionScannedQR");
         const typeWrapper = document.getElementById("distributionTypeWrapper"); // container for type select
         const typeSelect = document.getElementById("distributionType");
+        const distributionItemRemaining = document.getElementById("distributionItemRemaining");
+        const distributionScannedQR = document.getElementById("distributionScannedQR");
 
         // ----------------------------
         // VALIDATION
@@ -371,17 +362,17 @@ $(function () {
             if (typeSelect) typeSelect.value = "distributed";
 
             quantityWrapper.style.display = "block";
+            distributionItemRemaining.style.display = "block";
             setupDistributionQuantity(item.remaining);
         } else {
             // Non-consumable → show type, hide quantity, default quantity=1, select first available unit
             if (typeWrapper) typeWrapper.style.display = "block";
 
-            quantityWrapper.style.display = "none";
             quantityInput.value = 1;
 
             if (item.units && item.units.length > 0) {
                 hiddenInventoryId.value = item.units[0].id;
-                scannedQRWrapper.style.display = "block";
+                distributionScannedQR.style.display = "block";
                 scannedQRText.innerText = `Selected QR: ${item.units[0].qr_code}`;
             }
         }

@@ -284,7 +284,8 @@
                                         <label class="form-label bold-label">Item</label>
                                         <input type="text" class="form-control text-muted" id="distributionItemName"
                                             readonly>
-                                        <small class="text-muted" id="distributionItemRemaining">Available: 0</small>
+                                        <small class="text-muted" id="distributionItemRemaining" style="display:none;">Available: 0</small>
+                                        <small class="text-muted" id="distributionScannedQR" style="display:none;"></small>
                                     </div>
 
                                     <!-- Type -->
@@ -307,11 +308,6 @@
 
                                     <!-- Hidden input for inventory ID -->
                                     <input type="hidden" name="inventory_ids[]" id="distributionInventoryId" value="">
-
-                                    <!-- Optional: show scanned QR for confirmation -->
-                                    <div class="mb-3" id="distributionScannedQRWrapper" style="display:none;">
-                                        <small class="text-muted" id="distributionScannedQR"></small>
-                                    </div>
 
                                     <!-- Department/Borrower -->
                                     <div class="col-md-6 mb-3">
@@ -380,7 +376,7 @@
                                         <label class="form-label bold-label">Item</label>
                                         <input type="text" class="form-control text-muted" id="serviceItemName"
                                             readonly>
-                                        <small class="text-muted" id="serviceItemAvailable">Available: 0</small>
+                                        <small class="text-muted" id="serviceScannedQR"></small>
                                     </div>
 
                                     <!-- Service Type -->
@@ -396,10 +392,6 @@
 
                                     <!-- Hidden input for inventory ID -->
                                     <input type="hidden" name="inventory_ids[]" id="serviceInventoryId" value="">
-
-                                    <div class="mb-3" id="serviceScannedQRWrapper" style="display:none;">
-                                        <small class="text-muted" id="serviceScannedQR"></small>
-                                    </div>
 
                                     <!-- Technician -->
                                     <div class="col-md-6 mb-3">

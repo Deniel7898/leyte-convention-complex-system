@@ -10,6 +10,8 @@ use App\Models\Units;
 use App\Models\Category;
 use App\Models\Item;
 use App\Models\InventoryHistory;
+use App\Models\ItemDistribution;
+use App\Models\User;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Carbon\Carbon;
@@ -112,13 +114,13 @@ class Service_RecordsController extends Controller
 
     public function create(Request $request)
     {
-        // 1️⃣ Get all items with inventories and unit
+        // Get all items with inventories and unit
         $items = Item::with(['unit', 'inventories.qrCode'])->get();
 
-        // 2️⃣ Get categories
+        // Get categories
         $categories = Category::all();
 
-        // 3️⃣ Fetch the selected item if item_id is provided
+        // Fetch the selected item if item_id is provided
         $selectedItem = null;
         $availableInventories = collect();
         $selectedInventory = null; // <- THIS WILL HOLD the clicked inventory
@@ -139,10 +141,10 @@ class Service_RecordsController extends Controller
             }
         }
 
-        // 4️⃣ Quick flag
+        // Quick flag
         $quickAction = $request->has('quick') && $request->quick == 1;
 
-        // 5️⃣ Return view (or JSON for modal)
+        // Return view (or JSON for modal)
         return view('service_records.form', compact(
             'items',
             'selectedItem',
@@ -167,6 +169,34 @@ class Service_RecordsController extends Controller
             'total_remaining' => Item::sum('remaining'),
             'item_service_required' => Service_Record::whereIn('status', ['scheduled', 'under repair', 'cancelled'])->count(),
             'to_purchase' => 23, // hardcoded or calculate if you have logic
+        ];
+    }
+    public function getDashboardOverview()
+    {
+        $today = now()->toDateString();
+
+        // Today's counts
+        $itemsAddedToday = Inventory::whereDate('created_at', $today)->count();
+        $itemsDistributedToday = ItemDistribution::whereIn('status', ['distributed', 'issued', 'borrowed'])
+            ->whereDate('created_at', $today)
+            ->count();
+        $servicesLoggedToday = Service_Record::whereDate('created_at', $today)->count();
+
+        // Define today's max for progress bars (avoid division by 0)
+        $dailyMax = max($itemsAddedToday, $itemsDistributedToday, $servicesLoggedToday, 1);
+
+        // Dashboard overview array
+        return [
+            'total_category' => Category::count(),
+            'total_users' => User::count(),
+
+            'items_added_today' => $itemsAddedToday,
+            'items_distributed' => $itemsDistributedToday,
+            'services_logged' => $servicesLoggedToday,
+
+            'items_added_today_percentage' => round(($itemsAddedToday / $dailyMax) * 100),
+            'items_distributed_percentage' => round(($itemsDistributedToday / $dailyMax) * 100),
+            'services_logged_percentage' => round(($servicesLoggedToday / $dailyMax) * 100),
         ];
     }
 
@@ -265,10 +295,12 @@ class Service_RecordsController extends Controller
         } else { // home default
             $recent_activities = $this->getRecentActivities();
             $stats = $this->getHomeStats();
+            $overview = $this->getDashboardOverview();
 
             return response()->json([
                 'recent_activity_html' => view('home.recent_activity', compact('recent_activities'))->render(),
                 'stats_html' => view('home.stats_cards', compact('stats'))->render(),
+                'overview_html' => view('home.dashboard_overview', compact('overview'))->render(),
                 'message' => 'Service added successfully',
             ]);
         }

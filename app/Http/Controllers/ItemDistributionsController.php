@@ -9,6 +9,8 @@ use App\Models\Inventory;
 use App\Models\ItemDistribution;
 use App\Models\InventoryHistory;
 use App\Models\QR_Code;
+use App\Models\Service_Record;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -247,6 +249,35 @@ class ItemDistributionsController extends Controller
         ];
     }
 
+    public function getDashboardOverview()
+    {
+        $today = now()->toDateString();
+
+        // Today's counts
+        $itemsAddedToday = Inventory::whereDate('created_at', $today)->count();
+        $itemsDistributedToday = ItemDistribution::whereIn('status', ['distributed', 'issued', 'borrowed'])
+            ->whereDate('created_at', $today)
+            ->count();
+        $servicesLoggedToday = Service_Record::whereDate('created_at', $today)->count();
+
+        // Define today's max for progress bars (avoid division by 0)
+        $dailyMax = max($itemsAddedToday, $itemsDistributedToday, $servicesLoggedToday, 1);
+
+        // Dashboard overview array
+        return [
+            'total_category' => Category::count(),
+            'total_users' => User::count(),
+
+            'items_added_today' => $itemsAddedToday,
+            'items_distributed' => $itemsDistributedToday,
+            'services_logged' => $servicesLoggedToday,
+
+            'items_added_today_percentage' => round(($itemsAddedToday / $dailyMax) * 100),
+            'items_distributed_percentage' => round(($itemsDistributedToday / $dailyMax) * 100),
+            'services_logged_percentage' => round(($servicesLoggedToday / $dailyMax) * 100),
+        ];
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -392,12 +423,14 @@ class ItemDistributionsController extends Controller
                 'message' => 'Inventory updated successfully',
             ]);
         } else { // default to 'home'
-            $recent_activities = $this->getRecentActivities(); // Should return collection
-            $stats = $this->getHomeStats(); // Should return array ['total_stock'=>..., etc.]
+            $recent_activities = $this->getRecentActivities();
+            $stats = $this->getHomeStats();
+            $overview = $this->getDashboardOverview();
 
             return response()->json([
                 'recent_activity_html' => view('home.recent_activity', compact('recent_activities'))->render(),
                 'stats_html' => view('home.stats_cards', compact('stats'))->render(),
+                'overview_html' => view('home.dashboard_overview', compact('overview'))->render(),
                 'message' => 'Stock added successfully',
             ]);
         }
