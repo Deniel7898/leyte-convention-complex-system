@@ -23,8 +23,8 @@ class ItemDistributionsController extends Controller
      */
     public function liveSearch(Request $request)
     {
-        $searchTerm     = $request->input('query', '');
-        $statusFilter   = $request->input('status', null);
+        $searchTerm = $request->input('query', '');
+        $statusFilter = $request->input('status', null);
         $categoryFilter = $request->input('category', null);
         $distTypeFilter = $request->input('dist_type', null);
 
@@ -34,38 +34,47 @@ class ItemDistributionsController extends Controller
             $searchLower = strtolower($searchTerm);
 
             $distributions = $distributions->filter(function ($dist) use ($searchTerm, $searchLower) {
-                if (!$dist->inventory || !$dist->inventory->item) return false;
+                if (!$dist->inventory || !$dist->inventory->item)
+                    return false;
 
                 $item = $dist->inventory->item;
                 $match = false;
 
                 // Search item name
-                if (stripos($item->name, $searchTerm) !== false) $match = true;
+                if (stripos($item->name, $searchTerm) !== false)
+                    $match = true;
 
                 // Search unit
-                if ($item->unit && stripos($item->unit->name, $searchTerm) !== false) $match = true;
+                if ($item->unit && stripos($item->unit->name, $searchTerm) !== false)
+                    $match = true;
 
                 // Search category
-                if ($item->category && stripos($item->category->name, $searchTerm) !== false) $match = true;
+                if ($item->category && stripos($item->category->name, $searchTerm) !== false)
+                    $match = true;
 
                 // Search QR Code
-                if ($dist->inventory->qrCode && stripos($dist->inventory->qrCode->code, $searchTerm) !== false) $match = true;
+                if ($dist->inventory->qrCode && stripos($dist->inventory->qrCode->code, $searchTerm) !== false)
+                    $match = true;
 
                 // Search status, description, remarks
                 foreach (['status', 'description', 'remarks'] as $field) {
-                    if (!empty($dist->$field) && stripos($dist->$field, $searchTerm) !== false) $match = true;
+                    if (!empty($dist->$field) && stripos($dist->$field, $searchTerm) !== false)
+                        $match = true;
                 }
 
                 // Distribution type keywords
-                if (in_array($searchLower, ['distribution']) && $dist->type == 0) $match = true;
-                if (in_array($searchLower, ['borrow', 'borrowed']) && $dist->type == 1) $match = true;
+                if (in_array($searchLower, ['distribution']) && $dist->type == 0)
+                    $match = true;
+                if (in_array($searchLower, ['borrow', 'borrowed']) && $dist->type == 1)
+                    $match = true;
 
                 // Distribution date & due date
                 foreach (['distribution_date', 'due_date'] as $dateField) {
                     if (!empty($dist->$dateField) && $dist->$dateField != '--') {
                         try {
                             $formatted = Carbon::parse($dist->$dateField)->format('M d, Y');
-                            if (stripos($formatted, $searchTerm) !== false) $match = true;
+                            if (stripos($formatted, $searchTerm) !== false)
+                                $match = true;
                         } catch (\Exception $e) {
                         }
                     }
@@ -223,6 +232,21 @@ class ItemDistributionsController extends Controller
         ));
     }
 
+    public function getRecentActivities()
+    {
+        return InventoryHistory::orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+    }
+
+    public function getHomeStats()
+    {
+        return [
+            'total_stock' => Item::sum('total_stock'),
+            'total_remaining' => Item::sum('remaining'),
+        ];
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -235,7 +259,7 @@ class ItemDistributionsController extends Controller
             'due_date' => 'nullable|date',
             'notes' => 'nullable|string',
             'department_or_borrower' => 'required|string|max:255',
-            'page' => 'nullable|string',
+            'page' => 'nullable|string|in:home,inventory,items',
         ]);
 
         $item = Item::findOrFail($request->item_id);
@@ -247,9 +271,9 @@ class ItemDistributionsController extends Controller
             // Map type → status
             $status = match ($type) {
                 'distributed' => 'completed',
-                'issued'      => 'issued',
-                'borrowed'    => 'borrowed',
-                default       => $request->status,
+                'issued' => 'issued',
+                'borrowed' => 'borrowed',
+                default => $request->status,
             };
 
             $department = $request->department_or_borrower ?? 'Unknown';
@@ -355,17 +379,26 @@ class ItemDistributionsController extends Controller
             $nonConsumableTableHtml = view('inventory.items.non_consumable_table', compact('item'))->render();
 
             return response()->json([
-                'item_card_html'           => view('inventory.items.item_card', compact('item'))->render(),
-                'history_table_html'       => view('inventory.items.history_table', compact('item', 'history'))->render(),
+                'item_card_html' => view('inventory.items.item_card', compact('item'))->render(),
+                'history_table_html' => view('inventory.items.history_table', compact('item', 'history'))->render(),
                 'non_consumable_table_html' => $nonConsumableTableHtml,
-                'item_id'                  => $item->id,
-                'message'                  => 'Distribution added successfully'
+                'item_id' => $item->id,
+                'message' => 'Distribution added successfully'
             ]);
         } elseif ($request->page === 'inventory') {
             $inventories = $this->getInventories();
             return response()->json([
                 'table_html' => view('inventory.inventory.table', compact('inventories'))->render(),
-                'message'    => 'Inventory updated successfully',
+                'message' => 'Inventory updated successfully',
+            ]);
+        } else { // default to 'home'
+            $recent_activities = $this->getRecentActivities(); // Should return collection
+            $stats = $this->getHomeStats(); // Should return array ['total_stock'=>..., etc.]
+
+            return response()->json([
+                'recent_activity_html' => view('home.recent_activity', compact('recent_activities'))->render(),
+                'stats_html' => view('home.stats_cards', compact('stats'))->render(),
+                'message' => 'Stock added successfully',
             ]);
         }
     }
@@ -593,11 +626,11 @@ class ItemDistributionsController extends Controller
             $nonConsumableTableHtml = view('inventory.items.non_consumable_table', compact('item'))->render();
 
             return response()->json([
-                'item_card_html'           => view('inventory.items.item_card', compact('item'))->render(),
-                'history_table_html'       => view('inventory.items.history_table', compact('item', 'history'))->render(),
+                'item_card_html' => view('inventory.items.item_card', compact('item'))->render(),
+                'history_table_html' => view('inventory.items.history_table', compact('item', 'history'))->render(),
                 'non_consumable_table_html' => $nonConsumableTableHtml,
-                'item_id'                  => $item->id,
-                'message'                  => 'Distribution added successfully'
+                'item_id' => $item->id,
+                'message' => 'Distribution added successfully'
             ]);
         } else if ($request->page === 'item-distributions') { // Refresh the item distributions table
             $itemDistributions = ItemDistribution::latest()->get();

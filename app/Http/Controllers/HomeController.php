@@ -37,32 +37,46 @@ class HomeController extends Controller
 
         $today = now()->toDateString();
 
-        return view('home', [
-            // Count of service records that require attention
-            'item_service_required' => Service_Record::whereIn('status', ['scheduled', 'under repair', 'cancelled'])->count(),
-
+        // stats array
+        $stats = [
             // Total stock in items table
             'total_stock' => Item::sum('total_stock'),
 
             // Total remaining in items table
             'total_remaining' => Item::sum('remaining'),
 
-            // Total remaining 
-            'total_category' => Category::count(),
+            // Count of service records that require attention
+            'item_service_required' => Service_Record::whereIn('status', ['scheduled', 'under repair', 'cancelled'])->count(),
+        ];
 
-            // Total users 
+        // Today’s counts
+        $itemsAddedToday = Inventory::whereDate('created_at', $today)->count();
+        $itemsDistributedToday = ItemDistribution::whereIn('status', ['distributed', 'issued', 'borrowed'])
+            ->whereDate('created_at', $today)
+            ->count();
+        $servicesLoggedToday = Service_Record::whereDate('created_at', $today)->count();
+
+        // Define your daily max for the progress bar (optional, or use max of today)
+        $dailyMax = max($itemsAddedToday, $itemsDistributedToday, $servicesLoggedToday, 1); // avoid division by 0
+
+        $overview = [
+            'total_category' => Category::count(),
             'total_users' => User::count(),
 
-            // Total Items Added Today 
-            'items_added_today' => Inventory::whereDate('created_at', $today)->count(),
+            'items_added_today' => $itemsAddedToday,
+            'items_distributed' => $itemsDistributedToday,
+            'services_logged' => $servicesLoggedToday,
 
-            // Total Distribution Today 
-            'items_distributed' => ItemDistribution::whereIn('status', ['distributed', 'issued', 'borrowed'])->count(),
+            'items_added_today_percentage' => round(($itemsAddedToday / $dailyMax) * 100),
+            'items_distributed_percentage' => round(($itemsDistributedToday / $dailyMax) * 100),
+            'services_logged_percentage' => round(($servicesLoggedToday / $dailyMax) * 100),
+        ];
 
-            // Total Service Today 
-            'services_logged' => Service_Record::whereDate('created_at', $today)->count(),
+        return view('home.index', [
+            'stats' => $stats,
 
-            // Recent Activities
+            'overview' => $overview,
+
             'recent_activities' => $recent_activities,
         ]);
     }
@@ -70,14 +84,7 @@ class HomeController extends Controller
     public function getItemByQrCode($code)
     {
         try {
-            $qr = \App\Models\QR_Code::with([
-                'inventory.item.category',
-                'inventory.item.unit',
-                'inventory.item.inventories' => function ($query) {
-                    // Only include units that are not borrowed or issued
-                    $query->whereNotIn('status', ['borrowed', 'issued']);
-                }
-            ])->where('code', $code)->first();
+            $qr = QR_Code::with('inventory.item.category', 'inventory.item.unit')->where('code', $code)->first();
 
             if (!$qr) {
                 return response()->json([
@@ -89,49 +96,54 @@ class HomeController extends Controller
             $inventory = $qr->inventory;
             $item = $inventory->item ?? null;
 
-            $availableUnits = [];
-            $remainingQty = 0;
-
-            if ($item) {
-                // For consumables, just return remaining quantity
-                if ($item->type === 'consumable') {
-                    $remainingQty = $item->remaining ?? 0;
-                } else {
-                    // For non-consumables, calculate available units
-                    foreach ($item->inventories as $inv) {
-                        $hasActiveService = $inv->serviceRecords()
-                            ->whereIn('status', ['scheduled', 'in progress'])
-                            ->exists();
-
-                        $hasDistributed = $inv->itemDistributions()
-                            ->whereIn('type', ['distributed'])
-                            ->exists();
-
-                        if (!$hasActiveService && !$hasDistributed && !in_array(strtolower($inv->status), ['borrowed', 'issued'])) {
-                            $availableUnits[] = [
-                                'id' => $inv->id,
-                                'qr_code' => $inv->qrCode->code ?? 'N/A',
-                            ];
-                        }
-                    }
-
-                    $remainingQty = count($availableUnits);
-                }
+            if (!$item) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Item not found for this QR code'
+                ], 404);
             }
+
+            // Check if the inventory is available
+            $hasActiveService = $inventory->serviceRecords()
+                ->whereIn('status', ['scheduled', 'in progress'])
+                ->exists();
+
+            $hasDistributed = $inventory->itemDistributions()
+                ->whereIn('type', ['distributed'])
+                ->exists();
+
+            if (in_array(strtolower($inventory->status), ['borrowed', 'issued']) || $hasActiveService || $hasDistributed) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This QR code is currently not available'
+                ], 400);
+            }
+
+            $remainingQty = $item->type === 'consumable' ? $item->remaining ?? 0 : 1;
+            $availableUnits = $item->type === 'consumable' ? [] : [
+                [
+                    'id' => $inventory->id,
+                    'qr_code' => $inventory->qrCode->code ?? 'N/A',
+                ]
+            ];
 
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'item_id'   => $item->id ?? null,
-                    'item_name' => $item->name ?? 'N/A',
-                    'category'  => $item->category->name ?? 'N/A',
-                    'type'      => $item->type ?? 'N/A',   // consumable or non-consumable
-                    'unit'      => $item->unit->name ?? 'N/A',
-                    'supplier'  => $item->supplier ?? 'N/A',
+                    'item_id' => $item->id,
+                    'item_name' => $item->name,
+                    'category' => $item->category->name ?? 'N/A',
+                    'type' => $item->type,
+                    'unit' => $item->unit->name ?? 'N/A',
+                    'supplier' => $item->supplier ?? 'N/A',
                     'remaining' => $remainingQty,
-                    'units'     => $availableUnits,        // only for non-consumables
+                    'units' => $availableUnits,
+                    'inventory_id' => $inventory->id,
+                    'status' => strtolower($inventory->status ?? 'unknown'),
+                    'qr_code' => $qr->code,
                 ]
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

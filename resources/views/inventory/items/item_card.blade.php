@@ -83,7 +83,7 @@
     </div>
     <div class="col-auto">
         <div class="delete-item" data-url="{{ route('items.destroy', ['item' => $item->id]) }}">
-            @if(Auth::user()->role === 'admin' || $item->historyCount === 1)
+            @if(isset($item->historyCount) && $item->historyCount < 2)
             <button class="btn px-4 text-white" style="background-color:hsl(0,70%,50%)">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2 me-2">
                     <path d="M3 6h18"></path>

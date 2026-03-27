@@ -85,11 +85,18 @@ class ItemsController extends Controller
     private function getItems()
     {
         return Item::with(['unit', 'category', 'inventories.qrCode'])->get()->map(function ($item) {
+            // Remaining available inventories
             $remaining = $item->inventories
                 ->filter(fn($inv) => strtolower($inv->status ?? 'available') === 'available')
                 ->count();
 
-            return (object)[
+            // Count history for non-consumable items
+            $historyCount = 0;
+            if ($item->type == 1) { // 1 = non-consumable
+                $historyCount = InventoryHistory::where('item_id', $item->id)->count();
+            }
+
+            return (object) [
                 'id' => $item->id,
                 'name' => $item->name,
                 'remaining' => $remaining,
@@ -99,6 +106,7 @@ class ItemsController extends Controller
                 'description' => $item->description ?? '--',
                 'picture' => $item->picture ?? null,
                 'inventories' => $item->inventories,
+                'historyCount' => $historyCount, // ✅ always include
             ];
         });
     }
@@ -251,17 +259,17 @@ class ItemsController extends Controller
     public function show(string $id)
     {
         $item = Item::with(['category', 'unit', 'inventories.qrCode'])->findOrFail($id);
-        $history = collect();
-        $historyCount = 0; // always define
 
-        if ($item->type !== 1) { 
+        // Fetch all inventory history, regardless of type
             $history = InventoryHistory::where('item_id', $item->id)
                 ->with(['creator', 'updater', 'inventory.qrCode'])
                 ->orderByDesc('created_at')
                 ->get();
 
-            $historyCount = $history->count(); // count the fetched history
-        }
+        $historyCount = $history->count();
+
+        // Attach historyCount to the item for Blade consistency
+        $item->historyCount = $historyCount;
 
         return view('inventory.items.index', compact('item', 'history', 'historyCount'));
     }

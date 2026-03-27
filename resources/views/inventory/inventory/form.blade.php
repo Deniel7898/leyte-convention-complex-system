@@ -52,7 +52,7 @@
             <!-- Unit -->
             <div class="col-md-6 mb-3">
                 <label for="item-unit" class="form-label required">Unit</label>
-                <select class="form-select" id="item-unit" name="unit_id">
+                <select class="form-select" id="item-unit" name="unit_id" required>
                     <option value="">Select unit</option>
                     @foreach($units as $unit)
                     <option value="{{ $unit->id }}" {{ isset($item) && $item->unit_id == $unit->id ? 'selected' : '' }}>
@@ -67,7 +67,7 @@
             <div class="col-md-6 mb-3">
                 <label for="item-total-stock" class="form-label required">Quantity</label>
                 <input type="number" class="form-control" id="item-total-stock" name="total_stock"
-                    value="{{ isset($item) ? $item->total_stock : '' }}" min="0">
+                    value="{{ isset($item) ? $item->total_stock : '' }}" min="0" required>
             </div>
             @endif
 

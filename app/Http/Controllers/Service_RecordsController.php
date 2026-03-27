@@ -153,6 +153,23 @@ class Service_RecordsController extends Controller
         ));
     }
 
+    public function getRecentActivities()
+    {
+        return InventoryHistory::orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+    }
+
+    public function getHomeStats()
+    {
+        return [
+            'total_stock' => Item::sum('total_stock'),
+            'total_remaining' => Item::sum('remaining'),
+            'item_service_required' => Service_Record::whereIn('status', ['scheduled', 'under repair', 'cancelled'])->count(),
+            'to_purchase' => 23, // hardcoded or calculate if you have logic
+        ];
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -166,7 +183,7 @@ class Service_RecordsController extends Controller
             'remarks' => 'nullable|string',
             'picture' => 'nullable|image|max:2048',
             'item_id' => 'required|exists:items,id',
-            'page' => 'nullable|string',
+            'page' => 'nullable|string|in:home,inventory,items',
         ]);
 
         $picturePath = null;
@@ -177,14 +194,12 @@ class Service_RecordsController extends Controller
             $picturePath = 'service_records/' . $filename;
         }
 
-        $newRecords = [];
-        $item = null; // make sure we have the item reference
+        $item = Item::findOrFail($request->item_id);
         $inventoryIds = $request->inventory_ids ?? [];
-        $serviceCount = count($inventoryIds);
+        $newRecords = [];
 
         foreach ($inventoryIds as $inventoryId) {
             $inventory = Inventory::findOrFail($inventoryId);
-            $item = $inventory->item;
 
             $record = Service_Record::create([
                 'inventory_id' => $inventoryId,
@@ -200,78 +215,61 @@ class Service_RecordsController extends Controller
                 'updated_by' => Auth::id(),
             ]);
 
-            $inventory->update(['status' => $request->type]);
-
             $inventory->update([
                 'status' => $request->type,
                 'holder' => $request->technician,
                 'date_assigned' => now(),
-                'notes' => $request->notes,
+                'notes' => $request->remarks ?? $request->description ?? null,
             ]);
-            if ($item) {
-                $item->decrement('remaining', 1);
-            }
+
+            $item->decrement('remaining', 1);
+
+            InventoryHistory::create([
+                'item_id' => $item->id,
+                'inventory_id' => $inventory->id,
+                'holder_or_borrower' => $request->technician,
+                'action' => $request->type,
+                'quantity' => 1,
+                'notes' => $request->remarks ?? $request->description,
+                'created_by' => Auth::id(),
+                'updated_by' => Auth::id(),
+            ]);
 
             $newRecords[] = $record;
         }
 
-        // Log history
-        if ($item) {
-            InventoryHistory::create([
-                'item_id' => $item->id,
-                'inventory_id' => $inventoryId,
-                'holder_or_borrower' => $request->technician,
-                'action' => $request->type,
-                'quantity' => $serviceCount,
-                'notes' => $request->remarks ?? $request->description, // use description or remarks
-                'created_by' => Auth::id(),
-                'updated_by' => Auth::id(),
-            ]);
-        }
+        $item->refresh();
+        $page = $request->page ?? 'home';
 
-        if ($item) {
-            $item->refresh();
-        }
-
-        // Response based on page
-        if ($request->page === 'items') {
+        if ($page === 'items') {
             $item->load('unit', 'category', 'inventories.qrCode');
-
             $history = InventoryHistory::where('item_id', $item->id)
                 ->with(['creator', 'updater'])
                 ->orderByDesc('created_at')
                 ->get();
 
-            // Return the non-consumable table partial
-            $nonConsumableTableHtml = view('inventory.items.non_consumable_table', compact('item'))->render();
-
             return response()->json([
                 'item_card_html' => view('inventory.items.item_card', compact('item'))->render(),
                 'history_table_html' => view('inventory.items.history_table', compact('item', 'history'))->render(),
-                'non_consumable_table_html' => $nonConsumableTableHtml,
                 'item_id' => $item->id,
-                'message' => 'Service added successfully'
+                'message' => 'Service added successfully',
             ]);
-        } elseif ($request->page === 'inventory') {
+
+        } elseif ($page === 'inventory') {
             $inventories = $this->getInventories();
             return response()->json([
                 'table_html' => view('inventory.inventory.table', compact('inventories'))->render(),
                 'message' => 'Inventory updated successfully',
             ]);
-        } elseif ($request->page === 'service_records') {
-            // Render service record cards
-            $cards_html = '';
-            foreach ($newRecords as $record) {
-                $cards_html .= view('service_records.card', ['record' => $record])->render();
-            }
 
-            $service_records = Service_Record::latest()->get();
-            $table_html = view('service_records.table', compact('service_records'))->render();
+        } else { // home default
+            $recent_activities = $this->getRecentActivities();
+            $stats = $this->getHomeStats();
+
             return response()->json([
-                'cards_html' => $cards_html,
-                'table_html' => $table_html,
-                'message' => 'Service record(s) added successfully',
-                'record_ids' => collect($newRecords)->pluck('id')->toArray(),
+                'recent_activity_html' => view('home.recent_activity', compact('recent_activities'))->render(),
+                'stats_html' => view('home.stats_cards', compact('stats'))->render(),
+                'message' => 'Service added successfully',
             ]);
         }
     }

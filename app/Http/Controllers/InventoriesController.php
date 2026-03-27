@@ -9,6 +9,9 @@ use App\Models\Item;
 use App\Models\Inventory;
 use App\Models\QR_Code;
 use App\Models\InventoryHistory;
+use App\Models\Service_Record;
+use App\Models\User;
+use App\Models\ItemDistribution;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
@@ -141,14 +144,14 @@ class InventoriesController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'          => 'required|string|max:255',
-            'category_id'   => 'required|integer|exists:categories,id',
-            'type'          => 'required|in:consumable,non-consumable',
-            'unit_id'       => 'nullable|integer|exists:units,id',
-            'total_stock'   => 'required|integer|min:0',
-            'supplier'      => 'nullable|string|max:255',
-            'description'   => 'nullable|string',
-            'picture'       => 'nullable|image|max:2048',
+            'name' => 'required|string|max:255',
+            'category_id' => 'required|integer|exists:categories,id',
+            'type' => 'required|in:consumable,non-consumable',
+            'unit_id' => 'nullable|integer|exists:units,id',
+            'total_stock' => 'required|integer|min:0',
+            'supplier' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'picture' => 'nullable|image|max:2048',
             'received_date' => 'nullable|date',
         ]);
 
@@ -160,17 +163,17 @@ class InventoriesController extends Controller
         }
 
         $item = Item::create([
-            'name'        => $validated['name'],
-            'type'        => $validated['type'],
+            'name' => $validated['name'],
+            'type' => $validated['type'],
             'category_id' => $validated['category_id'],
-            'unit_id'     => $validated['unit_id'] ?? null,
+            'unit_id' => $validated['unit_id'] ?? null,
             'total_stock' => $validated['total_stock'],
-            'remaining'   => $validated['total_stock'],
+            'remaining' => $validated['total_stock'],
             'description' => $validated['description'] ?? null,
-            'supplier'    => $validated['supplier'] ?? null,
-            'picture'     => $validated['picture'] ?? null,
-            'created_by'  => Auth::id(),
-            'updated_by'  => Auth::id(),
+            'supplier' => $validated['supplier'] ?? null,
+            'picture' => $validated['picture'] ?? null,
+            'created_by' => Auth::id(),
+            'updated_by' => Auth::id(),
         ]);
 
         // Generate QR codes and inventory records
@@ -192,21 +195,21 @@ class InventoriesController extends Controller
                 Storage::disk('public')->put($qrImagePath, $writer->writeString($qrCodeValue));
 
                 $inventory = Inventory::create([
-                    'id'           => Str::uuid(),
-                    'item_id'      => $item->id,
+                    'id' => Str::uuid(),
+                    'item_id' => $item->id,
                     'status' => 'available',
                     'received_date' => $request->received_date ?? now(),
-                    'created_by'   => Auth::id(),
-                    'updated_by'   => Auth::id(),
+                    'created_by' => Auth::id(),
+                    'updated_by' => Auth::id(),
                 ]);
 
                 QR_Code::create([
-                    'code'         => $qrCodeValue,
-                    'qr_picture'   => $qrImagePath,
+                    'code' => $qrCodeValue,
+                    'qr_picture' => $qrImagePath,
                     'inventory_id' => $inventory->id,
-                    'status'       => QR_Code::STATUS_USED,
-                    'created_by'   => Auth::id(),
-                    'updated_by'   => Auth::id(),
+                    'status' => QR_Code::STATUS_USED,
+                    'created_by' => Auth::id(),
+                    'updated_by' => Auth::id(),
                 ]);
             }
             // Log history
@@ -218,7 +221,7 @@ class InventoriesController extends Controller
                 'created_by' => Auth::id(),
                 'updated_by' => Auth::id(),
             ]);
-            
+
         } elseif ($item->type === 'consumable') {
             $lastQrToday = QR_Code::where('code', 'like', "LCC-{$prefix}{$datetime}-%")->orderByDesc('code')->first();
             $lastSequence = $lastQrToday ? (int) explode('-', $lastQrToday->code)[2] : 0;
@@ -232,20 +235,20 @@ class InventoriesController extends Controller
             Storage::disk('public')->put($qrImagePath, $writer->writeString($qrCodeValue));
 
             Inventory::create([
-                'id'           => Str::uuid(),
-                'item_id'      => $item->id,
+                'id' => Str::uuid(),
+                'item_id' => $item->id,
                 'received_date' => $request->received_date ?? now(),
-                'created_by'   => Auth::id(),
-                'updated_by'   => Auth::id(),
+                'created_by' => Auth::id(),
+                'updated_by' => Auth::id(),
             ]);
 
             QR_Code::create([
-                'code'         => $qrCodeValue,
-                'qr_picture'   => $qrImagePath,
+                'code' => $qrCodeValue,
+                'qr_picture' => $qrImagePath,
                 'inventory_id' => $item->inventories->last()->id ?? null,
-                'status'       => QR_Code::STATUS_USED,
-                'created_by'   => Auth::id(),
-                'updated_by'   => Auth::id(),
+                'status' => QR_Code::STATUS_USED,
+                'created_by' => Auth::id(),
+                'updated_by' => Auth::id(),
             ]);
 
             // Log history
@@ -262,7 +265,7 @@ class InventoriesController extends Controller
         $inventories = $this->getInventories();
         return response()->json([
             'table_html' => view('inventory.inventory.table', compact('inventories'))->render(),
-            'message'    => 'Item added successfully'
+            'message' => 'Item added successfully'
         ]);
     }
 
@@ -276,29 +279,47 @@ class InventoriesController extends Controller
         return view('inventory.inventory.add_stock_form', compact('items', 'selectedItem'));
     }
 
+    public function getRecentActivities()
+    {
+        return InventoryHistory::orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+    }
+
+    public function getHomeStats()
+    {
+        return [
+            'total_stock' => Item::sum('total_stock'),
+            'total_remaining' => Item::sum('remaining'),
+        ];
+    }
+
     public function add_stock(Request $request)
     {
         $request->validate([
-            'item_id'  => 'required|exists:items,id',
+            'item_id' => 'required|exists:items,id',
             'quantity' => 'required|integer|min:1',
-            'notes'    => 'nullable|string|max:255',
-            'page'     => 'nullable|string|in:inventory,items',
+            'notes' => 'nullable|string|max:255',
+            'page' => 'nullable|string|in:home,inventory,items',
         ]);
 
         $item = Item::findOrFail($request->item_id);
+
+        // Increment stock
         $item->increment('total_stock', $request->quantity);
         $item->increment('remaining', $request->quantity);
 
+        // Log history
         InventoryHistory::create([
-            'item_id'   => $item->id,
-            'action'    => 'added stock',
-            'quantity'  => $request->quantity,
-            'notes'     => $request->notes,
+            'item_id' => $item->id,
+            'action' => 'added stock',
+            'quantity' => $request->quantity,
+            'notes' => $request->notes,
             'created_by' => Auth::id(),
             'updated_by' => Auth::id(),
         ]);
 
-        // Same logic as update: return updated item card + history table
+        // Return response depending on page
         if ($request->page === 'items') {
             $item->load('unit', 'category');
             $history = InventoryHistory::where('item_id', $item->id)
@@ -307,17 +328,27 @@ class InventoriesController extends Controller
                 ->get();
 
             return response()->json([
-                'item_card_html'     => view('inventory.items.item_card', compact('item'))->render(),
-                'item_id'            => $item->id,
+                'item_card_html' => view('inventory.items.item_card', compact('item'))->render(),
                 'history_table_html' => view('inventory.items.history_table', compact('item', 'history'))->render(),
-                'message'            => 'Stock added successfully'
+                'item_id' => $item->id,
+                'message' => 'Stock added successfully',
             ]);
-        } else if ($request->page === 'inventory') {
 
-            $inventories = $this->getInventories();
+        } elseif ($request->page === 'inventory') {
+            $inventories = $this->getInventories(); // Make sure this returns a collection of items
             return response()->json([
                 'table_html' => view('inventory.inventory.table', compact('inventories'))->render(),
-                'message'    => 'Stock added successfully'
+                'message' => 'Stock added successfully',
+            ]);
+
+        } else { // default to 'home'
+            $recent_activities = $this->getRecentActivities(); // Should return collection
+            $stats = $this->getHomeStats(); // Should return array ['total_stock'=>..., etc.]
+
+            return response()->json([
+                'recent_activity_html' => view('home.recent_activity', compact('recent_activities'))->render(),
+                'stats_html' => view('home.stats_cards', compact('stats'))->render(),
+                'message' => 'Stock added successfully',
             ]);
         }
     }
@@ -354,29 +385,29 @@ class InventoriesController extends Controller
     public function update(Request $request, string $id)
     {
         $validated = $request->validate([
-            'name'          => 'required|string|max:255',
-            'category_id'   => 'required|integer|exists:categories,id',
-            'type'          => 'nullable|in:consumable,non-consumable',
-            'unit_id'       => 'nullable|integer|exists:units,id',
-            'total_stock'   => 'nullable|integer|min:0',
-            'supplier'      => 'nullable|string|max:255',
-            'description'   => 'nullable|string',
-            'picture'       => 'nullable|image|max:2048',
+            'name' => 'required|string|max:255',
+            'category_id' => 'required|integer|exists:categories,id',
+            'type' => 'nullable|in:consumable,non-consumable',
+            'unit_id' => 'nullable|integer|exists:units,id',
+            'total_stock' => 'nullable|integer|min:0',
+            'supplier' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'picture' => 'nullable|image|max:2048',
             'received_date' => 'nullable|date',
-            'page'          => 'nullable|string',
+            'page' => 'nullable|string',
         ]);
 
         $inventory = Inventory::with('item')->findOrFail($id);
         $item = $inventory->item;
 
         $item->update([
-            'name'        => $validated['name'],
+            'name' => $validated['name'],
             'category_id' => $validated['category_id'],
-            'type'        => $validated['type'] ?? $item->type,
-            'unit_id'     => $validated['unit_id'] ?? $item->unit_id,
+            'type' => $validated['type'] ?? $item->type,
+            'unit_id' => $validated['unit_id'] ?? $item->unit_id,
             'description' => $validated['description'] ?? $item->description,
-            'supplier'    => $validated['supplier'] ?? $item->supplier,
-            'updated_by'  => Auth::id(),
+            'supplier' => $validated['supplier'] ?? $item->supplier,
+            'updated_by' => Auth::id(),
         ]);
 
         if ($request->hasFile('picture')) {
@@ -388,7 +419,7 @@ class InventoriesController extends Controller
 
         $inventory->update([
             'received_date' => $validated['received_date'] ?? $inventory->received_date,
-            'updated_by'   => Auth::id(),
+            'updated_by' => Auth::id(),
         ]);
 
         if ($request->page === 'inventory') {
@@ -396,17 +427,17 @@ class InventoriesController extends Controller
             $inventories = $this->getInventories();
             return response()->json([
                 'table_html' => view('inventory.inventory.table', compact('inventories'))->render(),
-                'message'    => 'Inventory updated successfully'
+                'message' => 'Inventory updated successfully'
             ]);
         } elseif ($request->page === 'items') {
             $item->load('unit', 'category');
             $history = InventoryHistory::where('item_id', $item->id)->with(['creator', 'updater'])->orderByDesc('created_at')->get();
 
             return response()->json([
-                'item_card_html'     => view('inventory.items.item_card', compact('item'))->render(),
-                'item_id'            => $item->id,
+                'item_card_html' => view('inventory.items.item_card', compact('item'))->render(),
+                'item_id' => $item->id,
                 'history_table_html' => view('inventory.items.history_table', compact('item', 'history'))->render(),
-                'message'            => 'Item updated successfully'
+                'message' => 'Item updated successfully'
             ]);
         }
     }
@@ -429,10 +460,10 @@ class InventoriesController extends Controller
         // Optional: log history for deletion
         if ($item) {
             InventoryHistory::create([
-                'item_id'    => $item->id,
-                'action'     => 'deleted',           // mark as deleted
-                'quantity'   => 1,
-                'notes'      => 'Non-consumable item deleted',
+                'item_id' => $item->id,
+                'action' => 'deleted',           // mark as deleted
+                'quantity' => 1,
+                'notes' => 'Non-consumable item deleted',
                 'created_by' => Auth::id(),
                 'updated_by' => Auth::id(),
             ]);
@@ -455,11 +486,11 @@ class InventoriesController extends Controller
 
         // Return updated HTML + message
         return response()->json([
-            'item_card_html'            => view('inventory.items.item_card', compact('item'))->render(),
-            'history_table_html'        => view('inventory.items.history_table', compact('item', 'history'))->render(),
+            'item_card_html' => view('inventory.items.item_card', compact('item'))->render(),
+            'history_table_html' => view('inventory.items.history_table', compact('item', 'history'))->render(),
             'non_consumable_table_html' => $nonConsumableTableHtml,
-            'item_id'                   => $item->id,
-            'message'                   => 'Inventory deleted successfully'
+            'item_id' => $item->id,
+            'message' => 'Inventory deleted successfully'
         ]);
     }
 }
