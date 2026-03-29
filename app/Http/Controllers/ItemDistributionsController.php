@@ -15,8 +15,6 @@ use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Pagination\Paginator;
 
 class ItemDistributionsController extends Controller
 {
@@ -120,31 +118,25 @@ class ItemDistributionsController extends Controller
     /**
      * Helper: Get all Item Inventories
      */
-    private function getInventories($perPage = 20)
+    private function getInventories()
     {
-        $allItems = Item::with(['category', 'unit', 'inventories.qrCode'])->get()->map(function ($item) {
+        return Item::with(['category', 'unit', 'inventories.qrCode'])
+            ->get()
+            ->map(function ($item) {
 
             $item->inventory_type = $item->type === 'consumable' ? 'Consumable' : 'Non-Consumable';
             $item->item_name = $item->name;
 
             // Gather all QR codes linked to inventories
-            $qrCodes = $item->inventories->pluck('qrCode')->filter(); // removes nulls
+                $qrCodes = $item->inventories->pluck('qrCode')->filter();
             $item->qrCodes = $qrCodes;
+
             $item->received_date = $item->inventories->first()?->received_date ?? '--';
 
             return $item;
-        })->sortByDesc('created_at')->values();
-
-        $currentPage = Paginator::resolveCurrentPage() ?: 1;
-        $currentItems = $allItems->slice(($currentPage - 1) * $perPage, $perPage)->values();
-
-        return new LengthAwarePaginator(
-            $currentItems,
-            $allItems->count(),
-            $perPage,
-            $currentPage,
-            ['path' => Paginator::resolveCurrentPath()]
-        );
+            })
+            ->sortByDesc('created_at')
+            ->values();
     }
 
     /**
@@ -220,6 +212,10 @@ class ItemDistributionsController extends Controller
             }
         }
 
+        $selectedQr = $selectedInventory
+            ? $availableInventories->firstWhere('id', $selectedInventory)?->qrCode->code
+            : null;
+
         // Quick flag
         $quickAction = $request->has('quick') && $request->quick == 1;
 
@@ -230,7 +226,8 @@ class ItemDistributionsController extends Controller
             'categories',
             'quickAction',
             'availableInventories',
-            'selectedInventory'
+            'selectedInventory',
+            'selectedQr'
         ));
     }
 
@@ -453,12 +450,35 @@ class ItemDistributionsController extends Controller
      */
     public function edit(string $id)
     {
-        $itemDistribution = ItemDistribution::with(['inventory.item.unit', 'inventory.item.category'])->findOrFail($id);
-        $items = Item::with(['unit', 'inventories'])->get();
-        $categories = Category::all();
-        $selectedItem = $itemDistribution->inventory->item ?? null;
+        $itemDistribution = ItemDistribution::with([
+            'inventory.item.unit',
+            'inventory.item.category',
+            'inventory.qrCode'
+        ])->findOrFail($id);
 
-        return view('item_distributions.form', compact('items', 'selectedItem', 'itemDistribution', 'categories'));
+        $items = Item::with(['unit', 'inventories.qrCode'])->get();
+        $categories = Category::all();
+
+        $selectedItem = $itemDistribution->inventory?->item;
+
+        // Same logic as create()
+        $availableInventories = $selectedItem?->inventories ?? collect();
+        $selectedInventory = $itemDistribution->inventory_id;
+
+        // 🔥 Shorter QR logic
+        $selectedQr = optional(
+            $availableInventories->firstWhere('id', $selectedInventory)
+        )->qrCode->code;
+
+        return view('item_distributions.form', compact(
+            'items',
+            'selectedItem',
+            'itemDistribution',
+            'categories',
+            'availableInventories',
+            'selectedInventory',
+            'selectedQr'
+        ));
     }
 
     /**
@@ -549,7 +569,7 @@ class ItemDistributionsController extends Controller
 
         return response()->json([
             'distribution_id' => $distribution->id, // must match <div id="distribution-card-{{ $item->id }}">
-            'cards_html' => view('item_distributions.card', ['item' => $distribution])->render(), // pass the correct variable
+            'cards_html' => view('item_distributions.card', ['distribution' => $distribution])->render(), // pass the correct variable
             'table_html' => view('item_distributions.table', ['itemDistributions' => $itemDistributions])->render(),
             'message' => 'Item returned/updated successfully!',
         ]);
@@ -598,7 +618,7 @@ class ItemDistributionsController extends Controller
             'status' => 'nullable',
             'item_id' => 'nullable',
             'department_or_borrower' => 'nullable|string',
-            'page' => 'nullable|string',
+            'page' => 'nullable|string|in:home,items,item-ditributions',
         ]);
 
         // Find the item distribution
@@ -670,9 +690,20 @@ class ItemDistributionsController extends Controller
 
             return response()->json([
                 'distribution_id' => $distribution->id, // must match <div id="distribution-card-{{ $item->id }}">
-                'cards_html' => view('item_distributions.card', ['item' => $distribution])->render(), // pass the correct variable
+                'cards_html' => view('item_distributions.card', ['distribution' => $distribution])->render(), // pass the correct variable
                 'table_html' => view('item_distributions.table', ['itemDistributions' => $itemDistributions])->render(),
                 'message' => 'Item returned/updated successfully!',
+            ]);
+        } else { // default to 'home'
+            $recent_activities = $this->getRecentActivities();
+            $stats = $this->getHomeStats();
+            $overview = $this->getDashboardOverview();
+
+            return response()->json([
+                'recent_activity_html' => view('home.recent_activity', compact('recent_activities'))->render(),
+                'stats_html' => view('home.stats_cards', compact('stats'))->render(),
+                'overview_html' => view('home.dashboard_overview', compact('overview'))->render(),
+                'message' => 'Stock added successfully',
             ]);
         }
     }

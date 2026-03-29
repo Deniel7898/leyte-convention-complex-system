@@ -1,199 +1,355 @@
- .stats-card {
-     border-radius: 16px;
-     padding: 1.5rem 2rem;
-     background-color: #f8f9fa;
-     display: flex;
-     justify-content: space-between;
-     align-items: center;
-     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-     min-height: 110px;
- }
+#loading-spinner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.7);
+    z-index: 9999;
+    display: none;
+    /* Hidden by default */
+}
 
- .stats-card .stat-icon {
-     width: 50px;
-     height: 50px;
-     display: flex;
-     align-items: center;
-     justify-content: center;
-     border-radius: 50%;
-     font-size: 26px;
-     color: #fff;
- }
+/* When shown (e.g., via JS), it becomes flex */
+#loading-spinner.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
- .stats-card.primary .stat-icon {
-     background: #0d6efd;
- }
+.spinner {
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid hsl(237, 34%, 25%);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+}
 
- .stats-card.success .stat-icon {
-     background: #198754;
- }
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
 
- .stats-card.warning .stat-icon {
-     background: #ffc107;
- }
+    100% {
+        transform: rotate(360deg);
+    }
+}
 
- .stats-card.danger .stat-icon {
-     background: #dc3545;
- }
+.stats-card {
+    border-radius: 16px;
+    padding: 1.5rem 2rem;
+    background-color: #f8f9fa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    min-height: 110px;
+}
 
- .stat-title {
-     font-size: 0.95rem;
-     color: #6c757d;
- }
+.stats-card .stat-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 26px;
+    color: #fff;
+}
 
- .stat-number {
-     font-size: 1.6rem;
-     font-weight: 700;
- }
+.stats-card.primary .stat-icon {
+    background: #0d6efd;
+}
 
- .stat-change {
-     font-size: 0.85rem;
- }
+.stats-card.success .stat-icon {
+    background: #198754;
+}
 
- .stats-card .stat-icon {
-     width: 50px;
-     height: 50px;
-     display: flex;
-     align-items: center;
-     justify-content: center;
-     border-radius: 50%;
-     font-size: 26px;
-     color: #fff;
-     transition: transform 0.3s ease, box-shadow 0.3s ease;
-     cursor: pointer;
-     /* Makes it clickable */
-     text-decoration: none;
-     /* Remove underline from <a> */
- }
+.stats-card.warning .stat-icon {
+    background: #ffc107;
+}
 
- .stats-card .stat-icon:hover {
-     transform: scale(1.1);
-     /* Slightly enlarge on hover */
-     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-     /* Add shadow on hover */
- }
+.stats-card.danger .stat-icon {
+    background: #dc3545;
+}
 
- /* =========================
+.stat-title {
+    font-size: 0.95rem;
+    color: #6c757d;
+}
+
+.stat-number {
+    font-size: 1.6rem;
+    font-weight: 700;
+}
+
+.stat-change {
+    font-size: 0.85rem;
+}
+
+.stats-card .stat-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 26px;
+    color: #fff;
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+    cursor: pointer;
+    /* Makes it clickable */
+    text-decoration: none;
+    /* Remove underline from <a> */
+}
+
+.stats-card .stat-icon:hover {
+    transform: scale(1.1);
+    /* Slightly enlarge on hover */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    /* Add shadow on hover */
+}
+
+/* =========================
    Quick Actions
 ========================== */
- .quick-action-box {
-     border: 3px dashed #d6dbe1;
-     border-radius: 14px;
-     padding: 30px;
-     background-color: #f8f9fa;
-     cursor: pointer;
-     transition: all .25s ease-in-out;
-     display: flex;
-     gap: 15px;
-     align-items: flex-start;
-     height: 100%;
- }
+.quick-action-box {
+    border: 3px dashed #d6dbe1;
+    border-radius: 14px;
+    padding: 30px;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.25s ease-in-out;
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+    height: 100%;
+}
 
- .quick-action-box:hover {
-     transform: translateY(-3px);
-     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
- }
+.quick-action-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
 
- .quick-action-box.primary:hover {
-     background: #e7ecf5;
-     border-color: #0d6efd;
- }
+.quick-action-box.primary:hover {
+    background: #e7ecf5;
+    border-color: #0d6efd;
+}
 
- .quick-action-box.success:hover {
-     background: #e6f4ea;
-     border-color: #198754;
- }
+.quick-action-box.success:hover {
+    background: #e6f4ea;
+    border-color: #198754;
+}
 
- .quick-action-box.warning:hover {
-     background: #fff8e6;
-     border-color: #ffc107;
- }
+.quick-action-box.warning:hover {
+    background: #fff8e6;
+    border-color: #ffc107;
+}
 
- .quick-action-box .icon {
-     font-size: 26px;
- }
+.quick-action-box .icon {
+    font-size: 26px;
+}
 
- .action-title {
-     font-weight: 600;
-     font-size: 1.05rem;
-     margin-bottom: 4px;
- }
+.action-title {
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin-bottom: 4px;
+}
 
- .action-desc {
-     font-size: 0.9rem;
-     color: #6c757d;
- }
+.action-desc {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
 
- /* =========================
+/* =========================
    Mini Cards
 ========================== */
- .mini-card {
-     border-radius: 14px;
-     padding: 20px;
-     background-color: #f8f9fa;
-     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-     height: auto;
- }
+.mini-card {
+    border-radius: 14px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    height: auto;
+}
 
- .mini-card h5 {
-     font-weight: 600;
-     margin-bottom: 12px;
- }
+.mini-card h5 {
+    font-weight: 600;
+    margin-bottom: 12px;
+}
 
- .metric {
-     display: flex;
-     justify-content: space-between;
-     margin-bottom: 6px;
-     font-size: 0.95rem;
- }
+.metric {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+}
 
- .status-list {
-     list-style: none;
-     padding: 0;
-     margin: 0;
- }
+.status-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
 
- .status-list li {
-     display: flex;
-     justify-content: space-between;
-     align-items: center;
-     padding: 8px 0;
-     font-size: 0.95rem;
- }
+.status-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    font-size: 0.95rem;
+}
 
- /* =========================
+/* =========================
    Recent Activity Timeline
 ========================== */
 
- .activity-item {
-     display: flex;
-     align-items: flex-start;
-     justify-content: space-between;
-     gap: 12px;
-     /* reduced gap */
-     padding: 10px 0;
-     /* clean vertical spacing */
- }
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    /* reduced gap */
+    padding: 10px 0;
+    /* clean vertical spacing */
+}
 
- .activity-item:not(:last-child) {
-     border-bottom: 1px solid #e9ecef;
-     /* soft divider instead of <hr> */
- }
+.activity-item:not(:last-child) {
+    border-bottom: 1px solid #e9ecef;
+    /* soft divider instead of <hr> */
+}
 
- .activity-content {
-     flex-grow: 1;
- }
+.activity-content {
+    flex-grow: 1;
+}
 
- .activity-dot {
-     width: 8px;
-     /* slightly smaller */
-     height: 8px;
-     border-radius: 50%;
-     margin-top: 6px;
- }
+.activity-dot {
+    width: 8px;
+    /* slightly smaller */
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 6px;
+}
 
- .activity-time {
-     white-space: nowrap;
-     font-size: 0.8rem;
-     /* slightly smaller time */
- }
+.activity-time {
+    white-space: nowrap;
+    font-size: 0.8rem;
+    /* slightly smaller time */
+}
+
+/* QR Animation  */
+.qr-scanner-container {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ICON */
+.qr-icon {
+    font-size: 100px;
+    color: #9ca3af;
+    /* soft grey */
+    z-index: 2;
+    animation: heartbeat 5.5s ease-in-out infinite;
+    position: relative;
+}
+
+/* GLOW EFFECT (soft white/grey) */
+.qr-icon::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 90px;
+    height: 90px;
+    background: rgba(255, 255, 255, 0.1);
+    /* light glow instead of blue */
+    transform: translate(-50%, -50%);
+    border-radius: 20px;
+    filter: blur(18px);
+    z-index: -1;
+    animation: glow 4s ease-in-out infinite;
+}
+
+/* SCAN LINE (LIGHT SWEEP EFFECT) */
+.scan-line {
+    position: absolute;
+    width: 85%;
+    height: 6px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.9),
+        transparent
+    );
+    border-radius: 4px;
+    filter: blur(1px);
+    /* makes it look like light */
+    animation: scan 2.5s ease-in-out infinite;
+    z-index: 3;
+}
+
+/* SCAN ANIMATION (smooth light pass) */
+@keyframes scan {
+    0% {
+        top: 10%;
+        opacity: 0;
+    }
+
+    15% {
+        opacity: 1;
+    }
+
+    50% {
+        top: 50%;
+        opacity: 1;
+    }
+
+    85% {
+        opacity: 1;
+    }
+
+    100% {
+        top: 90%;
+        opacity: 0;
+    }
+}
+
+/* HEARTBEAT */
+@keyframes heartbeat {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    25% {
+        transform: scale(1.15);
+    }
+
+    50% {
+        transform: scale(1);
+    }
+
+    75% {
+        transform: scale(1.1);
+    }
+}
+
+/* GLOW */
+@keyframes glow {
+    0%,
+    100% {
+        opacity: 0.4;
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    50% {
+        opacity: 0.8;
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+}

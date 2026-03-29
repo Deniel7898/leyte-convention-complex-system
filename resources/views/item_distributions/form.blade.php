@@ -21,26 +21,19 @@
         <div class="row">
             <!-- Item Name & Available Stock -->
             <div class="col-md-6 mb-1">
-                <label class="form-label bold-label">Item</label>
+                <label class="form-label bold-label">Item Name</label>
 
                 @if(isset($selectedItem))
                     <input type="text" class="form-control text-muted"
                         value="{{ old('item_name', $selectedItem->name ?? $inventory->item->name ?? '') }}" readonly>
                     <small class="text-muted">
-                        Available: {{ $selectedItem->remaining ?? $inventory->item->remaining ?? 0 }}
+                        @if($selectedQr)
+                            QR Code: {{ $selectedQr }}
+                        @else
+                            Available: {{ $selectedItem->remaining ?? 0 }}
+                        @endif
                     </small>
                     <input type="hidden" name="item_id" value="{{ $selectedItem->id ?? $inventory->item->id ?? '' }}">
-                @else
-                    <select class="form-select" name="item_id" id="itemSelect" required>
-                        <option value="" disabled {{ !isset($itemDistribution) ? 'selected' : '' }} hidden>Select an Item
-                        </option>
-                        @foreach($items as $item)
-                            <option value="{{ $item->id }}" data-type="{{ $item->type }}"
-                                data-remaining="{{ $item->remaining }}">
-                                {{ $item->name }} (Available: {{ $item->remaining }})
-                            </option>
-                        @endforeach
-                    </select>
                 @endif
             </div>
 
@@ -49,17 +42,21 @@
                 <div class="col-md-6 mb-1" id="typeWrapper">
                     <label class="form-label required">Select type</label>
                     <select class="form-select" name="type" id="itemDistribution-type" required>
-                        <option value="" disabled {{ !isset($itemDistribution) ? 'selected' : '' }} hidden>Select Type</option>
-                        {{-- Hide Distributed for non-consumables --}}
-                        <option value="distributed" style="display:none;" @if(isset($itemDistribution) && $itemDistribution->type == 'distributed') selected @endif>
+
+                        <!-- Placeholder -->
+                        <option value="" hidden>Select Type</option>
+
+                        <!-- Hidden for non-consumables -->
+
+                        <option value="distributed" style="display:none;" {{ isset($itemDistribution) && $itemDistribution->type == 'distributed' ? 'selected' : '' }}>
                             Distributed
                         </option>
-                        <option value="borrowed" @if(isset($itemDistribution) && $itemDistribution->type == 'borrowed')
-                        selected @endif>
+
+                        <option value="borrowed" {{ isset($itemDistribution) && $itemDistribution->type == 'borrowed' ? 'selected' : '' }}>
                             Borrowed
                         </option>
-                        <option value="issued" @if(isset($itemDistribution) && $itemDistribution->type == 'issued') selected
-                        @endif>
+
+                        <option value="issued" {{ isset($itemDistribution) && $itemDistribution->type == 'issued' ? 'selected' : '' }}>
                             Issued
                         </option>
                     </select>
@@ -67,7 +64,6 @@
             @else
                 <input type="hidden" name="type" value="distributed">
             @endif
-
 
             <!-- Quantity (for consumables) -->
             @if(($selectedItem->type ?? '') === 'consumable')
@@ -155,7 +151,6 @@
                 <input type="hidden" name="inventory_ids[]" value="{{ $selectedInventory }}">
             @endif
 
-
             <!-- Department / Borrower -->
             <div class="col-md-6 mb-3">
                 <label class="form-label required">Department or Borrower</label>
@@ -239,12 +234,6 @@
 
     // --- SELECT/DESELECT ALL UNITS (global) ---
     $(document).ready(function () {
-        // Initialize form on page load
-        const currentType = $('#itemDistribution-type').val();
-        if (currentType) {
-            toggleFieldsByType(currentType); // sets the status based on type
-        }
-
         // Select/Deselect all units
         $('#selectAllUnits').change(function () {
             $('.unitCheckbox').prop('checked', $(this).is(':checked'));

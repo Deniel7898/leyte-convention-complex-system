@@ -237,6 +237,7 @@ class InventoriesController extends Controller
             Inventory::create([
                 'id' => Str::uuid(),
                 'item_id' => $item->id,
+                'status' => 'available',
                 'received_date' => $request->received_date ?? now(),
                 'created_by' => Auth::id(),
                 'updated_by' => Auth::id(),

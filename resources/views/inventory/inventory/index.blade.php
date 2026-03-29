@@ -131,6 +131,7 @@
 <div id="loading-spinner">
     <div class="spinner"></div>
 </div>
+
 <script>
     window.liveSearchUrl = "{{ route('inventory.liveSearch') }}";
 

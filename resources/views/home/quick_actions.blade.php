@@ -18,8 +18,8 @@
                     <div class="quick-action-box success" data-action="distribute" style="cursor:pointer;">
                         <div class="icon text-success"><i class="bi bi-send"></i></div>
                         <div>
-                            <div class="action-title text-success">Distribute</div>
-                            <div class="action-desc">Scan item to distribute</div>
+                            <div class="action-title text-success">Distribute / Return</div>
+                            <div class="action-desc">Scan item to distribute or return</div>
                         </div>
                     </div>
                 </div>
@@ -27,8 +27,8 @@
                     <div class="quick-action-box warning" data-action="service" style="cursor:pointer;">
                         <div class="icon text-warning"><i class="bi bi-tools"></i></div>
                         <div>
-                            <div class="action-title text-warning">Service</div>
-                            <div class="action-desc">Scan item for service</div>
+                            <div class="action-title text-warning">Service / Complete</div>
+                            <div class="action-desc">Scan item for service or complete</div>
                         </div>
                     </div>
                 </div>
@@ -39,7 +39,7 @@
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content rounded-4 shadow-lg">
                         <div class="modal-header border-0" style="background-color: rgb(43, 45, 87);">
-                            <h5 class="modal-title fw-bold text-white" id="scanModalTitle">Add Stock</h5>
+                            <h5 class="modal-title bold-label text-white" id="scanModalTitle"></h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                                 aria-label="Close"></button>
                         </div>
@@ -52,123 +52,6 @@
                                 <!-- SCAN LINE -->
                                 <div class="scan-line"></div>
                             </div>
-
-                            <style>
-                                .qr-scanner-container {
-                                    position: relative;
-                                    width: 120px;
-                                    height: 120px;
-                                    margin: 0 auto;
-                                    display: flex;
-                                    justify-content: center;
-                                    align-items: center;
-                                }
-
-                                /* ICON */
-                                .qr-icon {
-                                    font-size: 100px;
-                                    color: #9ca3af;
-                                    /* soft grey */
-                                    z-index: 2;
-                                    animation: heartbeat 5.5s ease-in-out infinite;
-                                    position: relative;
-                                }
-
-                                /* GLOW EFFECT (soft white/grey) */
-                                .qr-icon::after {
-                                    content: "";
-                                    position: absolute;
-                                    top: 50%;
-                                    left: 50%;
-                                    width: 90px;
-                                    height: 90px;
-                                    background: rgba(255, 255, 255, 0.10);
-                                    /* light glow instead of blue */
-                                    transform: translate(-50%, -50%);
-                                    border-radius: 20px;
-                                    filter: blur(18px);
-                                    z-index: -1;
-                                    animation: glow 4s ease-in-out infinite;
-                                }
-
-                                /* SCAN LINE (LIGHT SWEEP EFFECT) */
-                                .scan-line {
-                                    position: absolute;
-                                    width: 85%;
-                                    height: 6px;
-                                    background: linear-gradient(90deg,
-                                            transparent,
-                                            rgba(255, 255, 255, 0.9),
-                                            transparent);
-                                    border-radius: 4px;
-                                    filter: blur(1px);
-                                    /* makes it look like light */
-                                    animation: scan 2.5s ease-in-out infinite;
-                                    z-index: 3;
-                                }
-
-                                /* SCAN ANIMATION (smooth light pass) */
-                                @keyframes scan {
-                                    0% {
-                                        top: 10%;
-                                        opacity: 0;
-                                    }
-
-                                    15% {
-                                        opacity: 1;
-                                    }
-
-                                    50% {
-                                        top: 50%;
-                                        opacity: 1;
-                                    }
-
-                                    85% {
-                                        opacity: 1;
-                                    }
-
-                                    100% {
-                                        top: 90%;
-                                        opacity: 0;
-                                    }
-                                }
-
-                                /* HEARTBEAT */
-                                @keyframes heartbeat {
-
-                                    0%,
-                                    100% {
-                                        transform: scale(1);
-                                    }
-
-                                    25% {
-                                        transform: scale(1.15);
-                                    }
-
-                                    50% {
-                                        transform: scale(1);
-                                    }
-
-                                    75% {
-                                        transform: scale(1.1);
-                                    }
-                                }
-
-                                /* GLOW */
-                                @keyframes glow {
-
-                                    0%,
-                                    100% {
-                                        opacity: 0.4;
-                                        transform: translate(-50%, -50%) scale(1);
-                                    }
-
-                                    50% {
-                                        opacity: 0.8;
-                                        transform: translate(-50%, -50%) scale(1.2);
-                                    }
-                                }
-                            </style>
 
                             <p id="scanModalMessage" class="text-muted mb-3">Waiting for barcode scan...</p>
 
@@ -284,15 +167,17 @@
                                         <label class="form-label bold-label">Item</label>
                                         <input type="text" class="form-control text-muted" id="distributionItemName"
                                             readonly>
-                                        <small class="text-muted" id="distributionItemRemaining" style="display:none;">Available: 0</small>
-                                        <small class="text-muted" id="distributionScannedQR" style="display:none;"></small>
+                                        <small class="text-muted" id="distributionItemRemaining"
+                                            style="display:none;">Available: 0</small>
+                                        <small class="text-muted" id="distributionScannedQR"
+                                            style="display:none;"></small>
                                     </div>
 
                                     <!-- Type -->
                                     <div class="col-md-6 mb-3" id="distributionTypeWrapper" style="display:none;">
                                         <label class="form-label required">Type</label>
                                         <select class="form-select" name="type" id="distributionType" required>
-                                            <option value="">-- Select type --</option>
+                                            <option value="" hidden>Select Type</option>
                                             <option value="distributed" style="display:none;">Distributed</option>
                                             <option value="borrowed">Borrowed</option>
                                             <option value="issued">Issued</option>
@@ -303,7 +188,7 @@
                                     <div class="col-md-6 mb-3" id="distributionQuantityWrapper" style="display:none;">
                                         <label class="form-label required">Quantity</label>
                                         <input type="number" class="form-control" name="quantity"
-                                            id="distributionQuantity" min="1" value="1">
+                                            id="distributionQuantity" min="1" value="">
                                     </div>
 
                                     <!-- Hidden input for inventory ID -->
@@ -350,6 +235,70 @@
                 </div>
             </div>
 
+            <!-- Return Modal -->
+            <div class="modal fade" id="returnModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content rounded-4 shadow-lg">
+                        <form id="returnForm" method="POST" enctype="multipart/form-data">
+                            @csrf
+
+                            <div class="modal-header" style="background-color: rgb(43,45,87);">
+                                <h5 class="modal-title text-white">Return Item</h5>
+                                <button type="button" class="btn-close btn-close-white"
+                                    data-bs-dismiss="modal"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <div class="row">
+                                    <input type="hidden" name="distribution_id" id="returnDistributionId">
+                                    <input type="hidden" name="page" value="home">
+
+                                    <!-- Item -->
+                                    <div class="col-md-6 mb-3">
+                                        <label class="bold-label">Item Name</label>
+                                        <input type="text" id="returnItemName" class="form-control" readonly>
+                                        <small class="text-muted" id="returnQR"></small>
+                                    </div>
+
+                                    <!-- Borrower -->
+                                    <div class="col-md-6 mb-3">
+                                        <label class="bold-label">Borrower</label>
+                                        <input type="text" id="returnBorrower" class="form-control" readonly>
+                                    </div>
+
+                                    <!-- Borrowed Date -->
+                                    <div class="col-md-6 mb-3">
+                                        <label class="bold-label">Borrowed Date</label>
+                                        <input type="text" id="returnDateBorrowed" class="form-control" readonly>
+                                    </div>
+
+                                    <!-- Returned Date -->
+                                    <div class="col-md-6 mb-3">
+                                        <label class="required">Returned Date</label>
+                                        <input type="date" name="returned_date" id="returnDate" class="form-control"
+                                            required>
+                                    </div>
+
+                                    <!-- Notes -->
+                                    <div class="mb-3">
+                                        <label class="bold-label">Notes</label>
+                                        <textarea name="notes" id="returnNotes" class="form-control" rows="1"
+                                            placeholder="Condition of the item upon return"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button class="btn text-white" style="background-color: rgb(43,45,87);">
+                                    Confirm Return
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
             <!-- Service Form Modal -->
             <div class="modal fade" id="serviceRecordModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -373,7 +322,7 @@
                                 <div class="row">
                                     <!-- Item Info -->
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label bold-label">Item</label>
+                                        <label class="form-label bold-label">Item Name</label>
                                         <input type="text" class="form-control text-muted" id="serviceItemName"
                                             readonly>
                                         <small class="text-muted" id="serviceScannedQR"></small>
@@ -383,7 +332,7 @@
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label required">Service Type</label>
                                         <select class="form-select" id="serviceType" name="type" required>
-                                            <option value="">-- Select type --</option>
+                                            <option value="" hidden>Select type</option>
                                             <option value="maintenance">Maintenance</option>
                                             <option value="installation">Installation</option>
                                             <option value="inspection">Inspection</option>
@@ -393,25 +342,25 @@
                                     <!-- Hidden input for inventory ID -->
                                     <input type="hidden" name="inventory_ids[]" id="serviceInventoryId" value="">
 
-                                    <!-- Technician -->
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label required">Technician</label>
-                                        <input type="text" class="form-control" id="technician" name="technician"
-                                            required>
-                                    </div>
-
                                     <!-- Service Date -->
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label required">Schedule Date</label>
                                         <input type="date" class="form-control" id="serviceDate" name="service_date"
                                             value="{{ date('Y-m-d') }}" min="{{ date('Y-m-d') }}" required>
                                     </div>
+                                    
+                                    <!-- Technician -->
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label bold-label">Technician</label>
+                                        <input type="text" class="form-control" id="technician" name="technician"
+                                            >
+                                    </div>
 
                                     <!-- Description -->
                                     <div class="mb-3">
-                                        <label class="form-label required">Service Description</label>
+                                        <label class="form-label bold-label">Service Description</label>
                                         <textarea class="form-control" id="serviceDescription" name="description"
-                                            rows="2" required></textarea>
+                                            rows="1"></textarea>
                                     </div>
 
                                     <!-- Picture Upload -->
@@ -435,6 +384,76 @@
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                 <button type="submit" class="btn text-white"
                                     style="background-color: rgb(43, 45, 87);">Save Service Record</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Complete Service Modal -->
+            <div class="modal fade" id="completeServiceModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content rounded-4 shadow-lg">
+                        <form id="completeServiceForm" method="POST" enctype="multipart/form-data">
+                            @csrf
+
+                            <div class="modal-header" style="background-color: rgb(43, 45, 87);">
+                                <h5 class="modal-title text-white">Complete Service</h5>
+                                <button type="button" class="btn-close btn-close-white"
+                                    data-bs-dismiss="modal"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <input type="hidden" name="service_record_id" id="completeServiceId">
+                                <input type="hidden" name="page" value="home">
+
+                                <div class="row">
+                                    <!-- Item Name -->
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label bold-label">Item Name</label>
+                                        <input type="text" class="form-control" id="completeItemName" readonly>
+                                    </div>
+
+                                    <!-- QR -->
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label bold-label">QR Code</label>
+                                        <input type="text" class="form-control" id="completeQR" readonly>
+                                    </div>
+
+                                    <!-- Schedule Date -->
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label bold-label">Schedule Date</label>
+                                        <input type="date" class="form-control" id="scheduleDate" name="schedule_date"
+                                            readonly>
+                                    </div>
+
+                                    <!-- Completed Date -->
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label required">Completed Date</label>
+                                        <input type="date" class="form-control" id="completedDate" name="completed_date"
+                                            required>
+                                    </div>
+
+                                    <!-- Remarks -->
+                                    <div class="mb-3">
+                                        <label class="form-label bold-label">Remarks</label>
+                                        <textarea class="form-control" name="remarks" id="completeRemarks"
+                                            placeholder="Service result or technician remarks"></textarea>
+                                    </div>
+
+                                    <!-- Picture -->
+                                    <div class="mb-3">
+                                        <label class="form-label">Completion Picture</label>
+                                        <input type="file" class="form-control" name="picture" accept="image/*">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn text-white" style="background-color: rgb(43, 45, 87);">
+                                    Complete Service
+                                </button>
                             </div>
                         </form>
                     </div>

@@ -9,6 +9,10 @@
         @include('home.stats_cards', ['stats' => $stats])
     </div>
 
+    <!-- Loading Spinner -->
+    <div id="loading-spinner">
+        <div class="spinner"></div>
+    </div>
 
     <!-- Quick Actions -->
     <div id="home-quick-action">
@@ -24,5 +28,4 @@
     <div id="activity-container-wrapper">
         @include('home.recent_activity', ['recent_activities' => $recent_activities])
     </div>
-
 @endsection

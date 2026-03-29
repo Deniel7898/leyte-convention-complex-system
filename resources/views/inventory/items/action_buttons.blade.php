@@ -11,14 +11,14 @@
         </div>
     </div>
     <div class="col-auto">
-        <div class="add-itemDistribution" data-url="{{ route('item_distributions.create') }}" data-item-id="{{ $item->id }}" data-type="issued">
+        <div class="add-itemDistribution" data-url="{{ route('item_distributions.create') }}" data-item-id="{{ $item->id }}" data-type="issued" data-remaining="{{ $item->remaining ?? 0 }}">
             <button class="btn px-3 text-white custom-btn">
                 <i class="bi bi-send"></i> Issue/Borrow
             </button>
         </div>
     </div>
     <div class="col-auto">
-        <div class="add-service" data-url="{{ route('service_records.create') }}" data-item-id="{{ $item->id }}">
+        <div class="add-service" data-url="{{ route('service_records.create') }}" data-item-id="{{ $item->id }}" data-remaining="{{ $item->remaining ?? 0 }}">
             <button class="btn px-3 text-white custom-btn">
                 <i class="bi bi-wrench"></i> Service
             </button>
@@ -43,7 +43,7 @@
         </div>
     </div>
     <div class="col-auto">
-        <div class="add-itemDistribution" data-url="{{ route('item_distributions.create') }}" data-item-id="{{ $item->id }}" data-type="distributed">
+        <div class="add-itemDistribution" data-url="{{ route('item_distributions.create') }}" data-item-id="{{ $item->id }}" data-type="distributed" data-remaining="{{ $item->remaining ?? 0 }}">
             <button class="btn px-3 text-white custom-btn">
                 <i class="bi bi-send"></i>
                 Distribute

@@ -12,8 +12,6 @@ use App\Models\Item;
 use App\Models\InventoryHistory;
 use App\Models\ItemDistribution;
 use App\Models\User;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Pagination\Paginator;
 use Carbon\Carbon;
 
 class Service_RecordsController extends Controller
@@ -79,29 +77,24 @@ class Service_RecordsController extends Controller
     /**
      * Helper: Get all Item Inventories
      */
-    private function getInventories($perPage = 20)
+    private function getInventories()
     {
-        $allItems = Item::with(['category', 'unit', 'inventories.qrCode'])->get()->map(function ($item) {
+        return Item::with(['category', 'unit', 'inventories.qrCode'])
+            ->get()
+            ->map(function ($item) {
+
             $item->inventory_type = $item->type === 'consumable' ? 'Consumable' : 'Non-Consumable';
             $item->item_name = $item->name;
 
             $qrCodes = $item->inventories->pluck('qrCode')->filter();
             $item->qrCodes = $qrCodes;
+
             $item->received_date = $item->inventories->first()?->received_date ?? '--';
 
             return $item;
-        })->sortByDesc('created_at')->values();
-
-        $currentPage = Paginator::resolveCurrentPage() ?: 1;
-        $currentItems = $allItems->slice(($currentPage - 1) * $perPage, $perPage)->values();
-
-        return new LengthAwarePaginator(
-            $currentItems,
-            $allItems->count(),
-            $perPage,
-            $currentPage,
-            ['path' => Paginator::resolveCurrentPath()]
-        );
+            })
+            ->sortByDesc('created_at')
+            ->values();
     }
 
     public function index()
@@ -141,6 +134,10 @@ class Service_RecordsController extends Controller
             }
         }
 
+        $selectedQr = $selectedInventory
+            ? $availableInventories->firstWhere('id', $selectedInventory)?->qrCode->code
+            : null;
+
         // Quick flag
         $quickAction = $request->has('quick') && $request->quick == 1;
 
@@ -151,7 +148,8 @@ class Service_RecordsController extends Controller
             'categories',
             'quickAction',
             'availableInventories',
-            'selectedInventory'
+            'selectedInventory',
+            'selectedQr'
         ));
     }
 
@@ -208,7 +206,7 @@ class Service_RecordsController extends Controller
             'type' => 'required|in:maintenance,installation,inspection',
             'service_date' => 'required|date',
             'completed_date' => 'nullable|date',
-            'technician' => 'required|string|max:255',
+            'technician' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'remarks' => 'nullable|string',
             'picture' => 'nullable|image|max:2048',
@@ -269,23 +267,26 @@ class Service_RecordsController extends Controller
         }
 
         $item->refresh();
-        $page = $request->page ?? 'home';
 
-        if ($page === 'items') {
+        if ($request->page === 'items') {
             $item->load('unit', 'category', 'inventories.qrCode');
+
             $history = InventoryHistory::where('item_id', $item->id)
                 ->with(['creator', 'updater'])
                 ->orderByDesc('created_at')
                 ->get();
 
+            // Return the non-consumable table partial
+            $nonConsumableTableHtml = view('inventory.items.non_consumable_table', compact('item'))->render();
+
             return response()->json([
                 'item_card_html' => view('inventory.items.item_card', compact('item'))->render(),
                 'history_table_html' => view('inventory.items.history_table', compact('item', 'history'))->render(),
+                'non_consumable_table_html' => $nonConsumableTableHtml,
                 'item_id' => $item->id,
-                'message' => 'Service added successfully',
+                'message' => 'Distribution added successfully'
             ]);
-
-        } elseif ($page === 'inventory') {
+        } elseif ($request->page === 'inventory') {
             $inventories = $this->getInventories();
             return response()->json([
                 'table_html' => view('inventory.inventory.table', compact('inventories'))->render(),
@@ -314,22 +315,36 @@ class Service_RecordsController extends Controller
 
     public function edit(string $id)
     {
-        $service_record = Service_Record::with('inventory.item', 'inventory.qrCode')
-            ->findOrFail($id);
+        $service_record = Service_Record::with([
+            'inventory.item.unit',
+            'inventory.item.category',
+            'inventory.qrCode'
+        ])->findOrFail($id);
 
         $items = Item::with(['unit', 'inventories.qrCode'])->get();
         $categories = Category::all();
-        $units = Units::all();
 
-        // Get the item from the service_record (for display)
-        $selectedItem = optional($service_record->inventory)->item;
+        // 🔥 SAME LOGIC AS CREATE
+        $selectedItem = $service_record->inventory?->item;
+
+        $availableInventories = $selectedItem?->inventories ?? collect();
+        $selectedInventory = $service_record->inventory_id;
+
+        $selectedQr = optional(
+            $availableInventories->firstWhere('id', $selectedInventory)
+        )->qrCode->code;
+
+        $quickAction = false;
 
         return view('service_records.form', compact(
             'service_record',
             'items',
             'categories',
-            'units',
-            'selectedItem'
+            'selectedItem',
+            'availableInventories',
+            'selectedInventory',
+            'selectedQr',
+            'quickAction'
         ));
     }
 
@@ -419,7 +434,7 @@ class Service_RecordsController extends Controller
             'completed_date' => 'nullable|date',
             'remarks' => 'nullable|string',
             'picture' => 'nullable|image|max:2048',
-            'page' => 'nullable|string',
+            'page' => 'nullable|string|in:home,items,service',
         ]);
 
         // Find the service record
@@ -500,6 +515,17 @@ class Service_RecordsController extends Controller
                 'cards_html' => view('service_records.card', ['record' => $record])->render(),
                 'table_html' => view('service_records.table', compact('service_records'))->render(),
                 'message' => 'Service marked as completed successfully',
+            ]);
+        } else { // home default
+            $recent_activities = $this->getRecentActivities();
+            $stats = $this->getHomeStats();
+            $overview = $this->getDashboardOverview();
+
+            return response()->json([
+                'recent_activity_html' => view('home.recent_activity', compact('recent_activities'))->render(),
+                'stats_html' => view('home.stats_cards', compact('stats'))->render(),
+                'overview_html' => view('home.dashboard_overview', compact('overview'))->render(),
+                'message' => 'Service added successfully',
             ]);
         }
     }

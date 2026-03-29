@@ -5,52 +5,62 @@
                 <div class="d-flex justify-content-between align-items-center mb-1 px-2">
                     <!-- Service Type Badge -->
                     @if($record->type == 'maintenance')
-                    <span class="badge bg-warning-subtle text-orange">
-                        <i class="bi bi-tools text-orange me-2" style="font-size: 14px;"></i>Maintenance
-                    </span>
+                        <span class="badge bg-warning-subtle text-orange">
+                            <i class="bi bi-tools text-orange me-2" style="font-size: 14px;"></i>Maintenance
+                        </span>
                     @elseif($record->type == 'installation')
-                    <span class="badge bg-primary-subtle text-primary">
-                        <i class="bi bi-box-seam text-primary me-2" style="font-size: 14px;"></i>Installation
-                    </span>
-                      @elseif($record->type == 'inspection')
-                    <span class="badge bg-primary-subtle text-primary">
-                        <i class="bi bi-box-seam text-primary me-2" style="font-size: 14px;"></i>Inspection
-                    </span>
+                        <span class="badge bg-primary-subtle text-primary">
+                            <i class="bi bi-box-seam text-primary me-2" style="font-size: 14px;"></i>Installation
+                        </span>
+                    @elseif($record->type == 'inspection')
+                        <span class="badge bg-primary-subtle text-primary">
+                            <i class="bi bi-box-seam text-primary me-2" style="font-size: 14px;"></i>Inspection
+                        </span>
                     @endif
 
                     <!-- Complete Service -->
                     <div class="ms-auto text-center">
-                        <button type="button"
-                            title="Complete Service"
+                        <button type="button" title="Complete Service"
                             class="btn p-0 border-0 bg-transparent text-success complete-service"
                             data-url="{{ route('service_records.show_service', $record->id) }}">
                             <i class="bi bi-check-circle"></i>
                         </button>
 
                         <!-- 3-dot menu button -->
-                        <button class="btn p-0 border-0 bg-transparent text-gray" type="button" id="actionMenu{{ $record->id }}" data-bs-toggle="dropdown" aria-expanded="false" title="Actions">
+                        <button class="btn p-0 border-0 bg-transparent text-gray" type="button"
+                            id="actionMenu{{ $record->id }}" data-bs-toggle="dropdown" aria-expanded="false"
+                            title="Actions">
                             <i class="bi bi-three-dots-vertical"></i>
                         </button>
 
                         <!-- Dropdown menu -->
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="actionMenu{{ $record->id }}">
                             <li>
-                                <button type="button" title="View Service" class="dropdown-item d-flex align-items-center text-primary edit" data-url="{{ route('service_records.show', $record->id) }}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye me-2">
-                                        <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                                <button type="button" title="View Service"
+                                    class="dropdown-item d-flex align-items-center text-primary edit"
+                                    data-url="{{ route('service_records.show', $record->id) }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="lucide lucide-eye me-2">
+                                        <path
+                                            d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0">
+                                        </path>
                                         <circle cx="12" cy="12" r="3"></circle>
                                     </svg>
                                     View
                                 </button>
                             </li>
                             <li>
-                                <button type="button"
-                                    title="Edit Item"
+                                <button type="button" title="Edit Item"
                                     class="dropdown-item d-flex align-items-center text-gray edit"
                                     data-url="{{ route('service_records.edit', $record->id) }}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-pen me-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="lucide lucide-square-pen me-2">
                                         <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                        <path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"></path>
+                                        <path
+                                            d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z">
+                                        </path>
                                     </svg>
                                     Edit
                                 </button>
@@ -62,18 +72,19 @@
                 <!-- Card Body -->
                 <div class="px-3">
                     <h6 class="fw-bold mb-0">{{ $record->inventory->item->name ?? 'No Item' }}</h6>
-                    <p class="mb-1 text-muted small">{{ $record->description ?? 'No description' }}</p>
+                    <p class="mb-1 text-muted small">{{ $record->description ?? 'No Service description' }}</p>
                     <hr class="my-1" />
                     <small class="d-flex justify-content-between">
-                        <span>Quantity</span>
-                        <span class="fw-bold text-primary">{{ $record->quantity ?? 1 }}</span>
+                        <span>QR Code</span>
+                        <span
+                            style="color: rgb(43, 45, 87);" class="fw-600">{{ $record->inventory->qrCode->code ?? "N/A"}}</span>
                     </small>
                     <small class="d-flex justify-content-between">
                         <span>Schedule Date</span>
                         <span class="text-muted small">
-                            {{ $record->schedule_date 
-                                ? \Carbon\Carbon::parse($record->schedule_date)->format('F j, Y') 
-                                : 'No Schedule' }}
+                            {{ $record->service_date
+    ? \Carbon\Carbon::parse($record->service_date)->format('F j, Y')
+    : 'No Schedule' }}
                         </span>
                     </small>
                 </div>

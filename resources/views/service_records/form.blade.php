@@ -21,17 +21,24 @@
         <div class="row">
             <!-- Item Name & Available Stock -->
             <div class="col-md-6 mb-1">
-                <label class="form-label bold-label">Item</label>
+                <label class="form-label bold-label">Item Name</label>
                 <input type="text" class="form-control text-muted" value="{{ $selectedItem->name ?? '' }}" readonly>
-                <small class="text-muted">Available: {{ $selectedItem->remaining ?? 0 }}</small>
                 <input type="hidden" name="item_id" value="{{ $selectedItem->id ?? '' }}">
+                <small class="text-muted">
+                    @if($selectedQr)
+                        QR Code: {{ $selectedQr }}
+                    @else
+                        Available: {{ $selectedItem->remaining ?? 0 }}
+                    @endif
+                </small>
             </div>
 
             <!-- Service Type -->
             <div class="col-md-6 mb-1">
                 <label for="service-record-type" class="form-label required">Service Type</label>
                 <select class="form-select" id="service-record-type" name="type" required>
-                    <option value="" disabled {{ !isset($itemDistribution) ? 'selected' : '' }} hidden>Select Type</option>
+                    <option value="" hidden>Select Type
+                    </option>
                     <option value="maintenance" {{ (isset($service_record) && $service_record->type == 'maintenance') ? 'selected' : '' }}>Maintenance</option>
                     <option value="installation" {{ (isset($service_record) && $service_record->type == 'installation') ? 'selected' : '' }}>Installation</option>
                     <option value="inspection" {{ (isset($service_record) && $service_record->type == 'inspection') ? 'selected' : '' }}>Inspection</option>
@@ -122,13 +129,6 @@
                 @endif
             @endif
 
-            <!-- Technician -->
-            <div class="col-md-6 mb-3">
-                <label for="technician" class="form-label required">Technician</label>
-                <input type="text" class="form-control" id="technician" name="technician"
-                    value="{{ old('technician', $service_record->technician ?? '') }}" required>
-            </div>
-
             <!-- Service Date -->
             <div class="col-md-6 mb-3">
                 <label for="service_date" class="form-label required">Schedule Date</label>
@@ -137,12 +137,18 @@
                     required min="{{ date('Y-m-d') }}">
             </div>
 
+            <!-- Technician -->
+            <div class="col-md-6 mb-3">
+                <label for="technician" class="form-label bold-label">Technician</label>
+                <input type="text" class="form-control" id="technician" name="technician"
+                    value="{{ old('technician', $service_record->technician ?? '') }}">
+            </div>
 
             <!-- Description -->
             <div class="mb-3">
-                <label for="description" class="form-label required"> Service Description</label>
-                <textarea class="form-control" id="description" name="description" rows="1"
-                    required>{{ old('description', $service_record->description ?? '') }}</textarea>
+                <label for="description" class="form-label bold-label"> Service Description</label>
+                <textarea class="form-control" id="description" name="description"
+                    rows="1">{{ old('description', $service_record->description ?? '') }}</textarea>
             </div>
 
             <!-- Picture Upload -->

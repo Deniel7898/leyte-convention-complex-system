@@ -84,7 +84,9 @@ class HomeController extends Controller
     public function getItemByQrCode($code)
     {
         try {
-            $qr = QR_Code::with('inventory.item.category', 'inventory.item.unit')->where('code', $code)->first();
+            $qr = QR_Code::with('inventory.item.category', 'inventory.item.unit', 'inventory.qrCode')
+                ->where('code', $code)
+                ->first();
 
             if (!$qr) {
                 return response()->json([
@@ -103,29 +105,27 @@ class HomeController extends Controller
                 ], 404);
             }
 
-            // Check if the inventory is available
-            $hasActiveService = $inventory->serviceRecords()
-                ->whereIn('status', ['scheduled', 'in progress'])
-                ->exists();
-
-            $hasDistributed = $inventory->itemDistributions()
-                ->whereIn('type', ['distributed'])
-                ->exists();
-
-            if (in_array(strtolower($inventory->status), ['borrowed', 'issued']) || $hasActiveService || $hasDistributed) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'This QR code is currently not available'
-                ], 400);
-            }
+            $status = strtolower($inventory->status ?? 'unknown');
 
             $remainingQty = $item->type === 'consumable' ? $item->remaining ?? 0 : 1;
+
             $availableUnits = $item->type === 'consumable' ? [] : [
                 [
                     'id' => $inventory->id,
                     'qr_code' => $inventory->qrCode->code ?? 'N/A',
                 ]
             ];
+
+            $activeDistribution = $inventory->itemDistributions()
+                ->whereIn('status', ['issued', 'borrowed'])
+                ->latest()
+                ->first();
+
+
+            $activeService = $inventory->serviceRecords()
+                ->whereIn('status', ['scheduled', 'under repair'])
+                ->latest()
+                ->first();
 
             return response()->json([
                 'success' => true,
@@ -139,8 +139,15 @@ class HomeController extends Controller
                     'remaining' => $remainingQty,
                     'units' => $availableUnits,
                     'inventory_id' => $inventory->id,
-                    'status' => strtolower($inventory->status ?? 'unknown'),
+                    'status' => $status, 
                     'qr_code' => $qr->code,
+
+                    'distribution_id' => $activeDistribution->id ?? null,
+                    'borrower' => $activeDistribution->department_or_borrower ?? null,
+                    'distribution_date' => $activeDistribution->distribution_date ?? null,
+
+                    'service_record_id' => $activeService->id ?? null,
+                    'schedule_date' => $activeService->service_date ?? null,
                 ]
             ]);
 

@@ -76,6 +76,23 @@
                         {!!$serviceRecords_table!!}
                     </tbody>
                 </table>
+                <div class="d-flex justify-content-between align-items-center mb-2 mx-2 px-2">
+                    <span id="serviceShowLessBtn" class="clickable small fw-500"
+                        style="display:none; cursor:pointer; color: rgb(43, 45, 87);">
+                        Show Less
+                    </span>
+
+                    <div>
+                        <span id="serviceShowMoreBtn" class="clickable small fw-500"
+                            style="cursor:pointer; margin-right:10px; color: rgb(43, 45, 87);">
+                            Show More
+                        </span>
+                        <span id="serviceShowAllBtn" class="clickable small fw-500"
+                            style="cursor:pointer; color: rgb(43, 45, 87);">
+                            Show All
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -96,6 +113,49 @@
 
     <script>
         window.liveSearchUrl = "{{ route('service_records.liveSearch') }}";
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const rows = document.querySelectorAll("#serviceRecords-table-body tr");
+
+            let visibleCount = 20;
+            const step = 10;
+
+            function updateServiceTable() {
+                rows.forEach((row, index) => {
+                    row.style.display = index < visibleCount ? "" : "none";
+                });
+
+                // Toggle buttons
+                document.getElementById("serviceShowMoreBtn").style.display =
+                    visibleCount >= rows.length ? "none" : "inline";
+
+                document.getElementById("serviceShowLessBtn").style.display =
+                    visibleCount > 20 ? "inline" : "none";
+
+                document.getElementById("serviceShowAllBtn").style.display =
+                    visibleCount >= rows.length ? "none" : "inline";
+            }
+
+            document.getElementById("serviceShowMoreBtn").addEventListener("click", function () {
+                visibleCount += step;
+                updateServiceTable();
+            });
+
+            document.getElementById("serviceShowLessBtn").addEventListener("click", function () {
+                visibleCount = 20;
+                updateServiceTable();
+            });
+
+            document.getElementById("serviceShowAllBtn").addEventListener("click", function () {
+                visibleCount = rows.length;
+                updateServiceTable();
+            });
+
+            updateServiceTable();
+        });
     </script>
 
 @endsection

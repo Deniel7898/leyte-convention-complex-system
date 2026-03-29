@@ -63,19 +63,30 @@ $(function () {
     // ----------------------------
     // Modals
     // ----------------------------
+    // Scanner Modal
     const scanModalEl = document.getElementById("scanModal");
     const scanModal = new bootstrap.Modal(scanModalEl);
 
-    const restockModalEl = document.getElementById("restockFormModal"); // for restock
+    // Restock Modal
+    const restockModalEl = document.getElementById("restockFormModal");
     const restockModal = new bootstrap.Modal(restockModalEl);
 
+    // Service Modal
     const serviceModalEl = document.getElementById("serviceRecordModal");
     const serviceModal = new bootstrap.Modal(serviceModalEl);
 
+    const completeServiceModalEl = document.getElementById(
+        "completeServiceModal",
+    );
+    const completeServiceModal = new bootstrap.Modal(completeServiceModalEl);
+
+    // Distribution Modal
     const distributionModalEl = document.getElementById(
         "itemDistributionModal",
     );
     const distributionModal = new bootstrap.Modal(distributionModalEl);
+    const returnModalEl = document.getElementById("returnModal");
+    const returnModal = new bootstrap.Modal(returnModalEl);
 
     // Scanner & manual input
     const scanMessage = document.getElementById("scanModalMessage");
@@ -146,11 +157,23 @@ $(function () {
     // Fetch item data
     // ----------------------------
     function fetchItem(code, actionKey) {
+        $("#loading-spinner").addClass("active");
+
         fetch(`/home/qr/${encodeURIComponent(code)}`)
             .then((res) => res.json())
             .then((result) => {
+                $("#loading-spinner").removeClass("active");
+
                 if (!result.success) {
-                    alert(result.message || "Item not found");
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Scan Failed",
+                        text: result.message || "Item not found",
+                        width: "350px",
+                        padding: "0.8rem",
+                        timer: 10000, // 10 seconds
+                        showConfirmButton: false,
+                    });
                     resetScan();
                     return;
                 }
@@ -198,7 +221,15 @@ $(function () {
     // ----------------------------
     function populateRestockModal(item, page = "home") {
         if (item.type !== "consumable") {
-            alert("Restock is only allowed for consumable items.");
+            Swal.fire({
+                icon: "warning",
+                title: "Not Allowed",
+                text: "Restock is only allowed for consumable items.",
+                width: "350px",
+                padding: "0.8rem",
+                timer: 10000, // 10 seconds
+                showConfirmButton: false,
+            });
             return;
         }
 
@@ -224,33 +255,213 @@ $(function () {
     }
 
     // ----------------------------
+    // Restock Quantity trim to 3 digit
+    // ----------------------------
+    document.getElementById("quantity").addEventListener("input", function () {
+        if (this.value.length > 3) {
+            this.value = this.value.slice(0, 3);
+        }
+    });
+
+    // ----------------------------
+    // Populate Item Distribution Modal
+    // ----------------------------
+    function populateDistributionModal(item, page = "home") {
+        const quantityWrapper = document.getElementById(
+            "distributionQuantityWrapper",
+        );
+        const quantityInput = document.getElementById("distributionQuantity");
+        const hiddenInventoryId = document.getElementById(
+            "distributionInventoryId",
+        );
+        const scannedQRText = document.getElementById("distributionScannedQR");
+        const typeWrapper = document.getElementById("distributionTypeWrapper");
+        const typeSelect = document.getElementById("distributionType");
+        const distributionItemRemaining = document.getElementById(
+            "distributionItemRemaining",
+        );
+        const distributionScannedQR = document.getElementById(
+            "distributionScannedQR",
+        );
+
+        // ----------------------------
+        // VALIDATION (OUT OF STOCK)
+        // ----------------------------
+        if (item.type === "consumable") {
+            if (!item.remaining || item.remaining <= 0) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Out of Stock",
+                    text: "This item has no remaining stock.",
+                    width: "320px",
+                    padding: "0.6rem",
+                    timer: 10000,
+                    showConfirmButton: true,
+                });
+                return;
+            }
+        }
+
+        // ----------------------------
+        // RESET MODAL
+        // ----------------------------
+        quantityInput.value = 1;
+        hiddenInventoryId.value = "";
+        scannedQRText.innerText = "";
+        distributionScannedQR.style.display = "none";
+        distributionItemRemaining.style.display = "none";
+
+        if (typeSelect) typeSelect.value = "";
+
+        // Set item info
+        document.getElementById("distributionItemId").value =
+            item.item_id || "";
+        document.getElementById("distributionItemName").value =
+            item.item_name || "";
+
+        // ----------------------------
+        // LOGIC BASED ON ITEM TYPE
+        // ----------------------------
+        if (item.type === "consumable") {
+            if (typeSelect) typeSelect.value = "distributed";
+
+            quantityWrapper.style.display = "block";
+            distributionItemRemaining.style.display = "block";
+            distributionItemRemaining.innerText = `Available: ${item.remaining || 0}`;
+
+            setupDistributionQuantity(item.remaining);
+        } else {
+            // Non-consumable
+            if (typeWrapper) typeWrapper.style.display = "block";
+
+            quantityInput.value = 1;
+
+            if (item.units && item.units.length > 0) {
+                hiddenInventoryId.value = item.units[0].id;
+
+                distributionScannedQR.style.display = "block";
+                scannedQRText.innerText = `QR Code: ${item.units[0].qr_code}`;
+            }
+        }
+
+        // store page info
+        restockModalEl.dataset.page = page;
+
+        // Normalize status
+        const status = (item.status || "").toLowerCase();
+
+        // ✅ AVAILABLE → show modal
+        if (status === "available") {
+            distributionModal.show();
+            return;
+        }
+
+        // ✅ BORROWED / ISSUED → show return modal
+        if (["issued", "borrowed"].includes(status)) {
+            populateReturnModal(item);
+            returnModal.show();
+            return;
+        }
+
+        // ❌ NOT ALLOWED
+        Swal.fire({
+            icon: "warning",
+            title: "Not Allowed",
+            text: `Item is not available. Current status: "${item.status}".`,
+            width: "350px",
+            padding: "0.8rem",
+            iconColor: "#f59e0b",
+            timer: 10000,
+            showConfirmButton: true,
+            customClass: {
+                title: "swal-small-title",
+                htmlContainer: "swal-small-text",
+            },
+        });
+    }
+
+    // ----------------------------
+    // Distribution Quantity Limit
+    // ----------------------------
+    function setupDistributionQuantity(remaining) {
+        const input = document.getElementById("distributionQuantity");
+        if (!input) return;
+
+        // set max properly
+        input.setAttribute("max", remaining);
+
+        // default value
+        input.value = remaining > 0 ? 1 : "";
+
+        // ❗ remove previous listeners (important fix)
+        input.oninput = function () {
+            let value = Number(this.value);
+
+            if (isNaN(value) || value < 1) {
+                this.value = "";
+            } else if (value > remaining) {
+                this.value = remaining;
+            }
+        };
+    }
+
+    // ----------------------------
+    // Populate Return Item Modal
+    // ----------------------------
+    function populateReturnModal(item) {
+        if (!item) return;
+
+        document.getElementById("returnItemName").value = item.item_name || "";
+        returnQR.innerText = `QR Code: ${item.units[0].qr_code}`;
+
+        // These MUST come from backend
+        document.getElementById("returnBorrower").value = item.borrower || "";
+        document.getElementById("returnDateBorrowed").value =
+            item.distribution_date || "";
+
+        // today
+        document.getElementById("returnDate").value = new Date()
+            .toISOString()
+            .slice(0, 10);
+
+        // set ID
+        document.getElementById("returnDistributionId").value =
+            item.distribution_id || "";
+
+        // set form action
+        const form = document.getElementById("returnForm");
+        form.action = `/item-distributions/${item.distribution_id}/return`;
+    }
+
+    // ----------------------------
     // Populate Service Modal
     // ----------------------------
     function populateServiceModal(item, page = "home") {
         if (!item || !item.item_id) {
-            alert("Item not found for service.");
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Item not found for service.",
+                timer: 10000,
+                showConfirmButton: true,
+            });
+            return;
+        }
+
+        // BLOCK CONSUMABLE ITEMS
+        if (item.type === "consumable") {
+            Swal.fire({
+                icon: "warning",
+                title: "Not Allowed",
+                text: "Consumable items cannot be serviced.",
+                timer: 10000,
+                showConfirmButton: true,
+            });
             return;
         }
 
         const hiddenInventoryId = document.getElementById("serviceInventoryId");
         const scannedQRText = document.getElementById("serviceScannedQR");
-
-        // ✅ CHECK STATUS
-        if (item.status !== "available") {
-            Swal.fire({
-                icon: "warning",
-                title: "Not Allowed",
-                text: `Item status is "${item.status}". Only available items can be serviced.`,
-                width: "350px", // 🔽 smaller width
-                padding: "0.8rem", // 🔽 less spacing
-                iconColor: "#f59e0b", // optional (clean look)
-                customClass: {
-                    title: "swal-small-title",
-                    htmlContainer: "swal-small-text",
-                },
-            });
-            return;
-        }
 
         // Reset
         hiddenInventoryId.value = "";
@@ -266,11 +477,14 @@ $(function () {
             .toISOString()
             .slice(0, 10);
 
-        // 🔥 KEY PART (same logic as distribution)
-        if (item.type !== "consumable" && item.units && item.units.length > 0) {
+        // SET INVENTORY + QR
+        if (item.units && item.units.length > 0) {
             hiddenInventoryId.value = item.units[0].id;
 
-                scannedQRText.innerText = `Selected QR: ${item.units[0].qr_code}`;
+            if (scannedQRText) {
+                scannedQRText.innerText = `QR Code: ${item.units[0].qr_code}`;
+                scannedQRText.style.display = "block";
+            }
         }
 
         // Reset image preview
@@ -284,131 +498,65 @@ $(function () {
         placeholder.style.display = "block";
         fileInput.value = "";
 
-        // store page info on modal for AJAX
+        // store page info
         restockModalEl.dataset.page = page;
-        const restockModal = new bootstrap.Modal(restockModalEl);
 
-        serviceModal.show();
-    }
+        // Normalize status
+        const status = (item.status || "").toLowerCase();
 
-    // ----------------------------
-    // Distribution Modal
-    // ----------------------------
-    function populateDistributionModal(item, page = "home") {
-        const quantityWrapper = document.getElementById(
-            "distributionQuantityWrapper",
-        );
-        const quantityInput = document.getElementById("distributionQuantity");
-        const hiddenInventoryId = document.getElementById(
-            "distributionInventoryId",
-        );
-        const scannedQRText = document.getElementById("distributionScannedQR");
-        const typeWrapper = document.getElementById("distributionTypeWrapper"); // container for type select
-        const typeSelect = document.getElementById("distributionType");
-        const distributionItemRemaining = document.getElementById("distributionItemRemaining");
-        const distributionScannedQR = document.getElementById("distributionScannedQR");
-
-        // ----------------------------
-        // VALIDATION
-        // ----------------------------
-        if (item.type === "consumable") {
-            if (!item.remaining || item.remaining <= 0) {
-                Swal.fire({
-                    icon: "warning",
-                    title: "Out of Stock",
-                    text: "This item has no remaining stock.",
-                    width: "320px",
-                    padding: "0.6rem",
-                    timer: 1500,
-                    showConfirmButton: false,
-                });
-                return;
-            }
-        } else {
-            if (item.status !== "available") {
-                Swal.fire({
-                    icon: "warning",
-                    title: "Not Available",
-                    text: `Item status is "${item.status}". Cannot distribute.`,
-                    width: "320px",
-                    padding: "0.6rem",
-                    timer: 1500,
-                    showConfirmButton: false,
-                });
-                return;
-            }
+        // AVAILABLE → show service modal
+        if (status === "available") {
+            serviceModal.show();
+            return;
         }
 
-        // ----------------------------
-        // RESET MODAL
-        // ----------------------------
-        quantityInput.value = 1;
-        hiddenInventoryId.value = "";
-        scannedQRText.innerText = "";
-        if (typeSelect) typeSelect.value = "";
-
-        // Set item info
-        document.getElementById("distributionItemId").value =
-            item.item_id || "";
-        document.getElementById("distributionItemName").value =
-            item.item_name || "";
-        document.getElementById("distributionItemRemaining").innerText =
-            `Available: ${item.remaining || 0}`;
-
-        // ----------------------------
-        // LOGIC BASED ON ITEM TYPE
-        // ----------------------------
-        if (item.type === "consumable") {
-            if (typeSelect) typeSelect.value = "distributed";
-
-            quantityWrapper.style.display = "block";
-            distributionItemRemaining.style.display = "block";
-            setupDistributionQuantity(item.remaining);
-        } else {
-            // Non-consumable → show type, hide quantity, default quantity=1, select first available unit
-            if (typeWrapper) typeWrapper.style.display = "block";
-
-            quantityInput.value = 1;
-
-            if (item.units && item.units.length > 0) {
-                hiddenInventoryId.value = item.units[0].id;
-                distributionScannedQR.style.display = "block";
-                scannedQRText.innerText = `Selected QR: ${item.units[0].qr_code}`;
-            }
+        // ONGOING SERVICE → show complete modal
+        if (["installation", "maintenance", "inspection"].includes(status)) {
+            populateCompleteServiceModal(item);
+            completeServiceModal.show();
+            return;
         }
 
-        // store page info on modal for AJAX
-        restockModalEl.dataset.page = page;
-        const restockModal = new bootstrap.Modal(restockModalEl);
-
-        distributionModal.show();
-    }
-
-    // ----------------------------
-    // Distribution Quantity Limit
-    // ----------------------------
-    function setupDistributionQuantity(remaining) {
-        const input = document.getElementById("distributionQuantity");
-        if (!input) return;
-        input.setAttribute("max", remaining);
-        input.value = remaining > 0 ? 1 : 0;
-        input.addEventListener("input", function () {
-            let value = Number(this.value);
-            if (isNaN(value) || value < 1) this.value = 1;
-            else if (value > remaining) this.value = remaining;
+        // not allowed if the item is in distributed or issued
+        Swal.fire({
+            icon: "warning",
+            title: "Not Allowed",
+            text: `Item is not available. Current status: "${item.status}".`,
+            width: "350px",
+            padding: "0.8rem",
+            iconColor: "#f59e0b",
+            timer: 10000,
+            showConfirmButton: true,
+            customClass: {
+                title: "swal-small-title",
+                htmlContainer: "swal-small-text",
+            },
         });
     }
 
     // ----------------------------
-    // Select/Deselect All Units
+    // Populate Complete Service Modal
     // ----------------------------
-    document.addEventListener("change", (e) => {
-        if (e.target && e.target.id === "selectAllDistributionUnits") {
-            document
-                .querySelectorAll("#distributionUnitsTableBody .unitCheckbox")
-                .forEach((cb) => (cb.checked = e.target.checked));
-        }
-    });
+    function populateCompleteServiceModal(item) {
+        if (!item) return;
+
+        document.getElementById("completeItemName").value =
+            item.item_name || "";
+        document.getElementById("completeQR").value = item.qr_code || "";
+        document.getElementById("scheduleDate").value =
+            item.schedule_date || "";
+
+        // today date
+        document.getElementById("completedDate").value = new Date()
+            .toISOString()
+            .slice(0, 10);
+
+        // IMPORTANT: set correct form action dynamically
+        const form = document.getElementById("completeServiceForm");
+
+        // assuming you pass service_record_id from backend later
+        form.action = `/service/${item.service_record_id}/complete-service`;
+    }
 
     // ----------------------------
     // Service Picture Dropzone

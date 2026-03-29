@@ -53,57 +53,123 @@
 
         <div id="cards-row"
             style="overflow-x: auto; white-space: nowrap; padding-top: 1rem; display: flex; flex-wrap: nowrap; gap: 0.1rem;">
+
             @foreach($transactions as $transactionId => $distributions)
-                @php $item = $distributions->first(); @endphp
-                @include('item_distributions.card', ['item' => $item])
+                @foreach($distributions as $distribution)
+                    @include('item_distributions.card', [
+                        'distribution' => $distribution,
+                        'item' => $distribution->item, // pass related item as well
+                    ])
+                @endforeach
             @endforeach
         </div>
-    </div>
 
-    <div class="card shadow-sm border-0 rounded-4 card-styles mt-3">
-        <div class="card-body p-0">
-            <div class="table-responsive rounded-4" style="min-height: 215px;">
-                <table class="table align-middle table-hover" id="itemDistributions_table">
-                    <thead class="bg-light">
-                        <tr class="text-uppercase text-muted small">
-                            <th>{{ __('#') }}</th>
-                            <th class="text-center">{{ __('QR Code') }}</th>
-                            <th>{{ __('Item') }}</th>
-                            <th>{{ __('Category') }}</th>
-                            <th>{{ __('Unit') }}</th>
-                            <th>{{ __('Qty') }}</th>
-                            <th>{{ __('Dist. Date') }}</th>
-                            <th>{{ __('Dist. Type') }}</th>
-                            <th>{{ __('Status') }}</th>
-                            <th>{{ __('Due Date') }}</th>
-                            <th>{{ __('Notes') }}</th>
-                            <th class="text-center">{{ __('Actions') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody id="itemDistributions-table-body" class="text-muted small">
-                        {!!$itemDistributions_table!!}
-                    </tbody>
-                </table>
+        <div class="card shadow-sm border-0 rounded-4 card-styles mt-3">
+            <div class="card-body p-0">
+                <div class="table-responsive rounded-4" style="min-height: 215px;">
+                    <table class="table align-middle table-hover" id="itemDistributions_table">
+                        <thead class="bg-light">
+                            <tr class="text-uppercase text-muted small">
+                                <th>{{ __('#') }}</th>
+                                <th class="text-center">{{ __('QR Code') }}</th>
+                                <th>{{ __('Item') }}</th>
+                                <th>{{ __('Category') }}</th>
+                                <th>{{ __('Unit') }}</th>
+                                <th>{{ __('Qty') }}</th>
+                                <th>{{ __('Dist. Date') }}</th>
+                                <th>{{ __('Dist. Type') }}</th>
+                                <th>{{ __('Status') }}</th>
+                                <th>{{ __('Due Date') }}</th>
+                                <th>{{ __('Notes') }}</th>
+                                <th class="text-center">{{ __('Actions') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemDistributions-table-body" class="text-muted small">
+                            {!!$itemDistributions_table!!}
+                        </tbody>
+                    </table>
+                    <div class="d-flex justify-content-between align-items-center mb-2 mx-2 px-2">
+                        <span id="showLessBtn" class="clickable small fw-500 " style="display:none; cursor:pointer; color: rgb(43, 45, 87);">
+                            Show Less
+                        </span>
+
+                        <div>
+                            <span id="showMoreBtn" class="clickable small fw-500 " style="cursor:pointer; margin-right:10px; color: rgb(43, 45, 87);">
+                                Show More
+                            </span>
+                            <span id="showAllBtn" class="clickable small fw-500 " style="cursor:pointer; color: rgb(43, 45, 87);">
+                                Show All
+                            </span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Modal -->
-    <div class="modal fade" id="itemDistributions_modal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
+        <!-- Modal -->
+        <div class="modal fade" id="itemDistributions_modal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
 
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Loading Spinner -->
-    <div id="loading-spinner">
-        <div class="spinner"></div>
-    </div>
+        <!-- Loading Spinner -->
+        <div id="loading-spinner">
+            <div class="spinner"></div>
+        </div>
 
-    <script>
-        window.liveSearchUrl = "{{ route('item_distributions.liveSearch') }}";
-    </script>
+        <script>
+                window.liveSearchUrl = "{{ route('item_distributions.liveSearch') }}";
+        </script>
 
+
+  <script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const rows = document.querySelectorAll("#itemDistributions-table-body tr");
+
+    let visibleCount = 20; // default
+    const step = 10;
+
+    function updateTable() {
+        rows.forEach((row, index) => {
+            row.style.display = index < visibleCount ? "" : "none";
+        });
+
+        // Show/Hide buttons
+        document.getElementById("showMoreBtn").style.display =
+            visibleCount >= rows.length ? "none" : "inline";
+
+        document.getElementById("showLessBtn").style.display =
+            visibleCount > 20 ? "inline" : "none";
+
+        // Show/Hide Show All
+        document.getElementById("showAllBtn").style.display =
+            visibleCount >= rows.length ? "none" : "inline";
+    }
+
+    // Show More (+10)
+    document.getElementById("showMoreBtn").addEventListener("click", function () {
+        visibleCount += step;
+        updateTable();
+    });
+
+    // Show Less (back to 20)
+    document.getElementById("showLessBtn").addEventListener("click", function () {
+        visibleCount = 20;
+        updateTable();
+    });
+
+    // Show All
+    document.getElementById("showAllBtn").addEventListener("click", function () {
+        visibleCount = rows.length;
+        updateTable();
+    });
+
+    // Initialize
+    updateTable();
+});
+</script>
 @endsection

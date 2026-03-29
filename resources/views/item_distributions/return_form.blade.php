@@ -1,5 +1,4 @@
-<form action="{{ route('item_distributions.returnItem', $distribution->id) }}"
-    method="POST"
+<form action="{{ route('item_distributions.returnItem', $distribution->id) }}" method="POST"
     enctype="multipart/form-data">
     @csrf
     @method('POST')
@@ -12,53 +11,52 @@
     </div>
 
     <div class="modal-body">
-        <!-- Hidden input for current page segment -->
-        <input type="hidden" name="page" id="currentPageInput" value="{{ request()->segment(1) ?? 'inventory' }}">
+        <div class="row">
+            <!-- Hidden input for current page segment -->
+            <input type="hidden" name="page" id="currentPageInput" value="{{ request()->segment(1) ?? 'inventory' }}">
 
-        <!-- Item Name -->
-        <div class="mb-3">
-            <label class="form-label fw-bold">Item Name</label>
-            <input type="text" class="form-control"
-                value="{{ $distribution->inventory->item->name ?? '' }}"
-                readonly>
-        </div>
+            <!-- Item Name -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label bold-label">Item Name
+                </label>
+                <input type="text" class="form-control" value="{{ $distribution->inventory->item->name ?? '' }}"
+                    readonly>
+                <input type="hidden" class="form-control" value="{{ $distribution->inventory->qrCode->code ?? 'N/A' }}">
+                <small class="text-muted">
+                    QR Code: {{ $distribution->inventory->qrCode->code ?? 'N/A' }}
+                </small>
+            </div>
 
-        <!-- QR Code -->
-        <div class="mb-3">
-            <label class="form-label fw-bold">QR Code</label>
-            <input type="text" class="form-control"
-                value="{{ $distribution->inventory->qrCode->code ?? 'N/A' }}"
-                readonly>
-        </div>
+            <!-- Borrower -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label bold-label">Borrower</label>
+                <input type="text" class="form-control" value="{{ $distribution->department_or_borrower ?? '' }}"
+                    readonly>
+            </div>
 
-        <!-- Borrower -->
-        <div class="mb-3">
-            <label class="form-label fw-bold">Borrower</label>
-            <input type="text" class="form-control"
-                value="{{ $distribution->department_or_borrower ?? '' }}"
-                readonly>
-        </div>
+            <!-- Borrowed Date -->
+            <div class="col-md-6 mb-2">
+                <label class="form-label bold-label">Borrowed Date</label>
+                <input type="text" class="form-control"
+                    value="{{ isset($distribution->distribution_date) ? \Carbon\Carbon::parse($distribution->distribution_date)->format('M j, Y') : '' }}"
+                    readonly>
+            </div>
 
-        <!-- Borrowed Date -->
-        <div class="mb-3">
-            <label class="form-label fw-bold">Borrowed Date</label>
-            <input type="text" class="form-control"
-                value="{{ isset($distribution->distribution_date) ? \Carbon\Carbon::parse($distribution->distribution_date)->format('M j, Y') : '' }}"
-                readonly>
-        </div>
+            <!-- Returned Date -->
+            <div class="col-md-6 mb-3">
+                <label for="returned_date" class="form-label required">Returned Date</label>
+                <input type="date" class="form-control" id="returned_date" name="returned_date"
+                    value="{{ date('Y-m-d') }}"
+                    min="{{ isset($distribution->distribution_date) ? \Carbon\Carbon::parse($distribution->distribution_date)->format('Y-m-d') : date('Y-m-d') }}"
+                    required>
+            </div>
 
-        <!-- Returned Date -->
-        <div class="mb-3">
-            <label for="returned_date" class="form-label fw-bold">Returned Date</label>
-            <input type="date" class="form-control" id="returned_date" name="returned_date" value="{{ date('Y-m-d') }}"
-                min="{{ isset($distribution->distribution_date) ? \Carbon\Carbon::parse($distribution->distribution_date)->format('Y-m-d') : date('Y-m-d') }}" required>
-        </div>
-
-        <!-- Notes -->
-        <div class="mb-3">
-            <label for="notes" class="form-label fw-bold">Notes</label>
-            <textarea class="form-control" id="notes" name="notes" rows="1"
-                placeholder="Condition of the item upon return"></textarea>
+            <!-- Notes -->
+            <div class="mb-3">
+                <label for="notes" class="form-label bold-label">Notes</label>
+                <textarea class="form-control" id="notes" name="notes" rows="1"
+                    placeholder="Condition of the item upon return"></textarea>
+            </div>
         </div>
     </div>
 
@@ -67,8 +65,7 @@
             Cancel
         </button>
 
-        <button type="submit" class="btn text-white"
-            style="background-color: rgb(43, 45, 87);">
+        <button type="submit" class="btn text-white" style="background-color: rgb(43, 45, 87);">
             Confirm Return
         </button>
     </div>
