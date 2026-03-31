@@ -22,6 +22,7 @@ use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
+use App\Events\ItemActionEvent;
 
 class InventoriesController extends Controller
 {
@@ -221,7 +222,6 @@ class InventoriesController extends Controller
                 'created_by' => Auth::id(),
                 'updated_by' => Auth::id(),
             ]);
-
         } elseif ($item->type === 'consumable') {
             $lastQrToday = QR_Code::where('code', 'like', "LCC-{$prefix}{$datetime}-%")->orderByDesc('code')->first();
             $lastSequence = $lastQrToday ? (int) explode('-', $lastQrToday->code)[2] : 0;
@@ -320,6 +320,10 @@ class InventoriesController extends Controller
             'updated_by' => Auth::id(),
         ]);
 
+
+        // --- Broadcast Event for Real-Time Updates ---
+        event(new ItemActionEvent($item, 'restock'));
+
         // Return response depending on page
         if ($request->page === 'items') {
             $item->load('unit', 'category');
@@ -334,14 +338,12 @@ class InventoriesController extends Controller
                 'item_id' => $item->id,
                 'message' => 'Stock added successfully',
             ]);
-
         } elseif ($request->page === 'inventory') {
             $inventories = $this->getInventories(); // Make sure this returns a collection of items
             return response()->json([
                 'table_html' => view('inventory.inventory.table', compact('inventories'))->render(),
                 'message' => 'Stock added successfully',
             ]);
-
         } else { // default to 'home'
             $recent_activities = $this->getRecentActivities(); // Should return collection
             $stats = $this->getHomeStats(); // Should return array ['total_stock'=>..., etc.]

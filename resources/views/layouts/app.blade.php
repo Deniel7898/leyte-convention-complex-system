@@ -189,7 +189,21 @@
 
     <!-- Sweet alert CDN -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
+
+    <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/laravel-echo/dist/echo.iife.js"></script>
+
+    <script>
+        window.Pusher = Pusher;
+
+        window.Echo = new Echo({
+            broadcaster: 'pusher',
+            key: 'YOUR_PUSHER_KEY',
+            cluster: 'mt1',
+            forceTLS: true,
+        });
+    </script>
+
     @yield('scripts')
 </body>
 

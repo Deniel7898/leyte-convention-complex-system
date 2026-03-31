@@ -17,6 +17,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Enable Apache rewrite for Laravel
 RUN a2enmod rewrite
 
+# Enable SSL module and default SSL site
+RUN a2enmod ssl
+RUN a2ensite default-ssl
+
 # Set working directory
 WORKDIR /var/www/html
 

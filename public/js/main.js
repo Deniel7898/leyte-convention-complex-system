@@ -39,18 +39,55 @@
     // Update localStorage
     localStorage.setItem("sidebarActive", "false");
   });
-})(); 
+})();
 
 
 // Custom Main Layout
 // Tooltip js
 document.addEventListener('DOMContentLoaded', function () {
-    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-    var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-        return new bootstrap.Popover(popoverTriggerEl, {
-            trigger: 'hover focus',
-            animation: true,
-            delay: { "show": 250, "hide": 100 }, // optional: slight delay for smoother UX
-        });
+  var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+  var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+    return new bootstrap.Popover(popoverTriggerEl, {
+      trigger: 'hover focus',
+      animation: true,
+      delay: { "show": 250, "hide": 100 }, // optional: slight delay for smoother UX
     });
+  });
 });
+
+
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
+
+window.Pusher = Pusher;
+
+window.Echo = new Echo({
+  broadcaster: 'pusher',
+  key: import.meta.env.VITE_PUSHER_APP_KEY,
+  cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+  forceTLS: true
+});
+
+// Real-time listener
+window.Echo.channel('inventory')
+  .listen('ItemActionEvent', (e) => {
+    switch (e.action) {
+      case 'restock':
+        updateInventoryTable(e.item);
+        updateDashboardStats(e.item);
+        updateItemCardIfOpen(e.item);
+        break;
+      case 'distribute':
+        updateInventoryTable(e.item);
+        updateDashboardStats(e.item);
+        break;
+      case 'return':
+        updateInventoryTable(e.item);
+        updateItemCardIfOpen(e.item);
+        break;
+      case 'service':
+      case 'complete':
+        updateDashboardStatus(e.item);
+        break;
+    }
+  });
