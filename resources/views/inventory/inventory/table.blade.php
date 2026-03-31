@@ -1,7 +1,7 @@
  @if($inventories->count() > 0)
  @foreach($inventories as $inventory)
  <tr class="text-start">
-     <td>{{ $inventories->firstItem() + $loop->index }}</td>
+  <td>{{ $loop->iteration }}</td>
      <td>
          {{ $inventory->name ?? '--' }}
          @if(!empty($inventory->description))

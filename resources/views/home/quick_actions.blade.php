@@ -163,7 +163,7 @@
 
                                 <div class="row">
                                     <!-- Item Name -->
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-6 mb-1">
                                         <label class="form-label bold-label">Item</label>
                                         <input type="text" class="form-control text-muted" id="distributionItemName"
                                             readonly>
@@ -174,7 +174,7 @@
                                     </div>
 
                                     <!-- Type -->
-                                    <div class="col-md-6 mb-3" id="distributionTypeWrapper" style="display:none;">
+                                    <div class="col-md-6 mb-1" id="distributionTypeWrapper" style="display:none;">
                                         <label class="form-label required">Type</label>
                                         <select class="form-select" name="type" id="distributionType" required>
                                             <option value="" hidden>Select Type</option>
@@ -218,7 +218,7 @@
                                     <!-- Notes -->
                                     <div class="mb-3">
                                         <label class="form-label bold-label">Notes</label>
-                                        <textarea class="form-control" name="notes" rows="2"
+                                        <textarea class="form-control" name="notes" rows="1 "
                                             placeholder="Optional notes"></textarea>
                                     </div>
                                 </div>
@@ -254,14 +254,14 @@
                                     <input type="hidden" name="page" value="home">
 
                                     <!-- Item -->
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-6 mb-1">
                                         <label class="bold-label">Item Name</label>
                                         <input type="text" id="returnItemName" class="form-control" readonly>
                                         <small class="text-muted" id="returnQR"></small>
                                     </div>
 
                                     <!-- Borrower -->
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-6 mb-1">
                                         <label class="bold-label">Borrower</label>
                                         <input type="text" id="returnBorrower" class="form-control" readonly>
                                     </div>
@@ -321,7 +321,7 @@
 
                                 <div class="row">
                                     <!-- Item Info -->
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-6 mb-1">
                                         <label class="form-label bold-label">Item Name</label>
                                         <input type="text" class="form-control text-muted" id="serviceItemName"
                                             readonly>
@@ -329,7 +329,7 @@
                                     </div>
 
                                     <!-- Service Type -->
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-6 mb-1">
                                         <label class="form-label required">Service Type</label>
                                         <select class="form-select" id="serviceType" name="type" required>
                                             <option value="" hidden>Select type</option>
@@ -348,12 +348,11 @@
                                         <input type="date" class="form-control" id="serviceDate" name="service_date"
                                             value="{{ date('Y-m-d') }}" min="{{ date('Y-m-d') }}" required>
                                     </div>
-                                    
+
                                     <!-- Technician -->
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label bold-label">Technician</label>
-                                        <input type="text" class="form-control" id="technician" name="technician"
-                                            >
+                                        <label class="form-label bold-label">Incharge / Technician</label>
+                                        <input type="text" class="form-control" id="technician" name="technician">
                                     </div>
 
                                     <!-- Description -->
@@ -437,7 +436,7 @@
                                     <!-- Remarks -->
                                     <div class="mb-3">
                                         <label class="form-label bold-label">Remarks</label>
-                                        <textarea class="form-control" name="remarks" id="completeRemarks"
+                                        <textarea class="form-control" name="remarks" id="completeRemarks" rows="1"
                                             placeholder="Service result or technician remarks"></textarea>
                                     </div>
 

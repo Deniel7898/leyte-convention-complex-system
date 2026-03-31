@@ -60,13 +60,13 @@
                     <thead class="bg-light">
                         <tr class="text-uppercase text-muted small">
                             <th>{{ __('#') }}</th>
+                            <th>{{ __('Service Type') }}</th>
                             <th class="text-center">{{ __('QR Code') }}</th>
                             <th>{{ __('Item') }}</th>
                             <th>{{ __('Category') }}</th>
-                            <th>{{ __('Service Type') }}</th>
                             <th>{{ __('Status') }}</th>
                             <th>{{ __('Schedule Date') }}</th>
-                            <th>{{ __('Technician') }}</th>
+                            <th>{{ __('Incharge / Technician') }}</th>
                             <th class="text-center">{{ __('Picture') }}</th>
                             <th>{{ __('Completed Date') }}</th>
                             <th class="text-center">{{ __('Actions') }}</th>

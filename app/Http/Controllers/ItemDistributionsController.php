@@ -123,20 +123,17 @@ class ItemDistributionsController extends Controller
         return Item::with(['category', 'unit', 'inventories.qrCode'])
             ->get()
             ->map(function ($item) {
+                $item->inventory_type = $item->type === 'consumable' ? 'Consumable' : 'Non-Consumable';
+                $item->item_name = $item->name;
 
-            $item->inventory_type = $item->type === 'consumable' ? 'Consumable' : 'Non-Consumable';
-            $item->item_name = $item->name;
-
-            // Gather all QR codes linked to inventories
                 $qrCodes = $item->inventories->pluck('qrCode')->filter();
-            $item->qrCodes = $qrCodes;
+                $item->qrCodes = $qrCodes;
 
-            $item->received_date = $item->inventories->first()?->received_date ?? '--';
-
-            return $item;
+                $item->received_date = $item->inventories->first()?->received_date ?? '--';
+                return $item;
             })
             ->sortByDesc('created_at')
-            ->values();
+            ->values(); // Collection, no paginator
     }
 
     /**

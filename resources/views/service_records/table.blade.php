@@ -2,6 +2,15 @@
     @foreach($service_records as $service_record)
         <tr class="text-start">
             <td>{{ $loop->iteration }}</td>
+            <td>
+                @if($service_record->type == 'maintenance')
+                    <span class="badge bg-warning-subtle text-orange">Maintenance</span>
+                @elseif($service_record->type == 'installation')
+                    <span class="badge bg-primary-subtle text-primary">Installation</span>
+                @elseif($service_record->type == 'inspection')
+                    <span class="badge bg-info-subtle text-secondary">Inspection</span>
+                @endif
+            </td>
             <td style="padding:0; margin:0; text-align:center">
                 @if($service_record->inventory?->qrCode)
                     <img src="{{ asset('storage/' . $service_record->inventory->qrCode->qr_picture) }}"
@@ -28,21 +37,12 @@
                 <i class="bi bi-tag me-1"></i>
                 {{ $service_record->inventory->item->category->name ?? '--' }}
             </td>
-            <td>
-                @if($service_record->type == 'maintenance')
-                    <span class="badge bg-warning-subtle text-orange">Maintenance</span>
-                @elseif($service_record->type == 'installation')
-                    <span class="badge bg-primary-subtle text-primary">Installation</span>
-                @elseif($service_record->type == 'inspection')
-                    <span class="badge bg-info-subtle text-secondary">Inspection</span>
-                @endif
-            </td>
 
             <!-- Universal Lightbox (one per page) -->
             <div id="universalLightbox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-            background: rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1050;">
+                    background: rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1050;">
                 <button id="universalLightboxClose" style="position:absolute; top:20px; right:20px; background:none;
-                border:none; color:white; font-size:2rem; cursor:pointer;">&times;</button>
+                        border:none; color:white; font-size:2rem; cursor:pointer;">&times;</button>
                 <img id="universalLightboxImg" src="" style="max-width:90%; max-height:90%; border-radius:8px;">
             </div>
 

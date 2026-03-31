@@ -414,21 +414,30 @@ $(function () {
         document.getElementById("returnItemName").value = item.item_name || "";
         returnQR.innerText = `QR Code: ${item.units[0].qr_code}`;
 
-        // These MUST come from backend
         document.getElementById("returnBorrower").value = item.borrower || "";
         document.getElementById("returnDateBorrowed").value =
             item.distribution_date || "";
 
-        // today
-        document.getElementById("returnDate").value = new Date()
-            .toISOString()
-            .slice(0, 10);
+        const returnDateInput = document.getElementById("returnDate");
 
-        // set ID
+        const today = new Date().toISOString().slice(0, 10);
+
+        // ✅ Min = distribution date
+        returnDateInput.min = item.distribution_date || "";
+
+        // ✅ Max = today
+        returnDateInput.max = today;
+
+        // ✅ Default = valid value
+        if (today < item.distribution_date) {
+            returnDateInput.value = item.distribution_date;
+        } else {
+            returnDateInput.value = today;
+        }
+
         document.getElementById("returnDistributionId").value =
             item.distribution_id || "";
 
-        // set form action
         const form = document.getElementById("returnForm");
         form.action = `/item-distributions/${item.distribution_id}/return`;
     }
@@ -546,15 +555,24 @@ $(function () {
         document.getElementById("scheduleDate").value =
             item.schedule_date || "";
 
-        // today date
-        document.getElementById("completedDate").value = new Date()
-            .toISOString()
-            .slice(0, 10);
+        const completedDateInput = document.getElementById("completedDate");
 
-        // IMPORTANT: set correct form action dynamically
+        const today = new Date().toISOString().slice(0, 10);
+
+        // ✅ Set min (schedule date)
+        completedDateInput.min = item.schedule_date || "";
+
+        // ✅ Set max (today)
+        completedDateInput.max = today;
+
+        // ✅ Default = valid value (between min and max)
+        if (today < item.schedule_date) {
+            completedDateInput.value = item.schedule_date;
+        } else {
+            completedDateInput.value = today;
+        }
+
         const form = document.getElementById("completeServiceForm");
-
-        // assuming you pass service_record_id from backend later
         form.action = `/service/${item.service_record_id}/complete-service`;
     }
 

@@ -355,7 +355,7 @@ class Service_RecordsController extends Controller
         // Conditional validation
         $rules = [
             'service_id' => 'required|exists:service_records,id',
-            'technician' => 'required|string|max:255',
+            'technician' => 'nullable|string|max:255',
             'type' => 'required|in:maintenance,installation,inspection',
             'service_date' => 'required|date',
             'completed_date' => 'nullable|date',

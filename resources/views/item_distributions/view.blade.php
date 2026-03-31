@@ -10,33 +10,15 @@
         <div class="row py-2 border-bottom">
             <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Distribution Date</div>
             <div class="col-8">
-                {{ isset($itemDistribution) ? \Carbon\Carbon::parse($itemDistribution->distribution_date)->format('M j, Y') : 'N/A' }}
+                {{ isset($itemDistribution) ? \Carbon\Carbon::parse($itemDistribution->distribution_date)->format('F j, Y') : 'N/A' }}
             </div>
         </div>
 
         <!-- Distribution Type -->
         <div class="row py-2 border-bottom">
             <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Distribution Type</div>
-            <div class="col-8">{{ isset($itemDistribution) ? ($itemDistribution->type == 0 ? 'Distribution' : 'Borrow') : ($selectedItem->type == 0 ? 'Distribution' : 'Borrow') }}</div>
-        </div>
-
-        <!-- Distribution Status -->
-        <div class="row py-2 border-bottom">
-            <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Distribution Status</div>
             <div class="col-8">
-                @php
-                $status = $itemDistribution->status ?? 'unknown';
-                $statusClasses = [
-                'distributed' => 'bg-success-subtle text-success',
-                'borrowed' => 'bg-warning-subtle text-orange',
-                'partial' => 'bg-warning-subtle text-orange',
-                'returned' => 'bg-success-subtle text-success',
-                'pending' => 'bg-secondary-subtle text-secondary',
-                ];
-                $class = $statusClasses[strtolower($status)] ?? 'bg-secondary-subtle text-secondary';
-                $label = ucfirst($status);
-                @endphp
-                <span class="badge {{ $class }}">{{ $label }}</span>
+                {{ isset($itemDistribution) ? ($itemDistribution->type == 0 ? 'Distribution' : 'Borrow') : ($selectedItem->type == 0 ? 'Distribution' : 'Borrow') }}
             </div>
         </div>
 
@@ -46,16 +28,36 @@
             <div class="col-8">{{ $itemDistribution->inventory->item->name ?? 'N/A' }}</div>
         </div>
 
+        <!-- Category -->
+        <div class="row py-2 border-bottom">
+            <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Category</div>
+            <div class="col-8">{{ $itemDistribution->inventory->item->category->name ?? 'N/A' }}</div>
+        </div>
+
         <!-- Unit -->
         <div class="row py-2 border-bottom">
             <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Unit</div>
             <div class="col-8">{{ $itemDistribution->inventory->item->unit->name ?? 'N/A' }}</div>
         </div>
 
-        <!-- Category -->
+        <!-- Distribution Status -->
         <div class="row py-2 border-bottom">
-            <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Category</div>
-            <div class="col-8">{{ $itemDistribution->inventory->item->category->name ?? 'N/A' }}</div>
+            <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Distribution Status</div>
+            <div class="col-8">
+                @php
+                    $status = $itemDistribution->status ?? 'unknown';
+                    $statusClasses = [
+                        'distributed' => 'bg-success-subtle text-success',
+                        'borrowed' => 'bg-warning-subtle text-orange',
+                        'partial' => 'bg-warning-subtle text-orange',
+                        'returned' => 'bg-success-subtle text-success',
+                        'pending' => 'bg-secondary-subtle text-secondary',
+                    ];
+                    $class = $statusClasses[strtolower($status)] ?? 'bg-secondary-subtle text-secondary';
+                    $label = ucfirst($status);
+                @endphp
+                <span class="badge {{ $class }}">{{ $label }}</span>
+            </div>
         </div>
 
         <!-- Quantity -->
@@ -73,7 +75,15 @@
         <!-- Distributed By -->
         <div class="row py-2 border-bottom">
             <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Distributed By</div>
-            <div class="col-8">{{ $itemDistribution->createdBy->last_name ?? 'N/A' }}</div>
+            <div class="col-8">
+                {{
+    ($itemDistribution->createdBy->first_name ?? '') . ' ' .
+    (isset($itemDistribution->createdBy->middle_name)
+        ? strtoupper(substr($itemDistribution->createdBy->middle_name, 0, 1)) . '.'
+        : '') . ' ' .
+    ($itemDistribution->createdBy->last_name ?? 'N/A')
+                }}
+            </div>
         </div>
 
         <!-- Item QR Code -->
@@ -81,12 +91,12 @@
             <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Item QR Code</div>
             <div class="col-8">
                 @if($itemDistribution->inventory->qrCode?->qr_picture)
-                <img src="{{ asset('storage/' . $itemDistribution->inventory->qrCode->qr_picture) }}"
-                    alt="{{ $itemDistribution->inventory->item->name }} QR Code"
-                    class="img-fluid rounded inventoryQRCode"
-                    style="max-height: 120px; cursor: pointer;">
+                    <img src="{{ asset('storage/' . $itemDistribution->inventory->qrCode->qr_picture) }}"
+                        alt="{{ $itemDistribution->inventory->item->name }} QR Code"
+                        class="img-fluid rounded inventoryQRCode" style="max-height: 120px; cursor: pointer;">
                 @else
-                <span class="px-2 rounded border bg-light">{{ $itemDistribution->inventory->qrCode->code ?? 'N/A' }}</span>
+                    <span
+                        class="px-2 rounded border bg-light">{{ $itemDistribution->inventory->qrCode->code ?? 'N/A' }}</span>
                 @endif
             </div>
         </div>
@@ -106,7 +116,7 @@
         </div>
 
         <script>
-            document.addEventListener('click', function(e) {
+            document.addEventListener('click', function (e) {
                 const overlay = document.getElementById('qrOverlay');
                 const overlayImage = document.getElementById('qrOverlayImage');
 

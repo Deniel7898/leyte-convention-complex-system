@@ -139,7 +139,7 @@
 
             <!-- Technician -->
             <div class="col-md-6 mb-3">
-                <label for="technician" class="form-label bold-label">Technician</label>
+                <label for="technician" class="form-label bold-label">Incharge / Technician</label>
                 <input type="text" class="form-control" id="technician" name="technician"
                     value="{{ old('technician', $service_record->technician ?? '') }}">
             </div>

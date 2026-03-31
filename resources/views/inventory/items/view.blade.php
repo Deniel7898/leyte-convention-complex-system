@@ -10,9 +10,9 @@
         <div class="row py-2 border-bottom">
             <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Received Date</div>
             <div class="col-8">
-                {{ $inventory && $inventory->received_date 
-                    ? \Carbon\Carbon::parse($inventory->received_date)->format('F j, Y') 
-                    : 'N/A' }}
+                {{ $inventory && $inventory->received_date
+    ? \Carbon\Carbon::parse($inventory->received_date)->format('F j, Y')
+    : 'N/A' }}
             </div>
         </div>
 
@@ -22,36 +22,36 @@
             <div class="col-8">{{ $inventory->item->name ?? 'N/A' }}</div>
         </div>
 
-        <!-- Unit -->
-        <div class="row py-2 border-bottom">
-            <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Unit</div>
-            <div class="col-8">{{ $inventory->item->unit->name ?? 'N/A' }}</div>
-        </div>
-
         <!-- Category -->
         <div class="row py-2 border-bottom">
             <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Category</div>
             <div class="col-8">{{ $inventory->item->category->name ?? 'N/A' }}</div>
         </div>
 
+        <!-- Unit -->
+        <div class="row py-2 border-bottom">
+            <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Unit</div>
+            <div class="col-8">{{ $inventory->item->unit->name ?? 'N/A' }}</div>
+        </div>
+
         <!-- Item Status -->
         @php
-        // Get the latest distribution status or default to 'available'
-        $latestDistribution = $inventory->itemDistributions->last();
-        $status = $latestDistribution?->status ?? 'available';
+            // Get the latest distribution status or default to 'available'
+            $latestDistribution = $inventory->itemDistributions->last();
+            $status = $latestDistribution?->status ?? 'available';
 
-        // Define classes for each status
-        $statusClasses = [
-        'distributed' => 'bg-primary-subtle text-primary',
-        'borrowed' => 'bg-warning-subtle text-orange',
-        'returned' => 'bg-success-subtle text-success',
-        'received' => 'bg-success-subtle text-success',
-        'issued' => 'bg-primary-subtle text-primary',
-        'available' => 'bg-success-subtle text-success',
-        ];
+            // Define classes for each status
+            $statusClasses = [
+                'distributed' => 'bg-primary-subtle text-primary',
+                'borrowed' => 'bg-warning-subtle text-orange',
+                'returned' => 'bg-success-subtle text-success',
+                'received' => 'bg-success-subtle text-success',
+                'issued' => 'bg-primary-subtle text-primary',
+                'available' => 'bg-success-subtle text-success',
+            ];
 
-        // Pick class, fallback to secondary
-        $class = $statusClasses[strtolower($status)] ?? 'bg-secondary-subtle text-secondary';
+            // Pick class, fallback to secondary
+            $class = $statusClasses[strtolower($status)] ?? 'bg-secondary-subtle text-secondary';
         @endphp
 
         <div class="row py-2 border-bottom align-items-center">
@@ -81,7 +81,15 @@
         <!-- Recorded By -->
         <div class="row py-2 border-bottom">
             <div class="col-4 fw-bold" style="color: rgb(43, 45, 87);">Recorded By</div>
-            <div class="col-8" style="white-space: pre-wrap;">{{ $inventory->users->last_name ?? 'N/A' }}</div>
+            <div class="col-8">
+                {{
+    ($inventory->users->first_name ?? '') . ' ' .
+    (isset($inventory->users->middle_name)
+        ? strtoupper(substr($inventory->users->middle_name, 0, 1)) . '.'
+        : '') . ' ' .
+    ($inventory->users->last_name ?? 'N/A')
+                }}
+            </div>
         </div>
 
         <!-- Description -->
@@ -90,10 +98,7 @@
                 Description
             </div>
             <div class="col-8">
-                <p
-                    style="cursor: pointer;"
-                    data-bs-toggle="popover"
-                    data-bs-placement="top"
+                <p style="cursor: pointer;" data-bs-toggle="popover" data-bs-placement="top"
                     data-bs-content="{{ $inventory->item->description ?? 'No Description' }}">
                     {{ \Illuminate\Support\Str::limit($inventory->item->description, 20, '...') }}
                 </p>
@@ -109,21 +114,19 @@
             <!-- Images Row -->
             <div class="col-6 d-flex justify-content-center mt-2">
                 @if(isset($inventory->item) && $inventory->item->picture)
-                <img src="{{ asset('storage/' . $inventory->item->picture) }}"
-                    class="img-fluid rounded inventoryPicture"
-                    style="max-height: 170px; cursor: pointer;">
+                    <img src="{{ asset('storage/' . $inventory->item->picture) }}"
+                        class="img-fluid rounded inventoryPicture" style="max-height: 170px; cursor: pointer;">
                 @else
-                <div class="text-muted">No picture available</div>
+                    <div class="text-muted">No picture available</div>
                 @endif
             </div>
 
             <div class="col-6 d-flex justify-content-center mt-2">
                 @if(isset($inventory->qrCode->qr_picture) && $inventory->qrCode->qr_picture)
-                <img src="{{ asset('storage/' . $inventory->qrCode->qr_picture ?? '') }}"
-                    class="img-fluid rounded inventoryQRCode"
-                    style="max-height: 170px; cursor: pointer;">
+                    <img src="{{ asset('storage/' . $inventory->qrCode->qr_picture ?? '') }}"
+                        class="img-fluid rounded inventoryQRCode" style="max-height: 170px; cursor: pointer;">
                 @else
-                <div class="text-muted">No QR Code</div>
+                    <div class="text-muted">No QR Code</div>
                 @endif
             </div>
         </div>
@@ -145,7 +148,7 @@
         </div>
 
         <script>
-            document.addEventListener('click', function(e) {
+            document.addEventListener('click', function (e) {
                 const overlay = document.getElementById('pictureOverlay');
                 const overlayImage = document.getElementById('overlayImage');
 

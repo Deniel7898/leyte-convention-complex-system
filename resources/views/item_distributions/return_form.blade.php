@@ -45,10 +45,14 @@
             <!-- Returned Date -->
             <div class="col-md-6 mb-3">
                 <label for="returned_date" class="form-label required">Returned Date</label>
-                <input type="date" class="form-control" id="returned_date" name="returned_date"
-                    value="{{ date('Y-m-d') }}"
-                    min="{{ isset($distribution->distribution_date) ? \Carbon\Carbon::parse($distribution->distribution_date)->format('Y-m-d') : date('Y-m-d') }}"
-                    required>
+                <input type="date" class="form-control" id="returned_date" name="returned_date" min="{{ isset($distribution->distribution_date)
+                ? \Carbon\Carbon::parse($distribution->distribution_date)->format('Y-m-d')
+                : date('Y-m-d') }}" max="{{ date('Y-m-d') }}" value="{{ old(
+                'returned_date',
+                isset($distribution->distribution_date) && \Carbon\Carbon::parse($distribution->distribution_date)->gt(now())
+                ? \Carbon\Carbon::parse($distribution->distribution_date)->format('Y-m-d')
+                : date('Y-m-d')
+            ) }}" required>
             </div>
 
             <!-- Notes -->

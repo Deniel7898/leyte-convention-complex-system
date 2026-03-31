@@ -31,9 +31,7 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $recent_activities = InventoryHistory::orderBy('created_at', 'desc')
-            ->take(10)
-            ->get();
+        $recent_activities = InventoryHistory::orderBy('created_at', 'desc')->get();
 
         $today = now()->toDateString();
 

@@ -126,50 +126,50 @@
 
 
   <script>
-document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function () {
 
-    const rows = document.querySelectorAll("#itemDistributions-table-body tr");
+        const rows = document.querySelectorAll("#itemDistributions-table-body tr");
 
-    let visibleCount = 20; // default
-    const step = 10;
+        let visibleCount = 20; // default
+        const step = 10;
 
-    function updateTable() {
-        rows.forEach((row, index) => {
-            row.style.display = index < visibleCount ? "" : "none";
+        function updateTable() {
+            rows.forEach((row, index) => {
+                row.style.display = index < visibleCount ? "" : "none";
+            });
+
+            // Show/Hide buttons
+            document.getElementById("showMoreBtn").style.display =
+                visibleCount >= rows.length ? "none" : "inline";
+
+            document.getElementById("showLessBtn").style.display =
+                visibleCount > 20 ? "inline" : "none";
+
+            // Show/Hide Show All
+            document.getElementById("showAllBtn").style.display =
+                visibleCount >= rows.length ? "none" : "inline";
+        }
+
+        // Show More (+10)
+        document.getElementById("showMoreBtn").addEventListener("click", function () {
+            visibleCount += step;
+            updateTable();
         });
 
-        // Show/Hide buttons
-        document.getElementById("showMoreBtn").style.display =
-            visibleCount >= rows.length ? "none" : "inline";
+        // Show Less (back to 20)
+        document.getElementById("showLessBtn").addEventListener("click", function () {
+            visibleCount = 20;
+            updateTable();
+        });
 
-        document.getElementById("showLessBtn").style.display =
-            visibleCount > 20 ? "inline" : "none";
+        // Show All
+        document.getElementById("showAllBtn").addEventListener("click", function () {
+            visibleCount = rows.length;
+            updateTable();
+        });
 
-        // Show/Hide Show All
-        document.getElementById("showAllBtn").style.display =
-            visibleCount >= rows.length ? "none" : "inline";
-    }
-
-    // Show More (+10)
-    document.getElementById("showMoreBtn").addEventListener("click", function () {
-        visibleCount += step;
+        // Initialize
         updateTable();
     });
-
-    // Show Less (back to 20)
-    document.getElementById("showLessBtn").addEventListener("click", function () {
-        visibleCount = 20;
-        updateTable();
-    });
-
-    // Show All
-    document.getElementById("showAllBtn").addEventListener("click", function () {
-        visibleCount = rows.length;
-        updateTable();
-    });
-
-    // Initialize
-    updateTable();
-});
-</script>
+    </script>
 @endsection

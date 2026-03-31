@@ -4,19 +4,20 @@
         Recent Activity
     </h5>
 
-    <!-- Scrollable container -->
+    <!-- Container -->
     <div id="activity-container" class="overflow-auto" style="max-height: 300px; transition: max-height 0.3s ease;">
-        @foreach($recent_activities as $activity)
-            <div class="activity-item mb-2 d-flex justify-content-between align-items-start">
+        @foreach($recent_activities as $index => $activity)
+            <div
+                class="activity-item mb-2 d-flex justify-content-between align-items-start {{ $index >= 5 ? 'd-none' : '' }}">
+
                 <div class="activity-dot me-2 
-                            @if(in_array($activity->action, ['item created', 'added stock', 'added unit'])) bg-success
-                            @elseif(in_array($activity->action, ['distributed', 'issued', 'installation'])) bg-primary
-                            @elseif(in_array($activity->action, ['returned'])) bg-info
-                            @elseif(in_array($activity->action, ['maintenance', 'borrowed', 'inspection'])) bg-warning
-                            @elseif(in_array($activity->action, ['service completed'])) bg-dark
-                            @elseif(in_array($activity->action, ['deleted'])) bg-danger
-                            @else bg-secondary
-                            @endif" style="width:10px; height:10px; border-radius:50%; margin-top:6px;">
+                        @if(in_array($activity->action, ['item created', 'added stock', 'added unit', 'service completed'])) bg-success
+                        @elseif(in_array($activity->action, ['distributed', 'issued', 'installation'])) bg-primary
+                        @elseif(in_array($activity->action, ['returned'])) bg-info
+                        @elseif(in_array($activity->action, ['maintenance', 'borrowed', 'inspection'])) bg-warning
+                        @elseif(in_array($activity->action, ['deleted'])) bg-danger
+                        @else bg-secondary
+                        @endif" style="width:10px; height:10px; border-radius:50%; margin-top:6px;">
                 </div>
 
                 <div class="flex-grow-1">
@@ -31,63 +32,92 @@
         @endforeach
     </div>
 
-    <!-- Toggle buttons -->
+    <!-- BUTTONS (LIKE YOUR TABLE) -->
     @if(count($recent_activities) > 5)
-        <div class="d-flex gap-3 align-items-center mt-1">
-            <div class="position-relative small clickable fw-500 toggle-activity-btn"
-                style="cursor:pointer; color: rgb(43, 45, 87);">
-                Show More
+        <div class="d-flex justify-content-between align-items-center mt-2 px-2">
+
+            <!-- Show Less -->
+            <span id="showLessBtn" class="clickable small fw-500"
+                style="display:none; cursor:pointer; color: rgb(43, 45, 87);">
+                Show Less
+            </span>
+
+            <div>
+                <!-- Show More -->
+                <span id="showMoreBtn" class="clickable small fw-500"
+                    style="cursor:pointer; margin-right:10px; color: rgb(43, 45, 87);">
+                    Show More
+                </span>
+
+                <!-- Show All -->
+                <span id="showAllBtn" class="clickable small fw-500" style="cursor:pointer; color: rgb(43, 45, 87);">
+                    Show All
+                </span>
             </div>
 
-            <div class="position-relative small clickable fw-500 show-all-activity-btn"
-                style="cursor:pointer; color: rgb(43, 45, 87);">
-                Show All
-            </div>
         </div>
     @endif
+
 </div>
 
 <script>
-    function bindToggleActivity() {
-        const toggleBtn = document.querySelector('.toggle-activity-btn');
-        const showAllBtn = document.querySelector('.show-all-activity-btn');
-        const container = document.getElementById('activity-container');
+    document.addEventListener("DOMContentLoaded", function () {
 
-        if (container) {
-            let expanded = false;
-            const collapsedHeight = '300px';
+        const items = document.querySelectorAll(".activity-item");
+        const container = document.getElementById("activity-container");
 
-            // Initially collapse
-            container.style.maxHeight = collapsedHeight;
-            container.style.overflow = 'hidden';
-            container.style.transition = 'max-height 0.3s ease';
+        if (items.length <= 5) return;
 
-            // Toggle Show More / Show Less
-            if (toggleBtn) {
-                toggleBtn.onclick = function () {
-                    if (!expanded) {
-                        container.style.maxHeight = container.scrollHeight + 'px';
-                        toggleBtn.textContent = 'Show Less';
-                        expanded = true;
-                    } else {
-                        container.style.maxHeight = collapsedHeight;
-                        toggleBtn.textContent = 'Show More';
-                        expanded = false;
-                    }
-                };
-            }
+        let visibleCount = 5;
+        const step = 10;
+        const defaultHeight = 300;
 
-            // Show All
-            if (showAllBtn) {
-                showAllBtn.onclick = function () {
-                    container.style.maxHeight = container.scrollHeight + 'px';
-                    if (toggleBtn) toggleBtn.style.display = 'none'; // optional, hide toggle
-                };
-            }
+        function updateView() {
+            items.forEach((item, index) => {
+                item.classList.toggle("d-none", index >= visibleCount);
+            });
+
+            // 🔥 Smooth height adjust
+            setTimeout(() => {
+                container.style.maxHeight = container.scrollHeight + "px";
+            }, 50);
+
+            // Buttons logic (same as your table)
+            document.getElementById("showMoreBtn").style.display =
+                visibleCount >= items.length ? "none" : "inline";
+
+            document.getElementById("showAllBtn").style.display =
+                visibleCount >= items.length ? "none" : "inline";
+
+            document.getElementById("showLessBtn").style.display =
+                visibleCount > 5 ? "inline" : "none";
         }
-    }
 
-    document.addEventListener('DOMContentLoaded', function () {
-        bindToggleActivity();
+        // Show More (+10)
+        document.getElementById("showMoreBtn").addEventListener("click", function () {
+            visibleCount += step;
+            if (visibleCount > items.length) visibleCount = items.length;
+            updateView();
+        });
+
+        // Show All
+        document.getElementById("showAllBtn").addEventListener("click", function () {
+            visibleCount = items.length;
+            updateView();
+        });
+
+        // Show Less (back to 5)
+        document.getElementById("showLessBtn").addEventListener("click", function () {
+            visibleCount = 5;
+
+            container.style.maxHeight = defaultHeight + "px";
+
+            updateView();
+        });
+
+        // Initial state
+        container.style.maxHeight = defaultHeight + "px";
+        updateView();
+
     });
 </script>

@@ -66,8 +66,8 @@
             @if(!isset($item))
             <div class="col-md-6 mb-3">
                 <label for="item-total-stock" class="form-label required">Quantity</label>
-                <input type="number" class="form-control" id="item-total-stock" name="total_stock"
-                    value="{{ isset($item) ? $item->total_stock : '' }}" min="0" required>
+                <input type="number" id="quantity" class="form-control" id="item-total-stock" name="total_stock"
+                    value="{{ isset($item) ? $item->total_stock : '' }}" min="1" required maxlength="3" pattern="\d{1,3}" placeholder="Enter Quantity (max-999)">
             </div>
             @endif
 
@@ -157,6 +157,13 @@
 
         if (categoryType) {
             typeSelect.value = categoryType;
+        }
+    });
+</script>
+<script>
+    document.getElementById('quantity').addEventListener('input', function() {
+        if (this.value.length > 3) {
+            this.value = this.value.slice(0, 3); // Trim to 3 digits
         }
     });
 </script>

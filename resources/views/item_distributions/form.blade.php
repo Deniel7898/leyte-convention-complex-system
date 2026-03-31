@@ -162,9 +162,14 @@
             <!-- Distribution Date -->
             <div class="col-md-6 mb-3">
                 <label class="form-label required">Distribution Date</label>
-                <input type="date" class="form-control" name="distribution_date"
-                    value="{{ old('distribution_date', $itemDistribution->distribution_date ?? date('Y-m-d')) }}"
-                    min="{{ date('Y-m-d') }}">
+                <input type="date" class="form-control" name="distribution_date" value="{{ old(
+                    'distribution_date',
+                    isset($itemDistribution->distribution_date)
+                    ? \Carbon\Carbon::parse($itemDistribution->distribution_date)->format('Y-m-d')
+                    : date('Y-m-d')
+                ) }}" min="{{ isset($itemDistribution->distribution_date)
+                    ? \Carbon\Carbon::parse($itemDistribution->distribution_date)->format('Y-m-d')
+                    : date('Y-m-d') }}" max="{{ date('Y-m-d') }}" required>
             </div>
 
             <!-- Due Date -->
