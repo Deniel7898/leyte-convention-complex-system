@@ -12,7 +12,7 @@
         </a>
     </li>
 
-    <li class="nav-item  @if(collect(['inventory.*','items.*','viewItem.*'])->contains(fn($pattern) => request()->routeIs($pattern))) active @endif">
+    <li class="nav-item @if(collect(['inventory.*','items.*','viewItem.*'])->contains(fn($pattern) => request()->routeIs($pattern))) active @endif">
         <a href="{{ route('inventory.index') }}" title="{{ __('Inventory Management') }}">
             <span class="icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-box-seam" viewBox="0 0 16 16">
@@ -45,7 +45,7 @@
         </a>
     </li>
 
-    <li class="nav-item ">
+    <li class="nav-item @if(request()->routeIs('purchase-requests.*')) active @endif">
         <a href="{{ route('purchase-requests.index') }}" title="{{ __('Purchase Request') }}">
             <span class="icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-cart2" viewBox="0 0 16 16">
@@ -56,8 +56,8 @@
         </a>
     </li>
 
-    <li class="nav-item ">
-        <a href="#" title="{{ __('System Reports') }}">
+    <li class="nav-item @if(request()->routeIs('reports.*')) active @endif">
+        <a href="{{ route('reports.index') }}" title="{{ __('System Reports') }}">
             <span class="icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-file-earmark-text" viewBox="0 0 16 16">
                     <path d="M5.5 7a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1zM5 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5" />
@@ -67,6 +67,7 @@
             <span class="text">{{ __('Reports') }}</span>
         </a>
     </li>
+
     <ul class="nav flex-column" id="sidebarAccordion">
 
         <li class="nav-item nav-item-has-children @if(collect(['qr_codes.*','categories.*','units.*'])->contains(fn($pattern) => request()->routeIs($pattern))) active @endif">

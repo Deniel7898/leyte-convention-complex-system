@@ -8,7 +8,8 @@ use App\Http\Controllers\ItemDistributionsController;
 use App\Http\Controllers\Service_RecordsController;
 use App\Http\Controllers\Purchase_RequestsController;
 use App\Http\Controllers\Auth\VerificationController;
-use App\Http\Controllers\Auth\HomeController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -27,7 +28,7 @@ Route::get('/', function () {
     return view('auth.login');
 });
 
-Auth::routes(['verify' => true]); // includes all verification routes
+Auth::routes(['verify' => true]);
 
 // Verification page
 Route::get('/verify', function () {
@@ -54,7 +55,7 @@ Route::middleware('auth')->get('/check-verification-status', function (Illuminat
 });
 
 /*--------------------------------------------------------------------------
-// Live Search Routes (ALL PROTECTED)
+// Live Search Routes
 --------------------------------------------------------------------------*/
 Route::get('/items/live-search', [ItemsController::class, 'liveSearch'])->name('items.liveSearch');
 Route::get('/inventory/live-search', [InventoriesController::class, 'liveSearch'])->name('inventory.liveSearch');
@@ -68,15 +69,15 @@ Route::get('/inventory/show-stock', [InventoriesController::class, 'show_stock']
 Route::post('/inventory/add-stock', [InventoriesController::class, 'add_stock'])->name('inventory.add_stock');
 
 // -------------------------
-// Protected Routes (Admin & Verified Staff)
+// Protected Routes (Admin)
 // -------------------------
 Route::middleware(['auth', 'admin'])->group(function () {
 
     // Home
-    Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-    Route::get('/home/qr/{code}', [App\Http\Controllers\HomeController::class, 'getItemByQrCode']);
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::get('/home/qr/{code}', [HomeController::class, 'getItemByQrCode']);
 
-    // Users (Admin only)
+    // Users
     Route::resource('users', UserController::class);
     Route::post('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
 
@@ -107,4 +108,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::resource('purchase-requests', Purchase_RequestsController::class);
     Route::get('/purchase-requests/{id}/print', [Purchase_RequestsController::class, 'print'])->name('purchase-requests.print');
     Route::get('/purchase-requests/search-items', [Purchase_RequestsController::class, 'searchItems'])->name('purchase-requests.searchItems');
+
+    // Reports
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 });
