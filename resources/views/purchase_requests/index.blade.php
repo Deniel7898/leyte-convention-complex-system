@@ -1,87 +1,259 @@
 @extends('layouts.app')
 
-@section('page_title', 'Purchase Requests Management')
-
 @section('content')
 
-<!-- ========== title-wrapper start ========== -->
-<div class="title-wrapper pt-15 mb-1">
-    <div class="row align-items-center">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <!-- Left: Page Title -->
-                <div class="title">
-                    <div>
-                        <h4>Purchase Requests</h4>
-                        <p class="text-muted mb-0 text-sm">Manage and track all purchase requests.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- ========== title-wrapper end ========== -->
+<style>
 
-<div class="p-3 bg-white border rounded-3">
-    <div class="row align-items-center gx-3">
-        <div class="col">
-            <div class="input-group">
-                <span class="input-group-text bg-light border-end-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
-                    </svg>
-                </span>
-                <input type="search" id="pr-search" class="form-control" placeholder="Search by request ID or date...">
-            </div>
-        </div>
+/* ===== CONTAINER ===== */
+#tableContainer {
+    background: #f8f9fc;
+    padding: 20px;
+    border-radius: 12px;
+}
 
-        <div class="col-auto">
-            <div class="col-auto add-purchase-request" data-url="{{ route('purchase-requests.create') }}">
-                <button class="btn px-4 text-white" style="background-color: hsl(237, 34%, 30%);" onmouseover="this.style.backgroundColor='hsl(237, 34%, 40%)'" onmouseout="this.style.backgroundColor='hsl(237, 34%, 30%)'">
-                    + Add Request
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+/* ===== HEADER ===== */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
 
-<div class="card shadow-sm border-0 rounded-4 card-styles mt-3">
-    <div class="card-body p-0">
-        <div class="table-responsive rounded-4">
-            <table class="table align-middle table-hover" id="purchase_requests_table">
-                <thead class="bg-light">
-                    <tr class="text-uppercase pr-text-muted pr-small">
-                        <th>{{ __('#') }}</th>
-                        <th>{{ __('Request Date') }}</th>
-                        <th>{{ __('Items Count') }}</th>
-                        <th>{{ __('Created By') }}</th>
-                        <th>{{ __('Created Date') }}</th>
-                        <th class="text-center">{{ __('Actions') }}</th>
-                    </tr>
-                </thead>
-                <tbody id="purchase-requests-table-body" class="pr-text-muted pr-small">
-                    {!! $purchase_requests_table !!}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+.page-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1f2937;
+}
 
-<!-- Modal -->
-<div class="modal fade" id="purchase_requests_modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-        </div>
-    </div>
-</div>
+/* ===== ADD BUTTON ===== */
+#btnAdd {
+    background: #2d2f5b;
+    color: #fff;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-weight: 500;
+    border: none;
+}
 
-<!-- Loading Spinner -->
+#btnAdd:hover {
+    background: #1f2145;
+}
+
+/* ===== TABLE ===== */
+.table {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.table thead {
+    background: #f1f3f9;
+}
+
+.table th {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #6c757d;
+    padding: 14px;
+}
+
+.table td {
+    padding: 14px;
+    font-size: 14px;
+}
+
+.table tbody tr:hover {
+    background: #f9fbff;
+}
+
+/* ===== ITEMS ===== */
+.item-name {
+    font-weight: 600;
+    color: #2d2f5b;
+}
+
+.badge-qty {
+    background: #eef2ff;
+    color: #2d6cdf;
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 11px;
+}
+
+/* ===== ACTION ICONS ===== */
+.action-btns {
+    display: flex;
+    gap: 14px;
+}
+
+.action-btns i {
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.2s;
+}
+
+.icon-edit { color: #2d6cdf; }
+.icon-print { color: #6c757d; }
+.icon-delete { color: #dc3545; }
+
+.action-btns i:hover {
+    transform: scale(1.2);
+}
+
+/* ===== MODAL HEADER (FIXED) ===== */
+.modal-header {
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 16px 20px;
+}
+
+.modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+}
+
+/* ===== MODAL BODY ===== */
+.modal-body label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.modal-body input {
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    padding: 8px;
+    font-size: 13px;
+}
+
+/* ITEMS TABLE */
+#itemsTable thead {
+    background: #eef1f6;
+}
+
+/* ===== BUTTONS ===== */
+.btn-save {
+    background: #2563eb;
+    color: #fff;
+    border-radius: 8px;
+    padding: 8px 16px;
+    border: none;
+}
+
+.btn-close-custom {
+    background: #6b7280;
+    color: #fff;
+    border-radius: 8px;
+    padding: 8px 16px;
+    border: none;
+}
+
+#addItem {
+    background: #6b7280;
+    color: #fff;
+    border-radius: 8px;
+    padding: 6px 12px;
+    border: none;
+}
+
+.remove {
+    background: #ef4444;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+}
+
+/* ===== SPINNER (UNIFORM) ===== */
+#loading-spinner {
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+#loading-spinner.active {
+    display: flex;
+}
+
+.spinner {
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid #2d2f5b;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+</style>
+
+<!-- ===== SPINNER ===== -->
 <div id="loading-spinner">
     <div class="spinner"></div>
 </div>
 
-<script>
-    window.liveSearchUrl = "{{ route('purchase-requests.index') }}";
-</script>
+<!-- ===== HEADER ===== -->
+<div class="page-header">
+    <div class="page-title">Purchase Requests</div>
+    <button id="btnAdd">+ Add Request</button>
+</div>
+
+<!-- ===== TABLE ===== -->
+<div id="tableContainer">
+    @include('purchase_requests.table')
+</div>
+
+<!-- ===== MODAL ===== -->
+<div class="modal fade" id="requestModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <!-- HEADER -->
+            <div class="modal-header">
+                <h5 class="modal-title">Purchase Request</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- BODY -->
+            <div class="modal-body">
+
+                <input type="hidden" id="request_id">
+
+                <label>Date</label>
+                <input type="date" id="request_date" class="form-control mb-3">
+
+                <table class="table" id="itemsTable">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Qty</th>
+                            <th>Unit</th>
+                            <th>Description</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+
+                <button id="addItem">+ Add Item</button>
+
+            </div>
+
+            <!-- FOOTER -->
+            <div class="modal-footer">
+                <button class="btn-close-custom" data-bs-dismiss="modal">Close</button>
+                <button id="btnSave" class="btn-save">Save</button>
+            </div>
+
+        </div>
+    </div>
+</div>
 
 @endsection

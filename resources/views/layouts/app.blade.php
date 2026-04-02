@@ -21,7 +21,6 @@
     <!-- Sweet alert CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="{{ asset('css/custom/'.request()->segment(1).'.css') }}" />
 </head>
 
 <body>
@@ -184,8 +183,7 @@
     <script src="{{ asset('js/world-merc.js') }}"></script>
     <script src="{{ asset('js/polyfill.js') }}"></script>
     <script src="{{ asset('js/main.js') }}"></script>
-
-    <script src="{{ asset('js/custom/'.request()->segment(1).'.js') }}"></script>
+    <script src="{{ asset('js/custom/purchase_request.js') }}"></script>
 
     <!-- Sweet alert CDN -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

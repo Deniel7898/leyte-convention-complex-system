@@ -104,10 +104,13 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::resource('categories', App\Http\Controllers\CategoriesController::class);
     Route::resource('units', App\Http\Controllers\UnitsController::class);
 
-    // Purchase Requests
-    Route::resource('purchase-requests', Purchase_RequestsController::class);
-    Route::get('/purchase-requests/{id}/print', [Purchase_RequestsController::class, 'print'])->name('purchase-requests.print');
-    Route::get('/purchase-requests/search-items', [Purchase_RequestsController::class, 'searchItems'])->name('purchase-requests.searchItems');
+    // Purchase Requests (clean URL + correct naming)
+    Route::resource('purchase-requests', Purchase_RequestsController::class)
+        ->names('purchase_requests');
+
+    // Print route
+    Route::get('/purchase-requests/{id}/print', [Purchase_RequestsController::class, 'print'])
+        ->name('purchase_requests.print');
 
     // Reports
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');

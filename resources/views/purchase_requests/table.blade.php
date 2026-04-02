@@ -1,50 +1,43 @@
-@if(isset($purchaseRequests) && $purchaseRequests->count() > 0)
+<table class="table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Request Date</th>
+            <th>Items</th>
+            <th style="width:120px;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach($requests as $req)
+        <tr>
+            <td>{{ $loop->iteration }}</td>
 
-    @foreach($purchaseRequests as $key => $purchaseRequest)
-        <tr data-id="{{ $purchaseRequest->id }}">
-            <td>{{ $purchaseRequests->firstItem() + $key }}</td>
-            <td>{{ optional($purchaseRequest->request_date)->format('M d, Y') ?: '-' }}</td>
-            <td>{{ count($purchaseRequest->items ?? []) }}</td>
-            <td>{{ $purchaseRequest->creator->name ?? 'N/A' }}</td>
-            <td>{{ $purchaseRequest->created_at->format('M d, Y') }}</td>
-            <td class="text-center">
-                <div class="action-icons">
-                    <button class="btn btn-sm btn-action edit-purchase-request"
-                            data-id="{{ $purchaseRequest->id }}"
-                            data-url="{{ route('purchase-requests.edit', $purchaseRequest->id) }}"
-                            title="Edit">
-                        <i class="bi bi-pencil-square"></i>
-                    </button>
+            <td>
+                {{ \Carbon\Carbon::parse($req->request_date)->format('M d, Y') }}
+            </td>
 
-                    <a href="{{ route('purchase-requests.print', $purchaseRequest->id) }}"
-                       class="btn btn-sm btn-action"
-                       title="Print"
-                       target="_blank">
-                        <i class="bi bi-printer"></i>
-                    </a>
+            <td>
+                @foreach($req->items as $item)
+                    <div class="item-name">
+                        {{ $item['item_name'] }}
+                        <span class="badge-qty">
+                            {{ $item['quantity'] }}
+                        </span>
+                    </div>
+                    <div class="item-sub">
+                        {{ $item['unit'] ?? '' }}
+                    </div>
+                @endforeach
+            </td>
 
-                    <button class="btn btn-sm btn-action delete-purchase-request"
-                            data-id="{{ $purchaseRequest->id }}"
-                            data-url="{{ route('purchase-requests.destroy', $purchaseRequest->id) }}"
-                            title="Delete">
-                        <i class="bi bi-trash"></i>
-                    </button>
+            <td>
+                <div class="action-btns">
+                    <i class="bi bi-pencil-square icon-edit btnEdit" data-id="{{ $req->id }}"></i>
+                    <i class="bi bi-printer icon-print btnPrint" data-id="{{ $req->id }}"></i>
+                    <i class="bi bi-trash icon-delete btnDelete" data-id="{{ $req->id }}"></i>
                 </div>
             </td>
         </tr>
-    @endforeach
-
-@else
-
-    <tr>
-        <td colspan="6" class="text-center py-4">
-            <p class="pr-text-muted">
-                No purchase requests found.
-                <a href="{{ route('purchase-requests.create') }}" class="text-decoration-none">
-                    Create one now
-                </a>
-            </p>
-        </td>
-    </tr>
-
-@endif
+        @endforeach
+    </tbody>
+</table>
