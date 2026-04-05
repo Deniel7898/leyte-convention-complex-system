@@ -356,6 +356,14 @@ class InventoriesController extends Controller
         }
     }
 
+    public function tablePartial()
+    {
+        $inventories = $this->getInventories(); // your helper method
+        return response()->json([
+            'table_html' => view('inventory.inventory.table', compact('inventories'))->render(),
+        ]);
+    }
+
     /**
      * SHOW
      */

@@ -67,6 +67,23 @@ Route::get('/service_records/live-search', [Service_RecordsController::class, 'l
 Route::get('/inventory/show-stock', [InventoriesController::class, 'show_stock'])->name('inventory.show_stock');
 Route::post('/inventory/add-stock', [InventoriesController::class, 'add_stock'])->name('inventory.add_stock');
 
+
+// Partial routes for Echo updates
+Route::middleware('auth')->group(function () {
+    Route::get('/inventory/table-partial', [InventoriesController::class, 'tablePartial'])
+        ->name('inventory.table-partial');
+    Route::get('/items/history-partial', [ItemsController::class, 'historyPartial']);
+
+    Route::get('/items/cards-partial', [ItemsController::class, 'cardsPartial'])
+        ->name('items.cards-partial');
+
+    Route::get('/home/stats-partial', [App\Http\Controllers\HomeController::class, 'statsPartial'])
+        ->name('home.stats-partial');
+
+    Route::get('/home/activity-partial', [App\Http\Controllers\HomeController::class, 'activityPartial'])
+        ->name('home.activity-partial');
+});
+
 // -------------------------
 // Protected Routes (Admin & Verified Staff)
 // -------------------------

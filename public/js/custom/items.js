@@ -98,11 +98,6 @@ $(function () {
                     );
                 }
 
-                // Update inventory table if returned
-                if (response.table_html) {
-                    $("#inventories_table tbody").html(response.table_html);
-                }
-
                 // Close modal only if update
                 if ($("#items_modal").data("action") === "update") {
                     $("#items_modal").modal("hide");

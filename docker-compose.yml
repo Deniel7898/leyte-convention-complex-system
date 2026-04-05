@@ -6,8 +6,9 @@ services:
       dockerfile: Dockerfile
     container_name: leyte_convention_complex_system
     ports:
-      - "8000:80"
-      - "443:443"       # expose HTTPS
+    - "8000:80"
+    - "443:443"
+    - "8080:8080"   # <-- add this for Reverb WS
     volumes:
       - .:/var/www/html
       - ./certs:/etc/ssl/certs  # <-- mount your certs folder here

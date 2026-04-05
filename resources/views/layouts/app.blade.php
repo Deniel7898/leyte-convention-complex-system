@@ -22,35 +22,29 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
     <link rel="stylesheet" href="{{ asset('css/custom/'.request()->segment(1).'.css') }}" />
+
+    @vite(['resources/js/app.js'])
 </head>
 
 <body>
     <!-- ======== sidebar-nav start =========== -->
     <aside class="sidebar-nav-wrapper">
         <nav class="sidebar-nav-wrapper bg-dark vh-100 d-flex flex-column">
-            <div class="sidebar-header d-flex align-items-center ps-3 pe-3 justify-content-between"
-                id="sidebar-header">
+            <div class="sidebar-header d-flex align-items-center ps-3 pe-3 justify-content-between" id="sidebar-header">
 
-                <img src="{{ asset('images/logo/leyte_province_logo.jpg') }}"
-                    class="rounded-circle"
-                    style="margin-right: -18px;"
-                    width="40"
-                    height="40"
-                    alt="Logo">
+                <img src="{{ asset('images/logo/leyte_province_logo.jpg') }}" class="rounded-circle"
+                    style="margin-right: -18px;" width="40" height="40" alt="Logo">
 
                 <!-- Brand -->
-                <a href="{{ route('home') }}"
-                    class="brand text-white fw-bold fs-5 text-decoration-none">
+                <a href="{{ route('home') }}" class="brand text-white fw-bold fs-5 text-decoration-none">
                     LCC System
                 </a>
 
                 <!-- Hamburger -->
-                <button id="menu-toggle"
-                    class="bg-transparent border-0 d-flex align-items-center ps-2"
-                    type="button"
+                <button id="menu-toggle" class="bg-transparent border-0 d-flex align-items-center ps-2" type="button"
                     aria-label="Toggle sidebar">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
-                        fill="currentColor" class="bi bi-list text-white" viewBox="0 0 16 16">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor"
+                        class="bi bi-list text-white" viewBox="0 0 16 16">
                         <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z" />
                         <path fill-rule="evenodd" d="M2.5 8a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z" />
                         <path fill-rule="evenodd" d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z" />
@@ -108,13 +102,10 @@
                             <!-- Profile -->
                             <div class="profile-box">
                                 <button class="dropdown-toggle bg-transparent border-0 d-flex align-items-center"
-                                    type="button"
-                                    id="profile"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false">
+                                    type="button" id="profile" data-bs-toggle="dropdown" aria-expanded="false">
                                     <div class="profile-info me-2">
                                         @auth
-                                        <h6 class="mb-0">{{ Auth::user()->last_name }}</h6>
+                                            <h6 class="mb-0">{{ Auth::user()->last_name }}</h6>
                                         @endauth
                                     </div>
                                     <i class="lni lni-chevron-down"></i>
@@ -175,7 +166,6 @@
 
     <!-- ========= All Javascript files linkup ======== -->
     <script src="{{ asset('js/jquery.js') }}"></script>
-    <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/Chart.min.js') }}"></script>
     <script src="{{ asset('js/dynamic-pie-chart.js') }}"></script>
     <script src="{{ asset('js/moment.min.js') }}"></script>
@@ -185,24 +175,10 @@
     <script src="{{ asset('js/polyfill.js') }}"></script>
     <script src="{{ asset('js/main.js') }}"></script>
 
-    <script src="{{ asset('js/custom/'.request()->segment(1).'.js') }}"></script>
+    <script src="{{ asset('js/custom/' . request()->segment(1) . '.js') }}"></script>
 
     <!-- Sweet alert CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/laravel-echo/dist/echo.iife.js"></script>
-
-    <script>
-        window.Pusher = Pusher;
-
-        window.Echo = new Echo({
-            broadcaster: 'pusher',
-            key: 'YOUR_PUSHER_KEY',
-            cluster: 'mt1',
-            forceTLS: true,
-        });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
 
     @yield('scripts')
 </body>

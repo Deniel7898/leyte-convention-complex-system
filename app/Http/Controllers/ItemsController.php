@@ -111,6 +111,30 @@ class ItemsController extends Controller
         });
     }
 
+    public function cardsPartial(Request $request)
+    {
+        $item = Item::with(['unit', 'category', 'inventories.qrCode'])
+            ->findOrFail($request->item_id);
+
+        return response()->json([
+            'item_card_html' => view('inventory.items.item_card', compact('item'))->render(),
+        ]);
+    }
+
+    public function historyPartial(Request $request)
+    {
+        $item = Item::findOrFail($request->item_id);
+
+        $history = InventoryHistory::where('item_id', $item->id)
+            ->with(['creator', 'updater'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        return response()->json([
+            'history_table_html' => view('inventory.items.history_table', compact('item', 'history'))->render(),
+        ]);
+    }
+
     /**
      * Get inventories for a specific item
      */
@@ -237,11 +261,11 @@ class ItemsController extends Controller
             $nonConsumableTableHtml = view('inventory.items.non_consumable_table', compact('item'))->render();
 
             return response()->json([
-                'item_card_html'           => view('inventory.items.item_card', compact('item'))->render(),
-                'history_table_html'       => view('inventory.items.history_table', compact('item', 'history'))->render(),
+                'item_card_html' => view('inventory.items.item_card', compact('item'))->render(),
+                'history_table_html' => view('inventory.items.history_table', compact('item', 'history'))->render(),
                 'non_consumable_table_html' => $nonConsumableTableHtml,
-                'item_id'                  => $item->id,
-                'message'                  => 'Distribution added successfully'
+                'item_id' => $item->id,
+                'message' => 'Distribution added successfully'
             ]);
         } else if ($request->page === 'inventory') {
             $inventories = $this->getInventories($item->id);
@@ -261,10 +285,10 @@ class ItemsController extends Controller
         $item = Item::with(['category', 'unit', 'inventories.qrCode'])->findOrFail($id);
 
         // Fetch all inventory history, regardless of type
-            $history = InventoryHistory::where('item_id', $item->id)
-                ->with(['creator', 'updater', 'inventory.qrCode'])
-                ->orderByDesc('created_at')
-                ->get();
+        $history = InventoryHistory::where('item_id', $item->id)
+            ->with(['creator', 'updater', 'inventory.qrCode'])
+            ->orderByDesc('created_at')
+            ->get();
 
         $historyCount = $history->count();
 
@@ -329,11 +353,11 @@ class ItemsController extends Controller
 
         // Return JSON to update the modal/partial via AJAX
         return response()->json([
-            'item_card_html'            => view('inventory.items.item_card', compact('item'))->render(),
-            'history_table_html'        => view('inventory.items.history_table', compact('item', 'history'))->render(),
+            'item_card_html' => view('inventory.items.item_card', compact('item'))->render(),
+            'history_table_html' => view('inventory.items.history_table', compact('item', 'history'))->render(),
             'non_consumable_table_html' => view('inventory.items.non_consumable_table', compact('item'))->render(),
-            'inventory_id'              => $inventory->id,
-            'message'                   => 'Inventory unit updated successfully',
+            'inventory_id' => $inventory->id,
+            'message' => 'Inventory unit updated successfully',
         ]);
     }
 

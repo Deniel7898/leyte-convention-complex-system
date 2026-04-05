@@ -79,6 +79,30 @@ class HomeController extends Controller
         ]);
     }
 
+    public function statsPartial()
+    {
+        $today = now()->toDateString();
+
+        $stats = [
+            'total_stock' => Item::sum('total_stock'),
+            'total_remaining' => Item::sum('remaining'),
+            'item_service_required' => Service_Record::whereIn('status', ['scheduled', 'under repair', 'cancelled'])->count(),
+        ];
+
+        return response()->json([
+            'stats_html' => view('home.stats_cards', compact('stats'))->render(),
+        ]);
+    }
+
+    public function activityPartial()
+    {
+        $recent_activities = InventoryHistory::orderBy('created_at', 'desc')->get();
+
+        return response()->json([
+            'recent_activity_html' => view('home.recent_activity', compact('recent_activities'))->render(),
+        ]);
+    }
+
     public function getItemByQrCode($code)
     {
         try {
@@ -137,7 +161,7 @@ class HomeController extends Controller
                     'remaining' => $remainingQty,
                     'units' => $availableUnits,
                     'inventory_id' => $inventory->id,
-                    'status' => $status, 
+                    'status' => $status,
                     'qr_code' => $qr->code,
 
                     'distribution_id' => $activeDistribution->id ?? null,

@@ -11,4 +11,13 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    server: {
+        host: true, // ✅ BEST (auto handles IP + localhost)
+        port: 5173,
+        strictPort: true,
+        cors: true,
+        hmr: {
+            host: '192.168.100.60', // ✅ NO SPACE
+        },
+    },
 });

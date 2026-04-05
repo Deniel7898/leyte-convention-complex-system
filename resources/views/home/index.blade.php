@@ -2,8 +2,6 @@
 
 @section('content')
 
-<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script> -->
-
 <!-- Stats Cards -->
 <div id="home-stats-cards">
     @include('home.stats_cards', ['stats' => $stats])

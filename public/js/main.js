@@ -1,93 +1,57 @@
 (function () {
-  const sidebarNavWrapper = document.querySelector(".sidebar-nav-wrapper");
-  const mainWrapper = document.querySelector(".main-wrapper");
-  const menuToggleButton = document.querySelector("#menu-toggle");
-  const overlay = document.querySelector(".overlay");
+    const sidebarNavWrapper = document.querySelector(".sidebar-nav-wrapper");
+    const mainWrapper = document.querySelector(".main-wrapper");
+    const menuToggleButton = document.querySelector("#menu-toggle");
+    const overlay = document.querySelector(".overlay");
 
-  // Load sidebar state from localStorage
-  if (localStorage.getItem("sidebarActive") === "true") {
-    sidebarNavWrapper.classList.add("active");
-    mainWrapper.classList.add("active");
-    overlay.classList.add("active");
-  }
-
-  menuToggleButton.addEventListener("click", () => {
-    sidebarNavWrapper.classList.toggle("active");
-    mainWrapper.classList.toggle("active");
-    overlay.classList.toggle("active"); // toggle overlay instead of always adding
-
-    // Save state to localStorage
-    localStorage.setItem(
-      "sidebarActive",
-      sidebarNavWrapper.classList.contains("active")
-    );
-
-    // Optionally toggle icon (if using a <i> inside button)
-    const menuIcon = menuToggleButton.querySelector("svg");
-    if (menuIcon) {
-      // Swap classes or styles if needed
-      menuIcon.classList.toggle("bi-list");
-      // You can add other icons like 'bi-x' for close
+    // Load sidebar state from localStorage
+    if (localStorage.getItem("sidebarActive") === "true") {
+        sidebarNavWrapper.classList.add("active");
+        mainWrapper.classList.add("active");
+        overlay.classList.add("active");
     }
-  });
 
-  overlay.addEventListener("click", () => {
-    sidebarNavWrapper.classList.remove("active");
-    mainWrapper.classList.remove("active");
-    overlay.classList.remove("active");
+    menuToggleButton.addEventListener("click", () => {
+        sidebarNavWrapper.classList.toggle("active");
+        mainWrapper.classList.toggle("active");
+        overlay.classList.toggle("active"); // toggle overlay instead of always adding
 
-    // Update localStorage
-    localStorage.setItem("sidebarActive", "false");
-  });
+        // Save state to localStorage
+        localStorage.setItem(
+            "sidebarActive",
+            sidebarNavWrapper.classList.contains("active"),
+        );
+
+        // Optionally toggle icon (if using a <i> inside button)
+        const menuIcon = menuToggleButton.querySelector("svg");
+        if (menuIcon) {
+            // Swap classes or styles if needed
+            menuIcon.classList.toggle("bi-list");
+            // You can add other icons like 'bi-x' for close
+        }
+    });
+
+    overlay.addEventListener("click", () => {
+        sidebarNavWrapper.classList.remove("active");
+        mainWrapper.classList.remove("active");
+        overlay.classList.remove("active");
+
+        // Update localStorage
+        localStorage.setItem("sidebarActive", "false");
+    });
 })();
-
 
 // Custom Main Layout
 // Tooltip js
-document.addEventListener('DOMContentLoaded', function () {
-  var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-  var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-    return new bootstrap.Popover(popoverTriggerEl, {
-      trigger: 'hover focus',
-      animation: true,
-      delay: { "show": 250, "hide": 100 }, // optional: slight delay for smoother UX
+document.addEventListener("DOMContentLoaded", function () {
+    var popoverTriggerList = [].slice.call(
+        document.querySelectorAll('[data-bs-toggle="popover"]'),
+    );
+    var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+        return new bootstrap.Popover(popoverTriggerEl, {
+            trigger: "hover focus",
+            animation: true,
+            delay: { show: 250, hide: 100 }, // optional: slight delay for smoother UX
+        });
     });
-  });
 });
-
-
-import Echo from 'laravel-echo';
-import Pusher from 'pusher-js';
-
-window.Pusher = Pusher;
-
-window.Echo = new Echo({
-  broadcaster: 'pusher',
-  key: import.meta.env.VITE_PUSHER_APP_KEY,
-  cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
-  forceTLS: true
-});
-
-// Real-time listener
-window.Echo.channel('inventory')
-  .listen('ItemActionEvent', (e) => {
-    switch (e.action) {
-      case 'restock':
-        updateInventoryTable(e.item);
-        updateDashboardStats(e.item);
-        updateItemCardIfOpen(e.item);
-        break;
-      case 'distribute':
-        updateInventoryTable(e.item);
-        updateDashboardStats(e.item);
-        break;
-      case 'return':
-        updateInventoryTable(e.item);
-        updateItemCardIfOpen(e.item);
-        break;
-      case 'service':
-      case 'complete':
-        updateDashboardStatus(e.item);
-        break;
-    }
-  });
